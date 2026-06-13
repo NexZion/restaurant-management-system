@@ -189,6 +189,10 @@ public function store(StoreBranchRequest $request)
             ], 404);
         }
 
+        $branch->status = 'inactive';
+        $branch->is_active = 0;
+        $branch->save();
+
         $branch->delete();
 
         return response()->json([

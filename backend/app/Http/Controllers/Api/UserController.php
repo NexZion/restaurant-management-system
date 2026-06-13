@@ -124,7 +124,7 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-   public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, $id)
     {
         $user = $request->user();
 
@@ -200,6 +200,10 @@ class UserController extends Controller
                 'message' => 'User not found'
             ], 404);
         }
+
+        $selectedUser->status = 'inactive';
+        $selectedUser->is_active = 0;
+        $selectedUser->save();
 
         $selectedUser->delete();
 

@@ -44,7 +44,8 @@ return new class extends Migration
                 'inactive',
                 'suspended'
             ])->default('active');
-
+            $table->boolean('is_active')->default(true);
+            
             $table->integer('failed_attempts')->default(0);
 
             $table->boolean('is_locked')->default(false);

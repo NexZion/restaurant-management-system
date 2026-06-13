@@ -62,6 +62,7 @@ return new class extends Migration
                 'inactive',
                 'maintenance'
             ])->default('active');
+            $table->boolean('is_active')->default(true);
 
             $table->softDeletes();
 
