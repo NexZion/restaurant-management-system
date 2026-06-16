@@ -1,20 +1,22 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-import { useEffect } from "react";
-import api from "./api/axios";
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './context/ThemeContext'
+import { DashboardLayout } from './layouts/dashboardLayout'
+import { Dashboard } from './pages/dashboard'
+import { Components } from './pages/components'
 
 function App() {
-
-  useEffect(() => {
-    api.get("/test")
-      .then(res => console.log(res.data))
-      .catch(err => console.log(err));
-  }, []);
-
-  return <div>Frontend Working</div>;
+  return (
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+        <Route path="/" element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/components" element={<Components />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+    </ThemeProvider >
+  )
 }
 
-export default App;
+export default App
