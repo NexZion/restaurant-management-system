@@ -5,6 +5,7 @@ import { DashboardLayout } from "./layouts/dashboardLayout";
 import { Dashboard } from "./pages/dashboard";
 import { Components } from "./pages/components";
 import { Login } from "./pages/Login";
+import { Users } from "./pages/Users";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/" element={<Login />} />
+          <Route path="/users" element={<Users />} />
           <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/components" element={<Components />} />
