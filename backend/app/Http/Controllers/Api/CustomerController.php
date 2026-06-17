@@ -12,7 +12,7 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
 {
-    $customers = Customer::all();
+    $customers = Customer::paginate($request->input('per_page', 10));
 
     return response()->json([
         'success' => true,

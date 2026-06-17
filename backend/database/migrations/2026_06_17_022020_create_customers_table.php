@@ -48,11 +48,7 @@ return new class extends Migration
                 'passport'
             ])->nullable();
 
-            $table->enum('status', [
-                'active',
-                'inactive',
-                'suspended'
-            ])->default('active');
+            $table->string('status')->default('active');
 
             $table->boolean('is_active')->default(true);
 

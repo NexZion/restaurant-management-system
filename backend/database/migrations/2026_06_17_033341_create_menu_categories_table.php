@@ -24,10 +24,7 @@ return new class extends Migration
 
             $table->integer('display_order')->default(0);
 
-            $table->enum('status', [
-                'active',
-                'inactive'
-            ])->default('active');
+            $table->string('status')->default('active');
 
             $table->softDeletes();
 

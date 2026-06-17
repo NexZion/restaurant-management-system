@@ -36,11 +36,7 @@ return new class extends Migration
 
             $table->integer('preparation_time')->default(15);
 
-            $table->enum('status', [
-                'available',
-                'unavailable',
-                'out_of_stock'
-            ])->default('available');
+            $table->string('status')->default('available');
 
             $table->integer('display_order')->default(0);
 

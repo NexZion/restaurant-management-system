@@ -73,7 +73,9 @@ public function store(StoreBranchRequest $request)
             ], 403);
         }
 
-        $branches = Branch::all();
+        $branches = Branch::paginate(
+            $request->input('per_page', 10)
+            );
 
         return response()->json([
             'success' => true,
