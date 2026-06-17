@@ -6,10 +6,9 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CustomerController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
+use App\Http\Controllers\Api\MenuItemImageController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -57,4 +56,5 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('customers', CustomerController::class); 
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
+    Route::apiResource('menu-item-images', MenuItemImageController::class);
 });

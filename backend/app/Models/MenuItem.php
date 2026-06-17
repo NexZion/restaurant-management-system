@@ -48,8 +48,8 @@ class MenuItem extends Model
         );
     }
 
-    // public function images()
-    // {
-    //     return $this->hasMany(MenuItemImage::class);
-    // }
+    public function images()
+{
+    return $this->hasMany(MenuItemImage::class);
+}
 }
