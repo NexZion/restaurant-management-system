@@ -3,12 +3,12 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\MenuCategory;
+use App\Models\MenuItem;
 
-class MenuCategorySeeder extends Seeder
+class MenuItemSeeder extends Seeder
 {
     public function run(): void
     {
-        MenuCategory::factory(10)->create();
+        MenuItem::factory(30)->create();
     }
 }

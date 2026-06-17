@@ -5,6 +5,11 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\MenuCategoryController;
+use App\Http\Controllers\Api\MenuItemController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -15,7 +20,7 @@ Route::prefix('auth')->group(function () {
 
     // Public Routes
 
-  
+
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/login/pin', [AuthController::class, 'pinLogin']);
 
@@ -46,8 +51,10 @@ Route::middleware('auth:api')->group(function () {
 
 
 Route::middleware('auth:api')->group(function () {
-    
-Route::apiResource('roles', RoleController::class);
-Route::apiResource('users', UserController::class);
 
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('customers', CustomerController::class); 
+    Route::apiResource('menu-categories', MenuCategoryController::class);
+    Route::apiResource('menu-items', MenuItemController::class);
 });
