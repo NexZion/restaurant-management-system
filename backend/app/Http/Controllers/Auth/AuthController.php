@@ -11,87 +11,96 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\LoginAttempt;
 
 class AuthController extends Controller
-{
+{   
+
     /**
      * User Login
      */
-    public function login(Request $request)
-    {
-        // validate request
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+   public function login(Request $request)
+{
+    // validate request
+    $request->validate([
+        'login' => 'required',
+        'password' => 'required'
+    ]);
 
-        // find user
-        $user = User::where('email', $request->email)->first();
+    // determine login field
+    $login = $request->login;
 
-        // check user exists
-        if (!$user) {
+    $field = filter_var($login, FILTER_VALIDATE_EMAIL)
+        ? 'email'
+        : 'username';
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401);
+    // find user
+    $user = User::where($field, $login)->first();
+
+    // check user exists
+    if (!$user) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    // check account locked
+    if ($user->is_locked) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Account is locked'
+        ], 403);
+    }
+
+    // login credentials
+    $credentials = [
+        $field => $login,
+        'password' => $request->password
+    ];
+
+    // attempt login
+    if (!$token = Auth::attempt($credentials)) {
+
+        // increment failed attempts
+        $user->failed_attempts += 1;
+
+        // lock account after 10 attempts
+        if ($user->failed_attempts >= 10) {
+            $user->is_locked = true;
         }
-
-        // check account locked
-        if ($user->is_locked) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Account is locked'
-            ], 403);
-        }
-
-        // attempt login
-        $credentials = $request->only('email', 'password');
-
-        if (!$token = Auth::attempt($credentials)) {
-
-            // increment failed attempts
-            $user->failed_attempts += 1;
-
-            // lock account after 10 attempts
-            if ($user->failed_attempts >= 10) {
-
-                $user->is_locked = true;
-            }
-
-            $user->save();
-
-            LoginAttempt::create([
-                'email' => $request->email,
-                'status' => 'failed',
-                'ip_address' => $request->ip()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid credentials',
-                'failed_attempts' => $user->failed_attempts
-            ], 401);
-        }
-
-        // reset failed attempts after success
-        $user->failed_attempts = 0;
 
         $user->save();
 
         LoginAttempt::create([
-            'email' => $request->email,
-            'status' => 'success',
+            'email' => $user->email,
+            'status' => 'failed',
             'ip_address' => $request->ip()
         ]);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Login Successful',
-            'token' => $token,
-            'user' => $user
-        ]);
+            'success' => false,
+            'message' => 'Invalid credentials',
+            'failed_attempts' => $user->failed_attempts
+        ], 401);
     }
 
+    // reset failed attempts after success
+    $user->failed_attempts = 0;
+    $user->save();
+
+    LoginAttempt::create([
+        'email' => $user->email,
+        'status' => 'success',
+        'ip_address' => $request->ip()
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Login Successful',
+        'token' => $token,
+        'user' => $user
+    ]);
+}
 
     public function logout()
     {
