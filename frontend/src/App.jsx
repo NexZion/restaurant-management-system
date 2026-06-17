@@ -14,12 +14,11 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/" element={<Login />} />
-          <Route path="/users" element={<Users />} />
           <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/components" element={<Components />} />
-        </Route>
-          
+            <Route path="/users" element={<Users />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/components" element={<Components />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
