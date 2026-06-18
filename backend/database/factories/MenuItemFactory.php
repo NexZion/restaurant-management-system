@@ -23,7 +23,6 @@ class MenuItemFactory extends Factory
         
         return [
 
-            'branch_id' => Branch::inRandomOrder()->first()?->id,
 
             'menu_category_id' => MenuCategory::inRandomOrder()->first()?->id,
 

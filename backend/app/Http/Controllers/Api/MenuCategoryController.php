@@ -20,20 +20,7 @@ class MenuCategoryController extends Controller
 
     public function store(StoreMenuCategoryRequest $request)
     {
-        $category = MenuCategory::create([
-
-            'branch_id' => $request->branch_id,
-
-            'name' => $request->name,
-
-            'description' => $request->description,
-
-            'image' => $request->image,
-
-            'display_order' => $request->display_order ?? 0,
-
-            'status' => $request->status
-        ]);
+        $category = MenuCategory::create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -72,20 +59,7 @@ class MenuCategoryController extends Controller
             ], 404);
         }
 
-        $category->update([
-
-            'branch_id' => $request->branch_id,
-
-            'name' => $request->name,
-
-            'description' => $request->description,
-
-            'image' => $request->image,
-
-            'display_order' => $request->display_order,
-
-            'status' => $request->status
-        ]);
+        $category->update($request->validated());
 
         return response()->json([
             'success' => true,

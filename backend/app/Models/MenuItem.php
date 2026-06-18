@@ -35,11 +35,6 @@ class MenuItem extends Model
         'status'
     ];
 
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
     public function menuCategory()
     {
         return $this->belongsTo(

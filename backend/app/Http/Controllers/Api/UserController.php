@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
@@ -54,6 +55,7 @@ class UserController extends Controller
                 'message' => 'Please login first'
             ], 401);
         }
+    
 
         if ($user->role_id != 1) {
             return response()->json([
@@ -62,21 +64,12 @@ class UserController extends Controller
             ], 403);
         }
 
-        $newUser = User::create([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'whatsapp' => $request->whatsapp,
-            'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
-            'branch_id' => $request->branch_id,
-            'pin' => $request->pin,
-            'dob' => $request->dob,
-            'address' => $request->address,
-            'status' => $request->status ?? 'active',
-            'image' => null
-        ]);
+        $data = $request->validated();
+
+        
+
+        $data['password'] = Hash::make($data['password']);
+        $newUser = User::create($data);
 
         return response()->json([
             'success' => true,
@@ -151,19 +144,11 @@ class UserController extends Controller
             ], 404);
         }
 
-        $selectedUser->update([
-            'name' => $request->name,
-            'username' => $request->username,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'whatsapp' => $request->whatsapp,
-            'role_id' => $request->role_id,
-            'branch_id' => $request->branch_id,
-            'pin' => $request->pin,
-            'dob' => $request->dob,
-            'address' => $request->address,
-            'status' => $request->status
-        ]);
+        $data= $request->validated();
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+        $selectedUser->update($data);
 
         return response()->json([
             'success' => true,

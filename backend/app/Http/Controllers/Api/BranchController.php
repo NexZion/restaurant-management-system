@@ -28,26 +28,7 @@ public function store(StoreBranchRequest $request)
             ], 403);
         }
 
-        $branch = Branch::create([
-            'code' => $request->code,
-            'name' => $request->name,
-            'slug' => $request->slug,
-            'address_line1' => $request->address_line1,
-            'address_line2' => $request->address_line2,
-            'city' => $request->city,
-            'state_province' => $request->state_province,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country ?? 'Sri Lanka',
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'whatsapp' => $request->whatsapp,
-            'branch_type' => $request->branch_type ?? 'restaurant',
-            'has_dining' => $request->has_dining ?? true,
-            'has_rooms' => $request->has_rooms ?? false,
-            'has_delivery' => $request->has_delivery ?? false
-        ]);
+        $branch = Branch::create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -136,26 +117,7 @@ public function store(StoreBranchRequest $request)
             ], 404);
         }
 
-        $branch->update([
-            'code' => $request->code ?? $branch->code,
-            'name' => $request->name,
-            'slug' => $request->slug ?? $branch->slug,
-            'address_line1' => $request->address_line1,
-            'address_line2' => $request->address_line2,
-            'city' => $request->city,
-            'state_province' => $request->state_province,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'whatsapp' => $request->whatsapp,
-            'branch_type' => $request->branch_type,
-            'has_dining' => $request->has_dining,
-            'has_rooms' => $request->has_rooms,
-            'has_delivery' => $request->has_delivery
-        ]);
+        $branch->update($request->validated());
 
         return response()->json([
             'success' => true,

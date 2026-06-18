@@ -15,8 +15,7 @@ class UpdateMenuCategoryRequest extends FormRequest
     {
         return [
 
-            'branch_id' => 'required|exists:branches,id',
-
+        
             'name' => 'required|string|max:255',
 
             'description' => 'nullable|string',

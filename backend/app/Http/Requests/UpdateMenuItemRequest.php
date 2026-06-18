@@ -17,7 +17,6 @@ class UpdateMenuItemRequest extends FormRequest
 
         return [
 
-            'branch_id' => 'required|exists:branches,id',
 
             'menu_category_id' => 'required|exists:menu_categories,id',
 
