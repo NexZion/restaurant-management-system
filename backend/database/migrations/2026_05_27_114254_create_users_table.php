@@ -39,11 +39,7 @@ return new class extends Migration
 
             $table->text('address')->nullable();
 
-            $table->enum('status', [
-                'active',
-                'inactive',
-                'suspended'
-            ])->default('active');
+            $table->string('status')->default('active');
             $table->boolean('is_active')->default(true);
             
             $table->integer('failed_attempts')->default(0);

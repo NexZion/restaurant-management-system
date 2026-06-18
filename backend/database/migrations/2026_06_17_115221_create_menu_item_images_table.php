@@ -8,23 +8,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('menu_categories', function (Blueprint $table) {
+        Schema::create('menu_item_images', function (Blueprint $table) {
 
             $table->id();
 
-            $table->foreignId('branch_id')
+            $table->foreignId('menu_item_id')
                   ->constrained()
                   ->cascadeOnDelete();
 
-            $table->string('name');
+            $table->string('image_path');
 
-            $table->text('description')->nullable();
+            $table->boolean('is_primary')
+                  ->default(false);
 
-            $table->string('image')->nullable();
-
-            $table->integer('display_order')->default(0);
-
-            $table->string('status')->default('active');
+            $table->integer('display_order')
+                  ->default(0);
 
             $table->softDeletes();
 
@@ -34,6 +32,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('menu_categories');
+        Schema::dropIfExists('menu_item_images');
     }
 };

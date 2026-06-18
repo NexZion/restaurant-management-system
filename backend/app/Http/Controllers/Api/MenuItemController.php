@@ -16,7 +16,8 @@ class MenuItemController extends Controller
             'success' => true,
             'data' => MenuItem::with([
                 'branch',
-                'menuCategory'
+                'menuCategory',
+                'images'
 
             ])->get()
         ]);
@@ -37,7 +38,9 @@ class MenuItemController extends Controller
     {
         $item = MenuItem::with([
             'branch',
-            'menuCategory'
+            'menuCategory',
+            'images'
+
         ])->find($id);
 
         if (!$item) {
