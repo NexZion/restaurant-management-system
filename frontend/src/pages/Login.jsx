@@ -125,7 +125,7 @@ export const Login = () => {
 
               {/* Sign In Button */}
               <Button type="submit" fullWidth>
-                Sign in
+                Log in
               </Button>
             </form>
           </div>
