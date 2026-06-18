@@ -57,11 +57,7 @@ return new class extends Migration
             $table->string('contact_person_phone')->nullable();
 
             // System Fields
-            $table->enum('status', [
-                'active',
-                'inactive',
-                'maintenance'
-            ])->default('active');
+            $table->string('status')->default('active');
             $table->boolean('is_active')->default(true);
 
             $table->softDeletes();
