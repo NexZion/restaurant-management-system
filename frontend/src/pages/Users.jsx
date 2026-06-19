@@ -169,10 +169,6 @@ export const Users = () => {
     if (!whatsapp) errors.whatsapp = "Whatsapp number is required.";
     if (!userRole) errors.role = "Role is required.";
     if (!branchOption) errors.branch = "Branch is required.";
-    if (!dob) errors.dob = "Date of birth is required.";
-    if (!statusOption) errors.status = "Status is required.";
-    if (!accessLevel) errors.accessLevel = "Access level is required.";
-    if (!address.trim()) errors.address = "Address is required.";
 
     const usernameExists = data.some(
       (user) => user.username.toLowerCase() === username.trim().toLowerCase(),
@@ -292,7 +288,7 @@ export const Users = () => {
             variant="outlined"
             fullWidth
           />
-          <div className="grid grid-cols-[3fr_1fr] gap-4 mb-4 pt-4">
+          <div className="grid grid-cols-[5fr_1fr] gap-4 mb-4 pt-4">
             <TextField
               required
               label="Full Name"
@@ -302,17 +298,15 @@ export const Users = () => {
                 setFieldError("fullname", "");
               }}
               helperText={fieldErrors.fullname || ""}
+              error={!!fieldErrors.fullname}
             />
             <SelectField
-              required
               label="Access Level"
               value={accessLevel}
               options={accessLevels}
               onChange={(e) => {
                 setAccessLevel(e.target.value);
-                setFieldError("accessLevel", "");
               }}
-              helperText={fieldErrors.accessLevel || ""}
             />
           </div>
 
@@ -324,6 +318,7 @@ export const Users = () => {
               value={username}
               onChange={(e) => handleUsernameChange(e.target.value)}
               helperText={fieldErrors.username || ""}
+              error={!!fieldErrors.username}
             />
             <TextField
               required
@@ -336,6 +331,7 @@ export const Users = () => {
                 setFieldError("email", "");
               }}
               helperText={fieldErrors.email || ""}
+              error={!!fieldErrors.email}
             />
             <PhoneField
               required
@@ -347,6 +343,7 @@ export const Users = () => {
               }}
               fullWidth
               helperText={fieldErrors.phone || ""}
+              error={!!fieldErrors.phone}
             />
 
             <PhoneField
@@ -359,6 +356,7 @@ export const Users = () => {
               }}
               fullWidth
               helperText={fieldErrors.whatsapp || ""}
+              error={!!fieldErrors.whatsapp}
             />
             <SelectField
               required
@@ -367,7 +365,6 @@ export const Users = () => {
               value={roleOption}
               options={roles}
               onChange={(e) => handleRoleChange(e.target.value)}
-              helperText={fieldErrors.role || ""}
             />
             <SelectField
               required
@@ -380,45 +377,37 @@ export const Users = () => {
                 setFieldError("branch", "");
               }}
               helperText={fieldErrors.branch || ""}
+              error={!!fieldErrors.branch}
             />
             <TextField
-              required
               type="date"
               floatLabel={true}
               label="Date of Birth"
               value={dob}
               onChange={(e) => {
                 setDob(e.target.value);
-                setFieldError("dob", "");
               }}
-              helperText={fieldErrors.dob || ""}
             />
             <SelectField
-              required
               fullwidth={true}
               label="Status"
               value={statusOption}
               options={status}
               onChange={(e) => {
                 setStatusOption(e.target.value);
-                setFieldError("status", "");
               }}
-              helperText={fieldErrors.status || ""}
             />
           </div>
           <div className=" pb-4">
             <TextAreaField
-              required
               label="Address"
               value={address}
               onChange={(e) => {
                 setAddress(e.target.value);
-                setFieldError("address", "");
               }}
               rows={2}
               resize="vertical"
               maxLength={100}
-              helperText={fieldErrors.address || ""}
             />
           </div>
           <div className="pb-4 space-y-4">
@@ -443,6 +432,7 @@ export const Users = () => {
                 }}
                 fullWidth={true}
                 helperText={fieldErrors.password || ""}
+                error={!!fieldErrors.password}
               />
 
               <TextField
@@ -461,6 +451,7 @@ export const Users = () => {
                 }}
                 fullWidth={true}
                 helperText={fieldErrors.confirmPassword || ""}
+                error={!!fieldErrors.confirmPassword}
               />
             </div>
 
@@ -486,6 +477,7 @@ export const Users = () => {
                   }}
                   fullWidth={true}
                   helperText={fieldErrors.pin || ""}
+                  error={!!fieldErrors.pin}
                 />
 
                 <TextField
@@ -504,6 +496,7 @@ export const Users = () => {
                   }}
                   fullWidth={true}
                   helperText={fieldErrors.confirmPin || ""}
+                  error={!!fieldErrors.confirmPin}
                 />
               </div>
             )}
