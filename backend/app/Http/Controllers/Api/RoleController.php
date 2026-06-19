@@ -8,8 +8,12 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreRoleRequest;
 use App\Http\Requests\UpdateRoleRequest;
 
+
 class RoleController extends Controller
 {
+
+
+    
     /**
      * Display a listing of the resource.
      */
@@ -58,7 +62,7 @@ class RoleController extends Controller
             ], 403);
         }
 
-        $role = Role::create($request->validated());    
+        $role = Role::create($request->validated());
         return response()->json([
             'success' => true,
             'message' => 'Role created successfully',

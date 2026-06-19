@@ -20,7 +20,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
 
             $table->string('short_description')->nullable();
 

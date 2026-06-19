@@ -15,9 +15,9 @@ return new class extends Migration
 
             // Identification
             $table->id();
-            $table->string('code')->unique();
+            $table->string('code');
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
 
             // Location Details
             $table->string('address_line1');
