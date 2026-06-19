@@ -28,7 +28,7 @@ export const Users = () => {
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [uploadedImage, setUploadedImage] = useState(null);
-  const [phone, setphone] = useState("");
+  const [phone, setPhone] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [dob, setDob] = useState("");
   const [address, setAddress] = useState("");
@@ -209,6 +209,31 @@ export const Users = () => {
     return Object.keys(errors).length === 0;
   };
 
+  const resetAddUserForm = () => {
+    setFullname("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setPin("");
+    setConfirmPin("");
+    setUploadedImage(null);
+    setPhone("");
+    setWhatsapp("");
+    setDob("");
+    setAddress("");
+    setRole("");
+    setBranch("");
+    setStatusOption("Active");
+    setAccessLevel("5");
+    setUserRole("");
+    setFieldErrors({});
+  };
+
+  const handleCloseAddUser = () => {
+    resetAddUserForm();
+    setShowAddUser(false);
+  };
   const handleSubmitUser = async () => {
     if (!validateSubmit()) return;
 
@@ -235,6 +260,7 @@ export const Users = () => {
     console.log("Submitted user:", user);
 
     setIsSubmitting(false);
+    resetAddUserForm();
     setShowAddUser(false);
   };
   return (
@@ -268,7 +294,7 @@ export const Users = () => {
         </Button>
         <Dialog
           isOpen={showAddUser}
-          onClose={() => setShowAddUser(false)}
+          onClose={handleCloseAddUser}
           title="Add User"
           size="medium"
           primaryButtonText={isSubmitting ? "Saving..." : "Save"}
@@ -276,7 +302,7 @@ export const Users = () => {
           primaryButtonDisabled={isSubmitting}
           secondaryButtonDisabled={isSubmitting}
           onPrimaryButtonClick={handleSubmitUser}
-          onSecondaryButtonClick={() => setShowAddUser(false)}
+          onSecondaryButtonClick={handleCloseAddUser}
         >
           <ImageUploadField
             required
