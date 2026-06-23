@@ -12,8 +12,6 @@ class MenuItem extends Model
 
     protected $fillable = [
 
-        'branch_id',
-
         'menu_category_id',
 
         'sku',
@@ -47,4 +45,11 @@ class MenuItem extends Model
 {
     return $this->hasMany(MenuItemImage::class);
 }
+    public function menus()
+    {
+        return $this->belongsToMany(
+            Menu::class,
+            'menu_menu_item'
+        )->withPivot('display_order');
+    } 
 }
