@@ -98,11 +98,10 @@ export const Customers = () => {
 
   const columns = [
     { key: "customer_id", label: "ID", sortable: true },
-    { key: "username", label: "Username", sortable: true },
-    { key: "role", label: "Role", sortable: true },
-    { key: "branch", label: "Branch", sortable: true },
+    { key: "name", label: "name", sortable: true },
+    { key: "customer_type", label: "Customer Type", sortable: true },
+    { key: "district", label: "District" },
     { key: "phone", label: "Phone" },
-    { key: "email", label: "Email" },
     { key: "status", label: "Status" },
   ];
 
@@ -123,15 +122,18 @@ export const Customers = () => {
   const validateSubmit = () => {
     const errors = {};
 
-    if (!formData.firstname.trim())
+    if (!(formData.firstname || "").trim())
       errors.firstname = "First name is required.";
-    if (!formData.lastname.trim()) errors.lastname = "Last name is required.";
-    if (!formData.id_number.trim()) errors.id_number = "ID number is required.";
-    if (!formData.email.trim()) errors.email = "Email is required.";
+    if (!(formData.lastname || "").trim())
+      errors.lastname = "Last name is required.";
+    if (!(formData.id_number || "").trim())
+      errors.id_number = "ID number is required.";
+    if (!(formData.email || "").trim()) errors.email = "Email is required.";
     if (!formData.phone) errors.phone = "Phone number is required.";
     if (!formData.whatsapp) errors.whatsapp = "Whatsapp number is required.";
 
     setFieldErrors(errors);
+    console.log(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -160,7 +162,8 @@ export const Customers = () => {
     resetAddCustomerForm();
     setShowAddCustomer(false);
   };
-  const handleSubmitCustomer = async () => {
+  const handleSubmitCustomer = () => {
+    console.log(fieldErrors);
     if (!validateSubmit()) return;
 
     setIsSubmitting(true);
@@ -199,7 +202,10 @@ export const Customers = () => {
 
         <Button
           variant="primary"
-          onClick={() => setShowAddCustomer(true)}
+          onClick={() => {
+            resetAddCustomerForm();
+            setShowAddCustomer(true);
+          }}
           startIcon={
             <svg
               className="w-4 h-4"
@@ -485,6 +491,15 @@ export const Customers = () => {
                   options={customerTypes}
                   onChange={(e) =>
                     setFormData({ ...formData, customer_type: e.target.value })
+                  }
+                  fullWidth={true}
+                />
+                <SelectField
+                  label="Status"
+                  value={formData.statusOption}
+                  options={status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, statusOption: e.target.value })
                   }
                   fullWidth={true}
                 />
