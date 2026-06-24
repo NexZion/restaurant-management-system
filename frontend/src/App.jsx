@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/dashboard";
 import { Components } from "./pages/components";
 import { Login } from "./pages/Login";
 import { Users } from "./pages/Users";
+import { Customers } from "./pages/Customers";
 
 function App() {
   return (
@@ -14,8 +15,15 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/" element={<Login />} />
-          <Route element={<DashboardLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="/users" element={<Users />} />
+            <Route path="/customers" element={<Customers />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/components" element={<Components />} />
           </Route>

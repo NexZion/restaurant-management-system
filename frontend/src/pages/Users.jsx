@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   SelectField,
   TextField,
@@ -18,42 +18,87 @@ import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
 import { Stepper } from "../components/Stepper";
 import { AddItem } from "../components/AddItem";
+import api from "../axiosClient";
 
 export const Users = () => {
-  const [fullname, setFullname] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [phone, setphone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [dob, setDob] = useState("");
-  const [address, setAddress] = useState("");
-  const [roleOption, setRole] = useState("");
-  const [branchOption, setBranch] = useState("");
-  const [statusOption, setStatusOption] = useState("Active");
+  const [formData, setFormData] = useState({
+    fullname: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    pin: "",
+    confirmPin: "",
+    uploadedImage: null,
+    phone: "",
+    whatsapp: "",
+    dob: "",
+    address: "",
+    roleOption: "",
+    branchOption: "",
+    statusOption: "active",
+    accessLevel: "5",
+  });
+
   const [showAddUser, setShowAddUser] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [branches, setBranches] = useState([]);
 
-  const roles = [
-    { value: "admin", label: "Administrator" },
-    { value: "manager", label: "Manager" },
-    { value: "cashier", label: "Cashier" },
-    { value: "waiter", label: "Waiter" },
-    { value: "kitchen_staff", label: "Kitchen Staff" },
-  ];
+  useEffect(() => {
+    api.get("/roles").then((response) => {
+      const rolesData = response.data.data;
+      const formattedRoles = rolesData.map((role) => ({
+        value: role.id,
+        label: role.name,
+      }));
+      setRoles(formattedRoles);
+    });
+  }, []);
 
-  const branches = [
-    { value: "Kalutara", label: "Kalutara" },
-    { value: "Gampaha", label: "Gampaha" },
-    { value: "Colombo", label: "Colombo" },
-  ];
+  useEffect(() => {
+    api.get("/branches").then((response) => {
+      const branchesData = response.data.data.data;
+      console.log(branchesData);
+      const formattedBranches = branchesData.map((branch) => ({
+        value: branch.id,
+        label: branch.name,
+      }));
+      setBranches(formattedBranches);
+    });
+  }, []);
+
+  useEffect(() => {
+    api.get("/users").then((response) => {
+      const usersData = response.data.data.map((user) => ({
+        id: user.id,
+        profileImage: user.profileImage,
+        username: user.username,
+        role: user.role ? user.role.name : "N/A",
+        branch: user.branch ? user.branch.name : "N/A",
+        phone: user.phone,
+        email: user.email,
+        status: user.status,
+      }));
+      console.log(usersData);
+      setUsers(usersData);
+    });
+  }, []);
 
   const status = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "blocked", label: "Blocked" },
+  ];
+
+  const accessLevels = [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
   ];
 
   const columns = [
@@ -67,28 +112,163 @@ export const Users = () => {
     { key: "status", label: "Status" },
   ];
 
-  const data = [
-    {
-      id: 1,
-      profileImage: null,
-      username: "johndoe",
-      role: "admin",
-      branch: "Kalutara",
-      phone: "123-456-7890",
-      email: "john@example.com",
-      status: "Active",
-    },
-    {
-      id: 2,
-      profileImage: null,
-      username: "janesmith",
-      role: "manager",
-      branch: "Gampaha",
-      phone: "098-765-4321",
-      email: "jane@example.com",
-      status: "Inactive",
-    },
-  ];
+  const pinRoles = ["cashier", "waiter"];
+  const roleSelected = Boolean(formData.roleOption);
+  const shouldShowPin = roleSelected && pinRoles.includes(formData.roleOption);
+  const shouldValidatePin = pinRoles.includes(formData.roleOption);
+
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+  const setFieldError = (field, message) => {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+
+      if (message) {
+        next[field] = message;
+      } else {
+        delete next[field];
+      }
+
+      return next;
+    });
+  };
+
+  const handleRoleChange = (value) => {
+    setFormData({ ...formData, roleOption: value });
+
+    setFormData({ ...formData, password: "", confirmPassword: "" });
+    if (!pinRoles.includes(value)) {
+      setFormData({ ...formData, pin: "", confirmPin: "" });
+    }
+
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.role;
+      delete next.password;
+      delete next.confirmPassword;
+      delete next.pin;
+      delete next.confirmPin;
+      return next;
+    });
+  };
+
+  const handleUsernameChange = (value) => {
+    setFormData({ ...formData, username: value });
+
+    // const usernameExists = data.some(
+    //   (user) => user.username.toLowerCase() === value.trim().toLowerCase(),
+    // );
+
+    // if (usernameExists) {
+    //   setFieldError("username", "Username already exists.");
+    // } else {
+    //   setFieldError("username", "");
+    // }
+  };
+
+  const validateSubmit = () => {
+    const errors = {};
+
+    if (!formData.fullname.trim()) errors.fullname = "Full name is required.";
+    if (!formData.username.trim()) errors.username = "Username is required.";
+    if (!formData.email.trim()) errors.email = "Email is required.";
+    if (!formData.phone) errors.phone = "Phone number is required.";
+    if (!formData.whatsapp) errors.whatsapp = "Whatsapp number is required.";
+    if (!formData.roleOption) errors.setRole = "Role is required.";
+    if (!formData.branchOption) errors.setBranch = "Branch is required.";
+
+    const usernameExists = users.some(
+      (user) =>
+        user.username.toLowerCase() === formData.username.trim().toLowerCase(),
+    );
+
+    if (usernameExists) {
+      errors.username = "Username already exists.";
+    }
+
+    if (shouldValidatePin) {
+      if (formData.pin && !/^\d{4}$/.test(formData.pin)) {
+        errors.pin = "PIN must be numeric and exactly 4 digits.";
+      }
+
+      if (formData.pin !== formData.confirmPin) {
+        errors.confirmPin = "PIN and Confirm PIN must match.";
+      }
+    }
+
+    if (!formData.password) {
+      errors.password = "Password is required.";
+    } else if (!passwordRegex.test(formData.password)) {
+      errors.password =
+        "Password must include uppercase, lowercase, number, symbol, and at least 8 characters.";
+    }
+
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = "Confirm Password is required.";
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Password and Confirm Password must match.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const resetAddUserForm = () => {
+    setFormData({
+      fullname: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      pin: "",
+      confirmPin: "",
+      uploadedImage: null,
+      phone: "",
+      whatsapp: "",
+      dob: "",
+      address: "",
+      roleOption: "",
+      branchOption: "",
+      statusOption: "Active",
+      accessLevel: "5",
+    });
+    setFieldErrors({});
+  };
+
+  const handleCloseAddUser = () => {
+    resetAddUserForm();
+    setShowAddUser(false);
+  };
+  const handleSubmitUser = async () => {
+    if (!validateSubmit()) return;
+
+    setIsSubmitting(true);
+
+    const user = {
+      name: formData.fullname,
+      username: formData.username,
+      email: formData.email,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp,
+      dob: formData.dob,
+      address: formData.address,
+      role_id: formData.roleOption,
+      branch_id: formData.branchOption,
+      status: formData.statusOption,
+      accessLevel: formData.accessLevel,
+      profileImage: formData.uploadedImage,
+      authType: shouldValidatePin ? "pin" : "password",
+      pin: shouldValidatePin ? formData.pin : "",
+      password: shouldValidatePin ? "" : formData.password,
+    };
+
+    console.log("Submitted user:", user);
+    api.post("/users", user);
+    setIsSubmitting(false);
+    resetAddUserForm();
+    setShowAddUser(false);
+  };
   return (
     <div>
       {/* Header */}
@@ -120,32 +300,47 @@ export const Users = () => {
         </Button>
         <Dialog
           isOpen={showAddUser}
-          onClose={() => setShowAddUser(false)}
+          onClose={handleCloseAddUser}
           title="Add User"
           size="medium"
-          primaryButtonText="Save"
-          onSave={() => {
-            console.log("Submitted");
-            setShowAddUser(false);
-          }}
-          onCancel={() => setShowAddUser(false)}
+          primaryButtonText={isSubmitting ? "Saving..." : "Save"}
+          secondaryButtonText="Cancel"
+          primaryButtonDisabled={isSubmitting}
+          secondaryButtonDisabled={isSubmitting}
+          onPrimaryButtonClick={handleSubmitUser}
+          onSecondaryButtonClick={handleCloseAddUser}
         >
           <ImageUploadField
             required
             label="Profile Image"
-            value={uploadedImage}
-            onChange={setUploadedImage}
+            value={formData.uploadedImage}
+            onChange={(image) =>
+              setFormData({ ...formData, uploadedImage: image })
+            }
             helperText="Upload a profile image (JPG, PNG)"
             accept="image/*"
             variant="outlined"
             fullWidth
           />
-          <div className="flex flex-col mb-4 pt-4">
+          <div className="grid grid-cols-[5fr_1fr] gap-4 mb-4 pt-4">
             <TextField
               required
               label="Full Name"
-              value={fullname}
-              onChange={(e) => setFullname(e.target.value)}
+              value={formData.fullname}
+              onChange={(e) => {
+                setFormData({ ...formData, fullname: e.target.value });
+                setFieldError("fullname", "");
+              }}
+              helperText={fieldErrors.fullname || ""}
+              error={!!fieldErrors.fullname}
+            />
+            <SelectField
+              label="Access Level"
+              value={formData.accessLevel}
+              options={accessLevels}
+              onChange={(e) => {
+                setFormData({ ...formData, accessLevel: e.target.value });
+              }}
             />
           </div>
 
@@ -154,122 +349,199 @@ export const Users = () => {
               required
               fullWidth={true}
               label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={formData.username}
+              onChange={(e) => handleUsernameChange(e.target.value)}
+              helperText={fieldErrors.username || ""}
+              error={!!fieldErrors.username}
             />
             <TextField
               required
               fullWidth={true}
               label="Email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                setFieldError("email", "");
+              }}
+              helperText={fieldErrors.email || ""}
+              error={!!fieldErrors.email}
             />
             <PhoneField
               required
               label="Phone Number"
-              value={phone}
-              onChange={setphone}
+              value={formData.phone}
+              onChange={(value) => {
+                setFormData({ ...formData, phone: value });
+                setFieldError("phone", "");
+              }}
               fullWidth
-              helperText=""
+              helperText={fieldErrors.phone || ""}
+              error={!!fieldErrors.phone}
             />
 
             <PhoneField
               required
               label="whatsapp Number"
-              value={whatsapp}
-              onChange={setWhatsapp}
+              value={formData.whatsapp}
+              onChange={(value) => {
+                setFormData({ ...formData, whatsapp: value });
+                setFieldError("whatsapp", "");
+              }}
               fullWidth
-              helperText=""
+              helperText={fieldErrors.whatsapp || ""}
+              error={!!fieldErrors.whatsapp}
             />
             <SelectField
               required
               fullwidth={true}
               label="Select Role"
-              value={roleOption}
+              value={formData.roleOption}
               options={roles}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e) => {
+                setFormData({ ...formData, roleOption: e.target.value });
+              }}
             />
             <SelectField
               required
               fullwidth={true}
               label="Select Branch"
-              value={branchOption}
+              value={formData.branchOption}
               options={branches}
-              onChange={(e) => setBranch(e.target.value)}
+              onChange={(e) => {
+                setFormData({ ...formData, branchOption: e.target.value });
+                setFieldError("branch", "");
+              }}
+              helperText={fieldErrors.branch || ""}
+              error={!!fieldErrors.branch}
             />
             <TextField
-              required
               type="date"
               floatLabel={true}
               label="Date of Birth"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
+              value={formData.dob}
+              onChange={(e) => {
+                setFormData({ ...formData, dob: e.target.value });
+              }}
             />
             <SelectField
-              required
               fullwidth={true}
               label="Status"
-              value={statusOption}
+              value={formData.status}
               options={status}
-              onChange={(e) => setStatusOption(e.target.value)}
+              onChange={(e) => {
+                setFormData({ ...formData, status: e.target.value });
+              }}
             />
           </div>
           <div className=" pb-4">
             <TextAreaField
-              required
               label="Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={formData.address}
+              onChange={(e) => {
+                setFormData({ ...formData, address: e.target.value });
+              }}
               rows={2}
               resize="vertical"
               maxLength={100}
             />
           </div>
-          <div className="flex flex-row pb-4">
-            <div className="flex flex-row gap-4 w-full">
+          <div className="pb-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4 w-full">
               <TextField
                 required
                 label="Password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                  setFieldError("password", "");
+
+                  if (
+                    formData.confirmPassword &&
+                    e.target.value !== formData.confirmPassword
+                  ) {
+                    setFieldError(
+                      "confirmPassword",
+                      "Password and Confirm Password must match.",
+                    );
+                  } else {
+                    setFieldError("confirmPassword", "");
+                  }
+                }}
                 fullWidth={true}
-                helperText=""
+                helperText={fieldErrors.password || ""}
+                error={!!fieldErrors.password}
               />
 
               <TextField
                 required
                 label="Confirm Password"
                 type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={(e) => {
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  setFieldError(
+                    "confirmPassword",
+                    e.target.value && e.target.value !== formData.password
+                      ? "Password and Confirm Password must match."
+                      : "",
+                  );
+                }}
                 fullWidth={true}
-                helperText=""
+                helperText={fieldErrors.confirmPassword || ""}
+                error={!!fieldErrors.confirmPassword}
               />
             </div>
 
-            <div className="flex flex-row hidden gap-4 w-full">
-              <TextField
-                required
-                label="Pin"
-                type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                fullWidth={true}
-                helperText=""
-              />
+            {shouldShowPin && (
+              <div className="grid grid-cols-2 gap-4 w-full">
+                <TextField
+                  required={shouldValidatePin}
+                  label="PIN"
+                  type="password"
+                  value={formData.pin}
+                  onChange={(e) => {
+                    setFormData({ ...formData, pin: e.target.value });
+                    setFieldError("pin", "");
 
-              <TextField
-                required
-                label="Confirm Pin"
-                type="password"
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value)}
-                fullWidth={true}
-                helperText=""
-              />
-            </div>
+                    if (
+                      formData.confirmPin &&
+                      e.target.value !== formData.confirmPin
+                    ) {
+                      setFieldError(
+                        "confirmPin",
+                        "PIN and Confirm PIN must match.",
+                      );
+                    } else {
+                      setFieldError("confirmPin", "");
+                    }
+                  }}
+                  fullWidth={true}
+                  helperText={fieldErrors.pin || ""}
+                  error={!!fieldErrors.pin}
+                />
+
+                <TextField
+                  required={shouldValidatePin}
+                  label="Confirm PIN"
+                  type="password"
+                  value={formData.confirmPin}
+                  onChange={(e) => {
+                    setFormData({ ...formData, confirmPin: e.target.value });
+                    setFieldError(
+                      "confirmPin",
+                      e.target.value && e.target.value !== formData.pin
+                        ? "PIN and Confirm PIN must match."
+                        : "",
+                    );
+                  }}
+                  fullWidth={true}
+                  helperText={fieldErrors.confirmPin || ""}
+                  error={!!fieldErrors.confirmPin}
+                />
+              </div>
+            )}
           </div>
         </Dialog>
       </div>
@@ -281,23 +553,29 @@ export const Users = () => {
               <div className="flex  gap-4 w-full">
                 <SelectField
                   label="Role"
-                  value={roleOption}
+                  value={formData.roleOption}
                   options={roles}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, roleOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Branch"
-                  value={branchOption}
+                  value={formData.branchOption}
                   options={branches}
-                  onChange={(e) => setBranch(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, branchOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Status"
-                  value={statusOption}
+                  value={formData.statusOption}
                   options={status}
-                  onChange={(e) => setStatusOption(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, statusOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
               </div>
@@ -306,13 +584,13 @@ export const Users = () => {
         ]}
         allowMultiple={false}
         iconPosition="right"
-        defaultExpanded={[0]}
+        defaultExpanded={[]}
         variant="filled"
       />
       <div className="mt-4">
         <Table
           columns={columns}
-          data={data}
+          data={users}
           selectable={false}
           expandable={false}
           searchable={true}
