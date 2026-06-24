@@ -93,25 +93,45 @@ class MenuMenuItemController extends Controller
         ]);
     }
 
-    public function updateOrder(
-        Request $request,
-        Menu $menu,
-        $item
-    ) {
+    public function updateOrder(Request $request, Menu $menu, $itemId)
+    {
         $request->validate([
-            'display_order' => 'required|integer'
+            'display_order' => 'required|integer|min:0'
         ]);
 
+        $menuItem = MenuItem::find($itemId);
+
+        // Menu item not found
+        if (!$menuItem || $menuItem->deleted_at !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Menu item not found'
+            ], 404);
+        }
+
+        // Check relationship exists
+        $exists = $menu->menuItems()
+            ->where('menu_item_id', $itemId)
+            ->exists();
+
+        if (!$exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This menu item is not attached to this menu'
+            ], 404);
+        }
+
         $menu->menuItems()->updateExistingPivot(
-            $item,
+            $itemId,
             [
-                'display_order' => $request->display_order
+                'display_order' => $request->display_order,
+                'updated_at' => now()
             ]
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Display order updated'
+            'message' => 'Display order updated successfully'
         ]);
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Branch;
 
 
 class UserController extends Controller
@@ -27,14 +28,14 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 10) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can view users'
             ], 403);
         }
 
-        $users = User::with('role')->get();
+        $users = User::with(['role', 'branch'])->get();            
 
         return response()->json([
             'success' => true,
@@ -57,7 +58,7 @@ class UserController extends Controller
         }
     
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 10) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can create users'
@@ -92,14 +93,14 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 10) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can view users'
             ], 403);
         }
 
-        $selectedUser = User::with('role')->find($id);
+        $selectedUser = User::with(['role', 'branch'])->find($id);
 
         if (!$selectedUser) {
             return response()->json([
@@ -128,14 +129,14 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 10) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can update users'
             ], 403);
         }
 
-        $selectedUser = User::find($id);
+        $selectedUser = User::with(['role', 'branch'])->find($id);
 
         if (!$selectedUser) {
             return response()->json([
@@ -170,14 +171,14 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 10) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can delete users'
             ], 403);
         }
 
-        $selectedUser = User::find($id);
+        $selectedUser = User::with(['role', 'branch'])->find($id);
 
         if (!$selectedUser) {
             return response()->json([
