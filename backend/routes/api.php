@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\MenuItemImageController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuMenuItemController;
+use App\Http\Controllers\Api\RestaurantTableController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -57,5 +58,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/menus/{menu}/items', [MenuMenuItemController::class, 'index']);
     Route::delete('/menus/{menu}/items/{item}', [MenuMenuItemController::class, 'detach']);
     Route::put('/menus/{menu}/items/{item}/order', [MenuMenuItemController::class, 'updateOrder']);
+    Route::apiResource('restaurant-tables', RestaurantTableController::class);  
     
 });

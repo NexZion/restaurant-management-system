@@ -19,7 +19,7 @@ class StoreRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:255', 
             Rule::unique('roles', 'name')->whereNull('deleted_at')],
             'description' => ['nullable', 'string', 'max:255'],
-            'access_level' => ['required', 'integer', 'between:1,100']
+            'access_level' => ['required', 'integer', 'between:1,10']
         ];
     }
 

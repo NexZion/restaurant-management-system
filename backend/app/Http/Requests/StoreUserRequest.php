@@ -39,10 +39,10 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'min:6'],
             'role_id' => ['required', 'exists:roles,id'],
             'branch_id' => ['required', 'exists:branches,id'],
-            'pin' => ['required', 'digits:4'],
+            'pin' => ['nullable', 'digits:4'],
             'dob' => ['nullable', 'date_format:Y-m-d'],
             'address' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:active,inactive,blocked'],
+            'status' => ['nullable', 'in:active,inactive,blocked'],
         ];
     }
 
