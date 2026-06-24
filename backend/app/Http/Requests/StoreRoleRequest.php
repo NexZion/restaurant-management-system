@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 class StoreRoleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -14,9 +16,10 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255|unique:roles,name',
-            'description' => 'nullable|string|max:255',
-            'access_level' => 'required|integer|between:1,100'
+            'name' => ['required', 'string', 'max:255', 
+            Rule::unique('roles', 'name')->whereNull('deleted_at')],
+            'description' => ['nullable', 'string', 'max:255'],
+            'access_level' => ['required', 'integer', 'between:1,100']
         ];
     }
 
@@ -28,5 +31,16 @@ class StoreRoleRequest extends FormRequest
             'access_level.required' => 'Access level is required',
             'access_level.between' => 'Access level must be between 1 and 10'
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422)
+        );
     }
 }

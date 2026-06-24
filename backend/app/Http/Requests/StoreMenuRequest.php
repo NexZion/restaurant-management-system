@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateMenuCategoryRequest extends FormRequest
+class StoreMenuRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,12 +15,11 @@ class UpdateMenuCategoryRequest extends FormRequest
     {
         return [
 
-        
+            'branch_id' => 'required|exists:branches,id',
+
             'name' => 'required|string|max:255',
 
             'description' => 'nullable|string',
-
-            'image' => 'nullable|string',
 
             'display_order' => 'nullable|integer|min:0',
 

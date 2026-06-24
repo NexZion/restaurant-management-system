@@ -15,16 +15,12 @@ return new class extends Migration
 
             $table->id();
 
-            $table->foreignId('branch_id')
-                ->constrained()
-                ->cascadeOnDelete();
-
             $table->foreignId('menu_category_id')
                 ->constrained()
                 ->cascadeOnDelete();
 
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug');
 
             $table->string('short_description')->nullable();
 

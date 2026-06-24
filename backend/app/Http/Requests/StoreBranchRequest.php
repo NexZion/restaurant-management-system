@@ -22,24 +22,24 @@ class StoreBranchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => 'required|string|max:50|unique:branches,code',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:branches,slug',
-            'address_line1' => 'required|string|max:255',
-            'address_line2' => 'nullable|string|max:255',
-            'city' => 'required|string|max:100',
-            'state_province' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'whatsapp' => 'nullable|string|max:20',
-            'branch_type' => 'nullable|in:restaurant,hotel,cafe,resort',
-            'has_dining' => 'nullable|boolean',
-            'has_rooms' => 'nullable|boolean',
-            'has_delivery' => 'nullable|boolean'
+            'code' => ['required', 'string', 'max:50', 'unique:branches,code'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255', 'unique:branches,slug'],
+            'address_line1' => ['required', 'string', 'max:255'],
+            'address_line2' => ['nullable', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:100'],
+            'state_province' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'phone' => ['required', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'whatsapp' => ['nullable', 'string', 'max:20'],
+            'branch_type' => ['nullable', 'in:restaurant,hotel,cafe,resort'],
+            'has_dining' => ['nullable', 'boolean'],
+            'has_rooms' => ['nullable', 'boolean'],
+            'has_delivery' => ['nullable', 'boolean']
         ];
     }
 

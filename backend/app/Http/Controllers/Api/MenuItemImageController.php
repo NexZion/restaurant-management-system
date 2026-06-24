@@ -29,12 +29,7 @@ class MenuItemImageController extends Controller
             ]);
         }
 
-        $image = MenuItemImage::create([
-            'menu_item_id' => $request->menu_item_id,
-            'image_path' => $request->image_path,
-            'is_primary' => $request->is_primary ?? false,
-            'display_order' => $request->display_order ?? 0
-        ]);
+        $image = MenuItemImage::create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -83,12 +78,7 @@ class MenuItemImageController extends Controller
             ]);
         }
 
-        $image->update([
-            'menu_item_id' => $request->menu_item_id,
-            'image_path' => $request->image_path,
-            'is_primary' => $request->is_primary ?? false,
-            'display_order' => $request->display_order ?? 0
-        ]);
+        $image->update($request->validated());
 
         return response()->json([
             'success' => true,
