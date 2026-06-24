@@ -36,7 +36,7 @@ export const Users = () => {
     address: "",
     roleOption: "",
     branchOption: "",
-    statusOption: "Active",
+    statusOption: "active",
     accessLevel: "5",
   });
 
@@ -44,32 +44,53 @@ export const Users = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [branches, setBranches] = useState([]);
 
+  useEffect(() => {
+    api.get("/roles").then((response) => {
+      const rolesData = response.data.data;
+      const formattedRoles = rolesData.map((role) => ({
+        value: role.id,
+        label: role.name,
+      }));
+      setRoles(formattedRoles);
+    });
+  }, []);
 
-useEffect(() => {
-      api.get("/roles").then((response) => {
-    const rolesData = response.data;
-    console.log("Fetched roles:", rolesData);
-    setRoles(rolesData);
-  });
-}, []);
-  const roles = [
-    { value: "admin", label: "Administrator" },
-    { value: "manager", label: "Manager" },
-    { value: "cashier", label: "Cashier" },
-    { value: "waiter", label: "Waiter" },
-    { value: "kitchen_staff", label: "Kitchen Staff" },
-  ];
+  useEffect(() => {
+    api.get("/branches").then((response) => {
+      const branchesData = response.data.data.data;
+      console.log(branchesData);
+      const formattedBranches = branchesData.map((branch) => ({
+        value: branch.id,
+        label: branch.name,
+      }));
+      setBranches(formattedBranches);
+    });
+  }, []);
 
-  const branches = [
-    { value: "Kalutara", label: "Kalutara" },
-    { value: "Gampaha", label: "Gampaha" },
-    { value: "Colombo", label: "Colombo" },
-  ];
+  useEffect(() => {
+    api.get("/users").then((response) => {
+      const usersData = response.data.data.map((user) => ({
+        id: user.id,
+        profileImage: user.profileImage,
+        username: user.username,
+        role: user.role ? user.role.name : "N/A",
+        branch: user.branch ? user.branch.name : "N/A",
+        phone: user.phone,
+        email: user.email,
+        status: user.status,
+      }));
+      console.log(usersData);
+      setUsers(usersData);
+    });
+  }, []);
 
   const status = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "blocked", label: "Blocked" },
   ];
 
   const accessLevels = [
@@ -135,15 +156,15 @@ useEffect(() => {
   const handleUsernameChange = (value) => {
     setFormData({ ...formData, username: value });
 
-    const usernameExists = data.some(
-      (user) => user.username.toLowerCase() === value.trim().toLowerCase(),
-    );
+    // const usernameExists = data.some(
+    //   (user) => user.username.toLowerCase() === value.trim().toLowerCase(),
+    // );
 
-    if (usernameExists) {
-      setFieldError("username", "Username already exists.");
-    } else {
-      setFieldError("username", "");
-    }
+    // if (usernameExists) {
+    //   setFieldError("username", "Username already exists.");
+    // } else {
+    //   setFieldError("username", "");
+    // }
   };
 
   const validateSubmit = () => {
@@ -225,15 +246,15 @@ useEffect(() => {
     setIsSubmitting(true);
 
     const user = {
-      fullname: formData.fullname,
+      name: formData.fullname,
       username: formData.username,
       email: formData.email,
       phone: formData.phone,
       whatsapp: formData.whatsapp,
       dob: formData.dob,
       address: formData.address,
-      role: formData.roleOption,
-      branch: formData.branchOption,
+      role_id: formData.roleOption,
+      branch_id: formData.branchOption,
       status: formData.statusOption,
       accessLevel: formData.accessLevel,
       profileImage: formData.uploadedImage,
@@ -243,7 +264,7 @@ useEffect(() => {
     };
 
     console.log("Submitted user:", user);
-
+    api.post("/users", user);
     setIsSubmitting(false);
     resetAddUserForm();
     setShowAddUser(false);

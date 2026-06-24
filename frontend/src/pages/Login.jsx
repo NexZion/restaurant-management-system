@@ -37,12 +37,11 @@ export const Login = () => {
       .catch((error) => {
         console.error("Login failed:", error);
       });
-    
   };
 
   return (
     <div className="min-h-screen relative bg-white dark:bg-gray-900 flex items-center justify-center p-6">
-        <CosmicBackground isDark={isDarkMode}/>
+      <CosmicBackground isDark={isDarkMode} />
       <div className="w-full max-w-[400px] z-20">
         {/* Main Card */}
         <div className="bg-white dark:bg-gray-900  rounded-xl shadow-lg shadow-gray-200 dark:shadow-gray-800 overflow-hidden">
@@ -78,11 +77,11 @@ export const Login = () => {
             {/* Logo */}
             <div className="flex justify-center mt-8 mb-6">
               <div className="flex items-center gap-2">
-              <img
-                src={logoImage}
-                alt="Logo"
-                className="h-14 invert dark:invert-0"
-              />
+                <img
+                  src={logoImage}
+                  alt="Logo"
+                  className="h-14 invert dark:invert-0"
+                />
               </div>
             </div>
 
@@ -132,7 +131,6 @@ export const Login = () => {
               </Button>
             </form>
           </div>
-
         </div>
 
         {/* Subtle footer text */}
