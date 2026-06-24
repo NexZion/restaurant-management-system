@@ -27,11 +27,7 @@ return new class extends Migration
             $table->string('postal_code')->nullable();
             $table->string('state')->nullable();
 
-            $table->enum('customer_type', [
-                'regular',
-                'vip',
-                'corporate'
-            ])->default('regular');
+            $table->string('customer_type', 50)->default('regular');
 
             $table->integer('loyalty_points')->default(0);
 
@@ -43,10 +39,7 @@ return new class extends Migration
 
             $table->string('id_number')->nullable();
 
-            $table->enum('id_type', [
-                'nic',
-                'passport'
-            ])->nullable();
+            $table->string('id_type', 50)->nullable();
 
             $table->string('status')->default('active');
 

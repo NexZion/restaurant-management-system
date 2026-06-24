@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\MenuItemImageController;
 use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\MenuMenuItemController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -52,5 +53,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('menu-items', MenuItemController::class);
     Route::apiResource('menu-item-images', MenuItemImageController::class);
     Route::apiResource( 'menus', MenuController::class);
+    Route::post('/menus/{menu}/items', [MenuMenuItemController::class, 'attach']);
+    Route::get('/menus/{menu}/items', [MenuMenuItemController::class, 'index']);
+    Route::delete('/menus/{menu}/items/{item}', [MenuMenuItemController::class, 'detach']);
+    Route::put('/menus/{menu}/items/{item}/order', [MenuMenuItemController::class, 'updateOrder']);
     
 });

@@ -33,6 +33,8 @@ class Menu extends Model
         return $this->belongsToMany(
             MenuItem::class,
             'menu_menu_item'
-        )->withPivot('display_order');
+        )->withPivot('display_order')
+            ->withTimestamps();
+
     }
 }
