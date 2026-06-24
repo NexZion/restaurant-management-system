@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\MenuItemImageController;
+use App\Http\Controllers\Api\MenuController;
+use App\Http\Controllers\Api\MenuMenuItemController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -39,22 +41,21 @@ Route::prefix('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:api')->group(function () {
-
-    Route::post('/branches', [BranchController::class, 'store']);
-    Route::get('/branches', [BranchController::class, 'index']);
-    Route::get('/branches/{id}', [BranchController::class, 'show']);
-    Route::put('/branches/{id}', [BranchController::class, 'update']);
-    Route::delete('/branches/{id}', [BranchController::class, 'destroy']);
-});
 
 
 Route::middleware('auth:api')->group(function () {
-
+    
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('users', UserController::class);
-    Route::apiResource('customers', CustomerController::class); 
+    Route::apiResource('customers', CustomerController::class);
+    Route::apiResource('branches', BranchController::class);    
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
     Route::apiResource('menu-item-images', MenuItemImageController::class);
+    Route::apiResource( 'menus', MenuController::class);
+    Route::post('/menus/{menu}/items', [MenuMenuItemController::class, 'attach']);
+    Route::get('/menus/{menu}/items', [MenuMenuItemController::class, 'index']);
+    Route::delete('/menus/{menu}/items/{item}', [MenuMenuItemController::class, 'detach']);
+    Route::put('/menus/{menu}/items/{item}/order', [MenuMenuItemController::class, 'updateOrder']);
+    
 });

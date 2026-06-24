@@ -12,8 +12,6 @@ class MenuItem extends Model
 
     protected $fillable = [
 
-        'branch_id',
-
         'menu_category_id',
 
         'sku',
@@ -35,11 +33,6 @@ class MenuItem extends Model
         'status'
     ];
 
-    public function branch()
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
     public function menuCategory()
     {
         return $this->belongsTo(
@@ -52,4 +45,12 @@ class MenuItem extends Model
 {
     return $this->hasMany(MenuItemImage::class);
 }
+    public function menus()
+    {
+        return $this->belongsToMany(
+            Menu::class,
+            'menu_menu_item'
+        )->withPivot('display_order')
+            ->withTimestamps();
+    } 
 }

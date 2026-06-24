@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class MenuCategory extends Model
+class Menu extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -18,16 +18,23 @@ class MenuCategory extends Model
 
         'description',
 
-        'image',
-
         'display_order',
 
         'status'
     ];
 
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function menuItems()
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->belongsToMany(
+            MenuItem::class,
+            'menu_menu_item'
+        )->withPivot('display_order')
+            ->withTimestamps();
+
     }
 }

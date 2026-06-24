@@ -15,8 +15,7 @@ class StoreMenuItemRequest extends FormRequest
     {
         return [
 
-            'branch_id' => 'required|exists:branches,id',
-
+        
             'menu_category_id' => 'required|exists:menu_categories,id',
 
             'sku' => 'required|string|max:50|unique:menu_items,sku',

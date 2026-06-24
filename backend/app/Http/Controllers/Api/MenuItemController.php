@@ -15,7 +15,6 @@ class MenuItemController extends Controller
         return response()->json([
             'success' => true,
             'data' => MenuItem::with([
-                'branch',
                 'menuCategory',
                 'images'
 
@@ -37,7 +36,6 @@ class MenuItemController extends Controller
     public function show($id)
     {
         $item = MenuItem::with([
-            'branch',
             'menuCategory',
             'images'
 

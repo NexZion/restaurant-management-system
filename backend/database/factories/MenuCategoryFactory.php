@@ -11,7 +11,7 @@ class MenuCategoryFactory extends Factory
     {
         return [
 
-            'branch_id' => Branch::inRandomOrder()->first()?->id,
+        
 
             'name' => fake()->randomElement([
                 'Main Courses',

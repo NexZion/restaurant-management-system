@@ -21,35 +21,7 @@ class CustomerController extends Controller
 }
 public function store(StoreCustomerRequest $request)
 {
-    $customer = Customer::create([
-
-        'customer_code' => $request->customer_code,
-
-        'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
-
-        'email' => $request->email,
-        'phone' => $request->phone,
-        'whatsapp' => $request->whatsapp,
-
-        'address_line1' => $request->address_line1,
-        'address_line2' => $request->address_line2,
-        'city' => $request->city,
-        'district' => $request->district,
-        'postal_code' => $request->postal_code,
-        'state' => $request->state,
-
-        'customer_type' => $request->customer_type,
-
-        'loyalty_points' => $request->loyalty_points ?? 0,
-
-        'id_number' => $request->id_number,
-        'id_type' => $request->id_type,
-
-        'status' => $request->status ?? 'active',
-
-        'is_active' => true
-    ]);
+    $customer = Customer::create($request->validated());
 
     return response()->json([
         'success' => true,
