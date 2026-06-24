@@ -2703,6 +2703,7 @@ export const PhoneField = ({
   const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 });
   const triggerRef = useRef(null);
   const searchRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   // Sync internal state when value prop changes externally
   useEffect(() => {
@@ -2751,7 +2752,10 @@ export const PhoneField = ({
   useEffect(() => {
     if (!dropOpen) return;
     const close = (e) => {
-      if (!triggerRef.current?.contains(e.target)) {
+      if (
+        !triggerRef.current?.contains(e.target) &&
+        !dropdownRef.current?.contains(e.target)
+      ) {
         setDropOpen(false);
         setSearch("");
       }
@@ -2874,6 +2878,7 @@ export const PhoneField = ({
               }}
             />
             <div
+              ref={dropdownRef}
               className="fixed z-[9999] bg-white dark:bg-[#212125] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg overflow-hidden"
               style={{
                 top: dropPos.top,
