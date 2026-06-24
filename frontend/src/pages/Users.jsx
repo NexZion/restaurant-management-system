@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   SelectField,
   TextField,
@@ -18,29 +18,41 @@ import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
 import { Stepper } from "../components/Stepper";
 import { AddItem } from "../components/AddItem";
+import api from "../axiosClient";
 
 export const Users = () => {
-  const [fullname, setFullname] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [phone, setPhone] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [dob, setDob] = useState("");
-  const [address, setAddress] = useState("");
-  const [roleOption, setRole] = useState("");
-  const [branchOption, setBranch] = useState("");
-  const [statusOption, setStatusOption] = useState("Active");
-  const [accessLevel, setAccessLevel] = useState("5");
+  const [formData, setFormData] = useState({
+    fullname: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    pin: "",
+    confirmPin: "",
+    uploadedImage: null,
+    phone: "",
+    whatsapp: "",
+    dob: "",
+    address: "",
+    roleOption: "",
+    branchOption: "",
+    statusOption: "Active",
+    accessLevel: "5",
+  });
+
   const [showAddUser, setShowAddUser] = useState(false);
-  const [userRole, setUserRole] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [users, setUsers] = useState([]);
 
+
+useEffect(() => {
+      api.get("/roles").then((response) => {
+    const rolesData = response.data;
+    console.log("Fetched roles:", rolesData);
+    setRoles(rolesData);
+  });
+}, []);
   const roles = [
     { value: "admin", label: "Administrator" },
     { value: "manager", label: "Manager" },
@@ -79,33 +91,10 @@ export const Users = () => {
     { key: "status", label: "Status" },
   ];
 
-  const data = [
-    {
-      id: 1,
-      profileImage: null,
-      username: "johndoe",
-      role: "admin",
-      branch: "Kalutara",
-      phone: "123-456-7890",
-      email: "john@example.com",
-      status: "Active",
-    },
-    {
-      id: 2,
-      profileImage: null,
-      username: "janesmith",
-      role: "manager",
-      branch: "Gampaha",
-      phone: "098-765-4321",
-      email: "jane@example.com",
-      status: "Inactive",
-    },
-  ];
-
   const pinRoles = ["cashier", "waiter"];
-  const roleSelected = Boolean(roleOption);
-  const shouldShowPin = !roleSelected || pinRoles.includes(roleOption);
-  const shouldValidatePin = pinRoles.includes(roleOption);
+  const roleSelected = Boolean(formData.roleOption);
+  const shouldShowPin = roleSelected && pinRoles.includes(formData.roleOption);
+  const shouldValidatePin = pinRoles.includes(formData.roleOption);
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
@@ -125,13 +114,11 @@ export const Users = () => {
   };
 
   const handleRoleChange = (value) => {
-    setRole(value);
+    setFormData({ ...formData, roleOption: value });
 
-    setPassword("");
-    setConfirmPassword("");
+    setFormData({ ...formData, password: "", confirmPassword: "" });
     if (!pinRoles.includes(value)) {
-      setPin("");
-      setConfirmPin("");
+      setFormData({ ...formData, pin: "", confirmPin: "" });
     }
 
     setFieldErrors((prev) => {
@@ -146,7 +133,7 @@ export const Users = () => {
   };
 
   const handleUsernameChange = (value) => {
-    setUsername(value);
+    setFormData({ ...formData, username: value });
 
     const usernameExists = data.some(
       (user) => user.username.toLowerCase() === value.trim().toLowerCase(),
@@ -162,16 +149,17 @@ export const Users = () => {
   const validateSubmit = () => {
     const errors = {};
 
-    if (!fullname.trim()) errors.fullname = "Full name is required.";
-    if (!username.trim()) errors.username = "Username is required.";
-    if (!email.trim()) errors.email = "Email is required.";
-    if (!phone) errors.phone = "Phone number is required.";
-    if (!whatsapp) errors.whatsapp = "Whatsapp number is required.";
-    if (!userRole) errors.role = "Role is required.";
-    if (!branchOption) errors.branch = "Branch is required.";
+    if (!formData.fullname.trim()) errors.fullname = "Full name is required.";
+    if (!formData.username.trim()) errors.username = "Username is required.";
+    if (!formData.email.trim()) errors.email = "Email is required.";
+    if (!formData.phone) errors.phone = "Phone number is required.";
+    if (!formData.whatsapp) errors.whatsapp = "Whatsapp number is required.";
+    if (!formData.roleOption) errors.setRole = "Role is required.";
+    if (!formData.branchOption) errors.setBranch = "Branch is required.";
 
-    const usernameExists = data.some(
-      (user) => user.username.toLowerCase() === username.trim().toLowerCase(),
+    const usernameExists = users.some(
+      (user) =>
+        user.username.toLowerCase() === formData.username.trim().toLowerCase(),
     );
 
     if (usernameExists) {
@@ -179,30 +167,26 @@ export const Users = () => {
     }
 
     if (shouldValidatePin) {
-      if (!pin) {
-        errors.pin = "PIN is required.";
-      } else if (!/^\d{4}$/.test(pin)) {
+      if (formData.pin && !/^\d{4}$/.test(formData.pin)) {
         errors.pin = "PIN must be numeric and exactly 4 digits.";
       }
 
-      if (!confirmPin) {
-        errors.confirmPin = "Confirm PIN is required.";
-      } else if (pin !== confirmPin) {
+      if (formData.pin !== formData.confirmPin) {
         errors.confirmPin = "PIN and Confirm PIN must match.";
       }
-    } else {
-      if (!password) {
-        errors.password = "Password is required.";
-      } else if (!passwordRegex.test(password)) {
-        errors.password =
-          "Password must include uppercase, lowercase, number, symbol, and at least 8 characters.";
-      }
+    }
 
-      if (!confirmPassword) {
-        errors.confirmPassword = "Confirm Password is required.";
-      } else if (password !== confirmPassword) {
-        errors.confirmPassword = "Password and Confirm Password must match.";
-      }
+    if (!formData.password) {
+      errors.password = "Password is required.";
+    } else if (!passwordRegex.test(formData.password)) {
+      errors.password =
+        "Password must include uppercase, lowercase, number, symbol, and at least 8 characters.";
+    }
+
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = "Confirm Password is required.";
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = "Password and Confirm Password must match.";
     }
 
     setFieldErrors(errors);
@@ -210,23 +194,24 @@ export const Users = () => {
   };
 
   const resetAddUserForm = () => {
-    setFullname("");
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setPin("");
-    setConfirmPin("");
-    setUploadedImage(null);
-    setPhone("");
-    setWhatsapp("");
-    setDob("");
-    setAddress("");
-    setRole("");
-    setBranch("");
-    setStatusOption("Active");
-    setAccessLevel("5");
-    setUserRole("");
+    setFormData({
+      fullname: "",
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      pin: "",
+      confirmPin: "",
+      uploadedImage: null,
+      phone: "",
+      whatsapp: "",
+      dob: "",
+      address: "",
+      roleOption: "",
+      branchOption: "",
+      statusOption: "Active",
+      accessLevel: "5",
+    });
     setFieldErrors({});
   };
 
@@ -240,21 +225,21 @@ export const Users = () => {
     setIsSubmitting(true);
 
     const user = {
-      fullname,
-      username,
-      email,
-      phone,
-      whatsapp,
-      dob,
-      address,
-      role: userRole,
-      branch: branchOption,
-      status: statusOption,
-      accessLevel,
-      profileImage: uploadedImage,
+      fullname: formData.fullname,
+      username: formData.username,
+      email: formData.email,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp,
+      dob: formData.dob,
+      address: formData.address,
+      role: formData.roleOption,
+      branch: formData.branchOption,
+      status: formData.statusOption,
+      accessLevel: formData.accessLevel,
+      profileImage: formData.uploadedImage,
       authType: shouldValidatePin ? "pin" : "password",
-      pin: shouldValidatePin ? pin : "",
-      password,
+      pin: shouldValidatePin ? formData.pin : "",
+      password: shouldValidatePin ? "" : formData.password,
     };
 
     console.log("Submitted user:", user);
@@ -307,8 +292,10 @@ export const Users = () => {
           <ImageUploadField
             required
             label="Profile Image"
-            value={uploadedImage}
-            onChange={setUploadedImage}
+            value={formData.uploadedImage}
+            onChange={(image) =>
+              setFormData({ ...formData, uploadedImage: image })
+            }
             helperText="Upload a profile image (JPG, PNG)"
             accept="image/*"
             variant="outlined"
@@ -318,9 +305,9 @@ export const Users = () => {
             <TextField
               required
               label="Full Name"
-              value={fullname}
+              value={formData.fullname}
               onChange={(e) => {
-                setFullname(e.target.value);
+                setFormData({ ...formData, fullname: e.target.value });
                 setFieldError("fullname", "");
               }}
               helperText={fieldErrors.fullname || ""}
@@ -328,10 +315,10 @@ export const Users = () => {
             />
             <SelectField
               label="Access Level"
-              value={accessLevel}
+              value={formData.accessLevel}
               options={accessLevels}
               onChange={(e) => {
-                setAccessLevel(e.target.value);
+                setFormData({ ...formData, accessLevel: e.target.value });
               }}
             />
           </div>
@@ -341,7 +328,7 @@ export const Users = () => {
               required
               fullWidth={true}
               label="Username"
-              value={username}
+              value={formData.username}
               onChange={(e) => handleUsernameChange(e.target.value)}
               helperText={fieldErrors.username || ""}
               error={!!fieldErrors.username}
@@ -351,9 +338,9 @@ export const Users = () => {
               fullWidth={true}
               label="Email"
               type="email"
-              value={email}
+              value={formData.email}
               onChange={(e) => {
-                setEmail(e.target.value);
+                setFormData({ ...formData, email: e.target.value });
                 setFieldError("email", "");
               }}
               helperText={fieldErrors.email || ""}
@@ -362,9 +349,9 @@ export const Users = () => {
             <PhoneField
               required
               label="Phone Number"
-              value={phone}
+              value={formData.phone}
               onChange={(value) => {
-                setPhone(value);
+                setFormData({ ...formData, phone: value });
                 setFieldError("phone", "");
               }}
               fullWidth
@@ -375,9 +362,9 @@ export const Users = () => {
             <PhoneField
               required
               label="whatsapp Number"
-              value={whatsapp}
+              value={formData.whatsapp}
               onChange={(value) => {
-                setWhatsapp(value);
+                setFormData({ ...formData, whatsapp: value });
                 setFieldError("whatsapp", "");
               }}
               fullWidth
@@ -388,18 +375,20 @@ export const Users = () => {
               required
               fullwidth={true}
               label="Select Role"
-              value={roleOption}
+              value={formData.roleOption}
               options={roles}
-              onChange={(e) => handleRoleChange(e.target.value)}
+              onChange={(e) => {
+                setFormData({ ...formData, roleOption: e.target.value });
+              }}
             />
             <SelectField
               required
               fullwidth={true}
               label="Select Branch"
-              value={branchOption}
+              value={formData.branchOption}
               options={branches}
               onChange={(e) => {
-                setBranch(e.target.value);
+                setFormData({ ...formData, branchOption: e.target.value });
                 setFieldError("branch", "");
               }}
               helperText={fieldErrors.branch || ""}
@@ -409,27 +398,27 @@ export const Users = () => {
               type="date"
               floatLabel={true}
               label="Date of Birth"
-              value={dob}
+              value={formData.dob}
               onChange={(e) => {
-                setDob(e.target.value);
+                setFormData({ ...formData, dob: e.target.value });
               }}
             />
             <SelectField
               fullwidth={true}
               label="Status"
-              value={statusOption}
+              value={formData.status}
               options={status}
               onChange={(e) => {
-                setStatusOption(e.target.value);
+                setFormData({ ...formData, status: e.target.value });
               }}
             />
           </div>
           <div className=" pb-4">
             <TextAreaField
               label="Address"
-              value={address}
+              value={formData.address}
               onChange={(e) => {
-                setAddress(e.target.value);
+                setFormData({ ...formData, address: e.target.value });
               }}
               rows={2}
               resize="vertical"
@@ -442,12 +431,15 @@ export const Users = () => {
                 required
                 label="Password"
                 type="password"
-                value={password}
+                value={formData.password}
                 onChange={(e) => {
-                  setPassword(e.target.value);
+                  setFormData({ ...formData, password: e.target.value });
                   setFieldError("password", "");
 
-                  if (confirmPassword && e.target.value !== confirmPassword) {
+                  if (
+                    formData.confirmPassword &&
+                    e.target.value !== formData.confirmPassword
+                  ) {
                     setFieldError(
                       "confirmPassword",
                       "Password and Confirm Password must match.",
@@ -465,12 +457,12 @@ export const Users = () => {
                 required
                 label="Confirm Password"
                 type="password"
-                value={confirmPassword}
+                value={formData.confirmPassword}
                 onChange={(e) => {
-                  setConfirmPassword(e.target.value);
+                  setFormData({ ...formData, confirmPassword: e.target.value });
                   setFieldError(
                     "confirmPassword",
-                    e.target.value && e.target.value !== password
+                    e.target.value && e.target.value !== formData.password
                       ? "Password and Confirm Password must match."
                       : "",
                   );
@@ -487,12 +479,15 @@ export const Users = () => {
                   required={shouldValidatePin}
                   label="PIN"
                   type="password"
-                  value={pin}
+                  value={formData.pin}
                   onChange={(e) => {
-                    setPin(e.target.value);
+                    setFormData({ ...formData, pin: e.target.value });
                     setFieldError("pin", "");
 
-                    if (confirmPin && e.target.value !== confirmPin) {
+                    if (
+                      formData.confirmPin &&
+                      e.target.value !== formData.confirmPin
+                    ) {
                       setFieldError(
                         "confirmPin",
                         "PIN and Confirm PIN must match.",
@@ -510,12 +505,12 @@ export const Users = () => {
                   required={shouldValidatePin}
                   label="Confirm PIN"
                   type="password"
-                  value={confirmPin}
+                  value={formData.confirmPin}
                   onChange={(e) => {
-                    setConfirmPin(e.target.value);
+                    setFormData({ ...formData, confirmPin: e.target.value });
                     setFieldError(
                       "confirmPin",
-                      e.target.value && e.target.value !== pin
+                      e.target.value && e.target.value !== formData.pin
                         ? "PIN and Confirm PIN must match."
                         : "",
                     );
@@ -537,23 +532,29 @@ export const Users = () => {
               <div className="flex  gap-4 w-full">
                 <SelectField
                   label="Role"
-                  value={roleOption}
+                  value={formData.roleOption}
                   options={roles}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, roleOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Branch"
-                  value={branchOption}
+                  value={formData.branchOption}
                   options={branches}
-                  onChange={(e) => setBranch(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, branchOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Status"
-                  value={statusOption}
+                  value={formData.statusOption}
                   options={status}
-                  onChange={(e) => setStatusOption(e.target.value)}
+                  onChange={(e) =>
+                    setFormData({ ...formData, statusOption: e.target.value })
+                  }
                   fullWidth={true}
                 />
               </div>
@@ -568,7 +569,7 @@ export const Users = () => {
       <div className="mt-4">
         <Table
           columns={columns}
-          data={data}
+          data={users}
           selectable={false}
           expandable={false}
           searchable={true}

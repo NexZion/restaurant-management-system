@@ -29,6 +29,9 @@ export const Login = () => {
     api
       .post("auth/login", { login, password })
       .then((response) => {
+        console.log("Login successful:", response.data);
+        localStorage.setItem("ACCESS_TOKEN", response.data.token);
+        localStorage.setItem("USER", JSON.stringify(response.data.user));
         navigate("/dashboard");
       })
       .catch((error) => {
