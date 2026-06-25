@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
 
@@ -55,6 +56,22 @@ class User extends Authenticatable implements JWTSubject
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function createdOrders()
+    {
+        return $this->hasMany(
+            Order::class,
+            'created_by'
+        );
+    }
+
+    public function waiterOrders()
+    {
+        return $this->hasMany(
+            Order::class,
+            'waiter_id'
+        );
     }
 
     public function getJWTIdentifier()

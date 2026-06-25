@@ -89,6 +89,7 @@ class UserSeeder extends Seeder
     'status' => 'active'
 ]);
 
+  user::factory()->count(10)->create();
 
 
       
