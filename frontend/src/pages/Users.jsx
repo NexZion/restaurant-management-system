@@ -47,6 +47,23 @@ export const Users = () => {
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
 
+  const fetchUsers = async () => {
+    api.get("/users").then((response) => {
+      const usersData = response.data.data.map((user) => ({
+        id: user.id,
+        profileImage: user.profileImage,
+        username: user.username,
+        role: user.role ? user.role.name : "N/A",
+        branch: user.branch ? user.branch.name : "N/A",
+        phone: user.phone,
+        email: user.email,
+        status: user.status,
+      }));
+      console.log(usersData);
+      setUsers(usersData);
+    });
+  };
+
   useEffect(() => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
@@ -71,20 +88,7 @@ export const Users = () => {
   }, []);
 
   useEffect(() => {
-    api.get("/users").then((response) => {
-      const usersData = response.data.data.map((user) => ({
-        id: user.id,
-        profileImage: user.profileImage,
-        username: user.username,
-        role: user.role ? user.role.name : "N/A",
-        branch: user.branch ? user.branch.name : "N/A",
-        phone: user.phone,
-        email: user.email,
-        status: user.status,
-      }));
-      console.log(usersData);
-      setUsers(usersData);
-    });
+    fetchUsers();
   }, []);
 
   const status = [
@@ -230,7 +234,7 @@ export const Users = () => {
       address: "",
       roleOption: "",
       branchOption: "",
-      statusOption: "Active",
+      statusOption: "active",
       accessLevel: "5",
     });
     setFieldErrors({});
@@ -267,6 +271,7 @@ export const Users = () => {
     api.post("/users", user);
     setIsSubmitting(false);
     resetAddUserForm();
+    fetchUsers();
     setShowAddUser(false);
   };
   return (
