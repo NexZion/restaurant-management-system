@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
@@ -40,24 +37,26 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
-            $table->string('order_type')->default('dining');
+            $table->enum('order_type', [
+                'dining',
+                'takeaway',
+                'delivery'
+            ]);
 
             $table->string('status')->default('pending');
 
             $table->boolean('is_online')
                 ->default(false);
 
-            $table->text('notes')->nullable();
-
-            $table->softDeletes();
+            $table->text('notes')
+                ->nullable();
 
             $table->timestamps();
+
+            $table->softDeletes();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('orders');
