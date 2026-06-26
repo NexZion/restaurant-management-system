@@ -46,9 +46,26 @@ export const Users = () => {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [isFormRole, setIsFormRole] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  const [filters, setFilters] = useState({
+    role: "",
+    branch: "",
+    status: "",
+  });
 
   const fetchUsers = async () => {
-    api.get("/users").then((response) => {
+    try {
+      const response = await api.get("/users", {
+        // params: {
+        //   role: filters.role,
+        //   branch: filters.branch,
+        //   status: filters.status,
+        // },
+      });
+
       const usersData = response.data.data.map((user) => ({
         id: user.id,
         profileImage: user.profileImage,
@@ -59,18 +76,27 @@ export const Users = () => {
         email: user.email,
         status: user.status,
       }));
-      console.log(usersData);
+
       setUsers(usersData);
-    });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
-      const formattedRoles = rolesData.map((role) => ({
-        value: role.id,
-        label: role.name,
-      }));
+      const formattedRoles = !isFormRole
+        ? [{ value: "0", label: "All Roles" }]
+        : "";
+      formattedRoles.push(
+        ...rolesData.map((role) => ({
+          value: role.id,
+          label: role.name,
+        })),
+      );
+
+      console.log(formattedRoles);
       setRoles(formattedRoles);
     });
   }, []);
@@ -89,7 +115,38 @@ export const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [filters]);
+
+  const handleEditUser = async (row) => {
+    try {
+      const response = await api.get(`/users/${row.id}`);
+
+      const user = response.data.data;
+
+      setEditingUser(user);
+      setIsEditMode(true);
+
+      setFormData({
+        id: user.id,
+        fullname: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        whatsapp: user.whatsapp || "",
+        dob: user.dob || "",
+        address: user.address || "",
+        roleOption: user.role_id || "",
+        branchOption: user.branch_id || "",
+        statusOption: user.status || "Active",
+        accessLevel: user.accessLevel || "5",
+        uploadedImage: user.profileImage || null,
+      });
+
+      setShowAddUser(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const status = [
     { value: "active", label: "Active" },
@@ -184,34 +241,47 @@ export const Users = () => {
 
     const usernameExists = users.some(
       (user) =>
+        user.id !== formData.id &&
         user.username.toLowerCase() === formData.username.trim().toLowerCase(),
     );
+
+    const emailExists = users.some(
+      (user) =>
+        user.id !== formData.id &&
+        user.email.toLowerCase() === formData.email.trim().toLowerCase(),
+    );
+
+    if (emailExists) {
+      errors.email = "Email already exists.";
+    }
 
     if (usernameExists) {
       errors.username = "Username already exists.";
     }
 
-    if (shouldValidatePin) {
-      if (formData.pin && !/^\d{4}$/.test(formData.pin)) {
-        errors.pin = "PIN must be numeric and exactly 4 digits.";
+    if (!isEditMode) {
+      if (shouldValidatePin) {
+        if (formData.pin && !/^\d{4}$/.test(formData.pin)) {
+          errors.pin = "PIN must be numeric and exactly 4 digits.";
+        }
+
+        if (formData.pin !== formData.confirmPin) {
+          errors.confirmPin = "PIN and Confirm PIN must match.";
+        }
       }
 
-      if (formData.pin !== formData.confirmPin) {
-        errors.confirmPin = "PIN and Confirm PIN must match.";
+      if (!formData.password) {
+        errors.password = "Password is required.";
+      } else if (!passwordRegex.test(formData.password)) {
+        errors.password =
+          "Password must include uppercase, lowercase, number, symbol, and at least 8 characters.";
       }
-    }
 
-    if (!formData.password) {
-      errors.password = "Password is required.";
-    } else if (!passwordRegex.test(formData.password)) {
-      errors.password =
-        "Password must include uppercase, lowercase, number, symbol, and at least 8 characters.";
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = "Confirm Password is required.";
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Password and Confirm Password must match.";
+      if (!formData.confirmPassword) {
+        errors.confirmPassword = "Confirm Password is required.";
+      } else if (formData.password !== formData.confirmPassword) {
+        errors.confirmPassword = "Password and Confirm Password must match.";
+      }
     }
 
     setFieldErrors(errors);
@@ -241,8 +311,11 @@ export const Users = () => {
   };
 
   const handleCloseAddUser = () => {
+    setIsFormRole(false);
     resetAddUserForm();
     setShowAddUser(false);
+    setIsEditMode(false);
+    setEditingUser(null);
   };
   const handleSubmitUser = async () => {
     if (!validateSubmit()) return;
@@ -263,13 +336,18 @@ export const Users = () => {
       accessLevel: formData.accessLevel,
       profileImage: formData.uploadedImage,
       authType: shouldValidatePin ? "pin" : "password",
-      pin: shouldValidatePin ? formData.pin : "",
-      password: shouldValidatePin ? "" : formData.password,
+      password: formData.password,
     };
 
     console.log("Submitted user:", user);
-    api.post("/users", user);
+    if (isEditMode) {
+      console.log("Editing user with ID:", editingUser.id);
+      await api.put(`/users/${editingUser.id}`, user);
+    } else {
+      await api.post("/users", user);
+    }
     setIsSubmitting(false);
+    setIsEditMode(false);
     resetAddUserForm();
     fetchUsers();
     setShowAddUser(false);
@@ -284,7 +362,10 @@ export const Users = () => {
 
         <Button
           variant="primary"
-          onClick={() => setShowAddUser(true)}
+          onClick={() => {
+            setIsFormRole(true);
+            setShowAddUser(true);
+          }}
           startIcon={
             <svg
               className="w-4 h-4"
@@ -306,9 +387,11 @@ export const Users = () => {
         <Dialog
           isOpen={showAddUser}
           onClose={handleCloseAddUser}
-          title="Add User"
+          title={isEditMode ? "Edit User" : "Add User"}
           size="medium"
-          primaryButtonText={isSubmitting ? "Saving..." : "Save"}
+          primaryButtonText={
+            isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
+          }
           secondaryButtonText="Cancel"
           primaryButtonDisabled={isSubmitting}
           secondaryButtonDisabled={isSubmitting}
@@ -432,10 +515,10 @@ export const Users = () => {
             <SelectField
               fullwidth={true}
               label="Status"
-              value={formData.status}
+              value={formData.statusOption}
               options={status}
               onChange={(e) => {
-                setFormData({ ...formData, status: e.target.value });
+                setFormData({ ...formData, statusOption: e.target.value });
               }}
             />
           </div>
@@ -451,103 +534,108 @@ export const Users = () => {
               maxLength={100}
             />
           </div>
-          <div className="pb-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4 w-full">
-              <TextField
-                required
-                label="Password"
-                type="password"
-                value={formData.password}
-                onChange={(e) => {
-                  setFormData({ ...formData, password: e.target.value });
-                  setFieldError("password", "");
-
-                  if (
-                    formData.confirmPassword &&
-                    e.target.value !== formData.confirmPassword
-                  ) {
-                    setFieldError(
-                      "confirmPassword",
-                      "Password and Confirm Password must match.",
-                    );
-                  } else {
-                    setFieldError("confirmPassword", "");
-                  }
-                }}
-                fullWidth={true}
-                helperText={fieldErrors.password || ""}
-                error={!!fieldErrors.password}
-              />
-
-              <TextField
-                required
-                label="Confirm Password"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmPassword: e.target.value });
-                  setFieldError(
-                    "confirmPassword",
-                    e.target.value && e.target.value !== formData.password
-                      ? "Password and Confirm Password must match."
-                      : "",
-                  );
-                }}
-                fullWidth={true}
-                helperText={fieldErrors.confirmPassword || ""}
-                error={!!fieldErrors.confirmPassword}
-              />
-            </div>
-
-            {shouldShowPin && (
+          {!isEditMode && (
+            <div className="pb-4 space-y-4">
               <div className="grid grid-cols-2 gap-4 w-full">
                 <TextField
-                  required={shouldValidatePin}
-                  label="PIN"
+                  required
+                  label="Password"
                   type="password"
-                  value={formData.pin}
+                  value={formData.password}
                   onChange={(e) => {
-                    setFormData({ ...formData, pin: e.target.value });
-                    setFieldError("pin", "");
+                    setFormData({ ...formData, password: e.target.value });
+                    setFieldError("password", "");
 
                     if (
-                      formData.confirmPin &&
-                      e.target.value !== formData.confirmPin
+                      formData.confirmPassword &&
+                      e.target.value !== formData.confirmPassword
                     ) {
                       setFieldError(
-                        "confirmPin",
-                        "PIN and Confirm PIN must match.",
+                        "confirmPassword",
+                        "Password and Confirm Password must match.",
                       );
                     } else {
-                      setFieldError("confirmPin", "");
+                      setFieldError("confirmPassword", "");
                     }
                   }}
                   fullWidth={true}
-                  helperText={fieldErrors.pin || ""}
-                  error={!!fieldErrors.pin}
+                  helperText={fieldErrors.password || ""}
+                  error={!!fieldErrors.password}
                 />
 
                 <TextField
-                  required={shouldValidatePin}
-                  label="Confirm PIN"
+                  required
+                  label="Confirm Password"
                   type="password"
-                  value={formData.confirmPin}
+                  value={formData.confirmPassword}
                   onChange={(e) => {
-                    setFormData({ ...formData, confirmPin: e.target.value });
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    });
                     setFieldError(
-                      "confirmPin",
-                      e.target.value && e.target.value !== formData.pin
-                        ? "PIN and Confirm PIN must match."
+                      "confirmPassword",
+                      e.target.value && e.target.value !== formData.password
+                        ? "Password and Confirm Password must match."
                         : "",
                     );
                   }}
                   fullWidth={true}
-                  helperText={fieldErrors.confirmPin || ""}
-                  error={!!fieldErrors.confirmPin}
+                  helperText={fieldErrors.confirmPassword || ""}
+                  error={!!fieldErrors.confirmPassword}
                 />
               </div>
-            )}
-          </div>
+
+              {shouldShowPin && (
+                <div className="grid grid-cols-2 gap-4 w-full">
+                  <TextField
+                    required={shouldValidatePin}
+                    label="PIN"
+                    type="password"
+                    value={formData.pin}
+                    onChange={(e) => {
+                      setFormData({ ...formData, pin: e.target.value });
+                      setFieldError("pin", "");
+
+                      if (
+                        formData.confirmPin &&
+                        e.target.value !== formData.confirmPin
+                      ) {
+                        setFieldError(
+                          "confirmPin",
+                          "PIN and Confirm PIN must match.",
+                        );
+                      } else {
+                        setFieldError("confirmPin", "");
+                      }
+                    }}
+                    fullWidth={true}
+                    helperText={fieldErrors.pin || ""}
+                    error={!!fieldErrors.pin}
+                  />
+
+                  <TextField
+                    required={shouldValidatePin}
+                    label="Confirm PIN"
+                    type="password"
+                    value={formData.confirmPin}
+                    onChange={(e) => {
+                      setFormData({ ...formData, confirmPin: e.target.value });
+                      setFieldError(
+                        "confirmPin",
+                        e.target.value && e.target.value !== formData.pin
+                          ? "PIN and Confirm PIN must match."
+                          : "",
+                      );
+                    }}
+                    fullWidth={true}
+                    helperText={fieldErrors.confirmPin || ""}
+                    error={!!fieldErrors.confirmPin}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </Dialog>
       </div>
       <Accordion
@@ -555,33 +643,39 @@ export const Users = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="flex  gap-4 w-full">
+              <div className="grid grid-cols-3 gap-4 w-full">
                 <SelectField
-                  label="Role"
-                  value={formData.roleOption}
+                  label="Roles"
+                  value={filters.role}
                   options={roles}
                   onChange={(e) =>
-                    setFormData({ ...formData, roleOption: e.target.value })
+                    setFilters((prev) => ({
+                      ...prev,
+                      role: e.target.value,
+                    }))
                   }
-                  fullWidth={true}
                 />
                 <SelectField
                   label="Branch"
-                  value={formData.branchOption}
+                  value={filters.branch}
                   options={branches}
                   onChange={(e) =>
-                    setFormData({ ...formData, branchOption: e.target.value })
+                    setFilters((prev) => ({
+                      ...prev,
+                      branch: e.target.value,
+                    }))
                   }
-                  fullWidth={true}
                 />
                 <SelectField
                   label="Status"
-                  value={formData.statusOption}
+                  value={filters.status}
                   options={status}
                   onChange={(e) =>
-                    setFormData({ ...formData, statusOption: e.target.value })
+                    setFilters((prev) => ({
+                      ...prev,
+                      status: e.target.value,
+                    }))
                   }
-                  fullWidth={true}
                 />
               </div>
             ),
@@ -619,7 +713,7 @@ export const Users = () => {
                 </svg>
               ),
               label: "Edit",
-              onClick: (row) => console.log("Edit", row),
+              onClick: handleEditUser,
             },
             {
               icon: (

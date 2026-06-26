@@ -118,7 +118,7 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateUserRequest $request, $id)
+    public function update(UpdateUserRequest $request, string $id)
     {
         $user = $request->user();
 
@@ -160,7 +160,7 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, string $id)
     {
         $user = $request->user();
 

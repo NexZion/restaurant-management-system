@@ -30,7 +30,10 @@ class Order extends Model
 
     public function table()
     {
-        return $this->belongsTo(RestaurantTable::class);
+        return $this->belongsTo(
+            RestaurantTable::class,
+            'table_id'
+        );
     }
 
     public function customer()
@@ -40,11 +43,17 @@ class Order extends Model
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(
+            User::class,
+            'created_by'
+        );
     }
 
     public function waiter()
     {
-        return $this->belongsTo(User::class, 'waiter_id');
+        return $this->belongsTo(
+            User::class,
+            'waiter_id'
+        );
     }
 }
