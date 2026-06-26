@@ -135,10 +135,10 @@ export const Users = () => {
         whatsapp: user.whatsapp || "",
         dob: user.dob || "",
         address: user.address || "",
-        roleOption: String(user.role_id || ""),
-        branchOption: String(user.branch_id || ""),
-        statusOption: String(user.status || "active"),
-        accessLevel: String(user.accessLevel || "5"),
+        roleOption: user.role_id || "",
+        branchOption: user.branch_id || "",
+        statusOption: user.status || "Active",
+        accessLevel: user.accessLevel || "5",
         uploadedImage: user.profileImage || null,
       });
 
@@ -347,6 +347,7 @@ export const Users = () => {
       await api.post("/users", user);
     }
     setIsSubmitting(false);
+    setIsEditMode(false);
     resetAddUserForm();
     fetchUsers();
     setShowAddUser(false);
@@ -514,10 +515,10 @@ export const Users = () => {
             <SelectField
               fullwidth={true}
               label="Status"
-              value={formData.status}
+              value={formData.statusOption}
               options={status}
               onChange={(e) => {
-                setFormData({ ...formData, status: e.target.value });
+                setFormData({ ...formData, statusOption: e.target.value });
               }}
             />
           </div>
