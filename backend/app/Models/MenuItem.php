@@ -42,9 +42,9 @@ class MenuItem extends Model
     }
 
     public function images()
-{
-    return $this->hasMany(MenuItemImage::class);
-}
+    {
+        return $this->hasMany(MenuItemImage::class);
+    }
     public function menus()
     {
         return $this->belongsToMany(
@@ -52,5 +52,10 @@ class MenuItem extends Model
             'menu_menu_item'
         )->withPivot('display_order')
             ->withTimestamps();
-    } 
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
