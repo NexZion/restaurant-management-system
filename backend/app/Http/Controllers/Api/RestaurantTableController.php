@@ -33,7 +33,7 @@ class RestaurantTableController extends Controller
             'data' => RestaurantTable::latest()->get()
         ]);
     }
-    public function show(Request $request, $id)
+    public function show(Request $request,string $id)
     {
         $user = $request->user();
 

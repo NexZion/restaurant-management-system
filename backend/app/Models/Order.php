@@ -56,4 +56,9 @@ class Order extends Model
             'waiter_id'
         );
     }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
