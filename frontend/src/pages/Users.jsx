@@ -49,6 +49,8 @@ export const Users = () => {
   const [isFormRole, setIsFormRole] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showViewUser, setShowViewUser] = useState(false);
+  const [viewUser, setViewUser] = useState(null);
 
   const [filters, setFilters] = useState({
     role: "",
@@ -352,6 +354,33 @@ export const Users = () => {
     fetchUsers();
     setShowAddUser(false);
   };
+
+  const handleDeleteUser = async (row) => {
+    try {
+      await api.delete(`/users/${row.id}`);
+
+      //      const user = response.data.data;
+
+      // Refresh the table
+      fetchUsers();
+
+      console.log("User deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    }
+  };
+
+  const handleViewUser = async (row) => {
+    try {
+      const response = await api.get(`/users/${row.id}`);
+
+      setViewUser(response.data.data);
+      setShowViewUser(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -732,7 +761,7 @@ export const Users = () => {
                 </svg>
               ),
               label: "Delete",
-              onClick: (row) => console.log("Delete", row),
+              onClick: handleDeleteUser,
             },
             {
               icon: (
@@ -757,11 +786,76 @@ export const Users = () => {
                 </svg>
               ),
               label: "View",
-              onClick: (row) => console.log("View", row),
+              onClick: handleViewUser,
             },
           ]}
         />
       </div>
+      <Dialog
+        isOpen={showViewUser}
+        onClose={() => setShowViewUser(false)}
+        title="View User"
+        size="large"
+        showFooter={false}
+      >
+        {viewUser && (
+          <div align="center" className="space-y-4">
+            <strong>Profile Image</strong>
+            <img
+              src={viewUser.profileImage}
+              alt="Profile"
+              className="w-24 h-24 rounded-full"
+            />
+
+            <div label="User Details" value="aaa" className="grid grid-cols-2">
+              <p>
+                <strong>Name</strong>
+              </p>
+              <p>{viewUser.name || ""}</p>
+              <p>
+                <strong>Username</strong>
+              </p>
+              <p>{viewUser.username || ""}</p>
+              <p>
+                <strong>Email</strong>
+              </p>
+              <p>{viewUser.email || ""}</p>
+              <p>
+                <strong>Phone</strong>
+              </p>
+              <p>{viewUser.phone || ""}</p>
+              <p>
+                <strong>Whatsapp</strong>
+              </p>
+              <p>{viewUser.whatsapp || ""}</p>
+              <p>
+                <strong>Date of Birth</strong>
+              </p>
+              <p>{viewUser.dob || ""}</p>
+              <p>
+                <strong>Address</strong>
+              </p>
+              <p>{viewUser.address || ""}</p>
+              <p>
+                <strong>Role</strong>
+              </p>
+              <p>{viewUser.role.name || ""}</p>
+              <p>
+                <strong>Branch</strong>
+              </p>
+              <p>{viewUser.branch.name || ""}</p>
+              <p>
+                <strong>Status</strong>
+              </p>
+              <p>{viewUser.status || ""}</p>
+              <p>
+                <strong>Access Level</strong>
+              </p>
+              <p>{viewUser.accessLevel || ""}</p>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 };
