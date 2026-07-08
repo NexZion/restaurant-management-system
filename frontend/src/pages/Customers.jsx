@@ -22,7 +22,9 @@ import api from "../axiosClient";
 
 export const Customers = () => {
   const [formData, setFormData] = useState({
-    firstname: "",
+    customer_code: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     whatsapp: "",
@@ -34,8 +36,8 @@ export const Customers = () => {
     postal_code: "",
     customer_type: "",
     id_number: "",
-    id_type: "NIC",
-    statusOption: "Active",
+    id_type: "nic",
+    statusOption: "active",
   });
 
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -44,14 +46,33 @@ export const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [isSameAsPhone, setIsSameAsPhone] = useState(false);
   const [isDisabledWhatsapp, setIsDisabledWhatsapp] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showViewCustomer, setShowViewCustomer] = useState(false);
+  const [viewCustomer, setViewCustomer] = useState(null);
 
-  // useEffect(() => {
-  //   api.get("/roles").then((response) => {
-  //     const rolesData = response.data;
-  //     console.log("Fetched roles:", rolesData);
-  //     setRoles(rolesData);
-  //   });
-  // }, []);
+  const fetchCustomers = async () => {
+    try {
+      const response = await api.get("/customers");
+      console.log("Fetched customers:", response);
+      const customerData = response.data.data.data.map((customer) => ({
+        id: customer.id,
+        name: `${customer.first_name} ${customer.last_name}`,
+        customer_type: customer.customer_type,
+        district: customer.district,
+        phone: customer.phone,
+        statusOption: customer.status,
+      }));
+      setCustomers(customerData);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
   const districts = [
     { value: "Ampara", label: "Ampara" },
     { value: "Anuradhapura", label: "Anuradhapura" },
@@ -81,29 +102,66 @@ export const Customers = () => {
   ];
 
   const customerTypes = [
-    { value: "NormalCustomer", label: "Normal Customer" },
-    { value: "CorporateCustomer", label: "Corporate Customer" },
-    { value: "VIP_Customer", label: "VIP Customer" },
+    { value: "regular", label: "Normal Customer" },
+    { value: "corporate", label: "Corporate Customer" },
+    { value: "vip", label: "VIP Customer" },
   ];
 
   const status = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "suspended", label: "Suspended" },
   ];
 
   const idTypes = [
-    { value: "National ID", label: "NIC" },
-    { value: "Passport", label: "Passport" },
+    { value: "nic", label: "NIC" },
+    { value: "passport", label: "Passport" },
   ];
 
   const columns = [
-    { key: "customer_id", label: "ID", sortable: true },
+    { key: "id", label: "ID", sortable: true },
     { key: "name", label: "name", sortable: true },
     { key: "customer_type", label: "Customer Type", sortable: true },
     { key: "district", label: "District" },
     { key: "phone", label: "Phone" },
-    { key: "status", label: "Status" },
+    { key: "statusOption", label: "Status" },
   ];
+
+  const handleEditCustomer = async (row) => {
+    try {
+      console.log("Editing customer with ID:", row.id);
+      const response = await api.get(`/customers/${row.id}`);
+      console.log("Fetched customer data:", response.data.data.customer_code);
+      const customer = response.data.data;
+
+      setEditingCustomer(customer);
+      setIsEditMode(true);
+
+      setFormData({
+        id: customer.id,
+        customer_code: customer.customer_code || "",
+        first_name: customer.first_name || "",
+        last_name: customer.last_name || "",
+        email: customer.email || "",
+        phone: customer.phone || "",
+        whatsapp: customer.whatsapp || "",
+        statusOption: customer.status || "active",
+        address_line1: customer.address_line1 || "",
+        address_line2: customer.address_line2 || "",
+        city: customer.city || "",
+        state: customer.state || "",
+        district: customer.district || "",
+        postal_code: customer.postal_code || "",
+        customer_type: customer.customer_type || "",
+        id_number: customer.id_number || "",
+        id_type: customer.id_type || "nic",
+      });
+
+      setShowAddCustomer(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const setFieldError = (field, message) => {
     setFieldErrors((prev) => {
@@ -122,10 +180,10 @@ export const Customers = () => {
   const validateSubmit = () => {
     const errors = {};
 
-    if (!(formData.firstname || "").trim())
-      errors.firstname = "First name is required.";
-    if (!(formData.lastname || "").trim())
-      errors.lastname = "Last name is required.";
+    if (!(formData.first_name || "").trim())
+      errors.first_name = "First name is required.";
+    if (!(formData.last_name || "").trim())
+      errors.last_name = "Last name is required.";
     if (!(formData.id_number || "").trim())
       errors.id_number = "ID number is required.";
     if (!(formData.email || "").trim()) errors.email = "Email is required.";
@@ -139,8 +197,9 @@ export const Customers = () => {
 
   const resetAddCustomerForm = () => {
     setFormData({
-      firstname: "",
-      lastname: "",
+      customer_code: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
       whatsapp: "",
@@ -152,8 +211,8 @@ export const Customers = () => {
       postal_code: "",
       customer_type: "",
       id_number: "",
-      id_type: "NIC",
-      statusOption: "Active",
+      id_type: "nic",
+      statusOption: "active",
     });
     setFieldErrors({});
   };
@@ -161,16 +220,20 @@ export const Customers = () => {
   const handleCloseAddCustomer = () => {
     resetAddCustomerForm();
     setShowAddCustomer(false);
+    setIsEditMode(false);
+    setEditingCustomer(null);
   };
+
   const handleSubmitCustomer = () => {
     console.log(fieldErrors);
     if (!validateSubmit()) return;
 
     setIsSubmitting(true);
 
-    const user = {
-      firstname: formData.firstname,
-      lastname: formData.lastname,
+    const customer = {
+      customer_code: formData.customer_code,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
       email: formData.email,
       phone: formData.phone,
       whatsapp: formData.whatsapp,
@@ -186,11 +249,45 @@ export const Customers = () => {
       status: formData.statusOption,
     };
 
-    console.log("Submitted customer:", user);
+    console.log("Submitted customer:", customer);
+    if (isEditMode) {
+      console.log("Editing customer with ID:", editingCustomer.id);
+      api.put(`/customers/${editingCustomer.id}`, customer);
+    } else {
+      api.post("/customers", customer);
+    }
 
     setIsSubmitting(false);
+    setIsEditMode(false);
     resetAddCustomerForm();
+    fetchCustomers();
     setShowAddCustomer(false);
+  };
+
+  const handleDeleteCustomer = async (row) => {
+    try {
+      await api.delete(`/customers/${row.id}`);
+
+      //      const user = response.data.data;
+
+      // Refresh the table
+      fetchCustomers();
+
+      console.log("Customer deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete customer:", error);
+    }
+  };
+
+  const handleViewCustomer = async (row) => {
+    try {
+      const response = await api.get(`/customers/${row.id}`);
+
+      setViewCustomer(response.data.data);
+      setShowViewCustomer(true);
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <div>
@@ -227,9 +324,11 @@ export const Customers = () => {
         <Dialog
           isOpen={showAddCustomer}
           onClose={handleCloseAddCustomer}
-          title="Add Customer"
+          title={isEditMode ? "Edit Customer" : "Add Customer"}
           size="large"
-          primaryButtonText={isSubmitting ? "Saving..." : "Save"}
+          primaryButtonText={
+            isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
+          }
           secondaryButtonText="Cancel"
           primaryButtonDisabled={isSubmitting}
           secondaryButtonDisabled={isSubmitting}
@@ -278,24 +377,30 @@ export const Customers = () => {
                     <TextField
                       required
                       label="First Name"
-                      value={formData.firstname}
+                      value={formData.first_name}
                       onChange={(e) => {
-                        setFormData({ ...formData, firstname: e.target.value });
-                        setFieldError("firstname", "");
+                        setFormData({
+                          ...formData,
+                          first_name: e.target.value,
+                        });
+                        setFieldError("first_name", "");
                       }}
-                      helperText={fieldErrors.firstname || ""}
-                      error={!!fieldErrors.firstname}
+                      helperText={fieldErrors.first_name || ""}
+                      error={!!fieldErrors.first_name}
                     />
                     <TextField
                       required
                       label="Last Name"
-                      value={formData.lastname}
+                      value={formData.last_name}
                       onChange={(e) => {
-                        setFormData({ ...formData, lastname: e.target.value });
-                        setFieldError("lastname", "");
+                        setFormData({
+                          ...formData,
+                          last_name: e.target.value,
+                        });
+                        setFieldError("last_name", "");
                       }}
-                      helperText={fieldErrors.lastname || ""}
-                      error={!!fieldErrors.lastname}
+                      helperText={fieldErrors.last_name || ""}
+                      error={!!fieldErrors.last_name}
                     />
                     <SelectField
                       label="ID Type"
@@ -539,7 +644,7 @@ export const Customers = () => {
                 </svg>
               ),
               label: "Edit",
-              onClick: (row) => console.log("Edit", row),
+              onClick: handleEditCustomer,
             },
             {
               icon: (
@@ -558,7 +663,7 @@ export const Customers = () => {
                 </svg>
               ),
               label: "Delete",
-              onClick: (row) => console.log("Delete", row),
+              onClick: handleDeleteCustomer,
             },
             {
               icon: (
@@ -583,11 +688,66 @@ export const Customers = () => {
                 </svg>
               ),
               label: "View",
-              onClick: (row) => console.log("View", row),
+              onClick: handleViewCustomer,
             },
           ]}
         />
       </div>
+
+      <Dialog
+        isOpen={showViewCustomer}
+        onClose={() => setShowViewCustomer(false)}
+        title="View Customer"
+        size="large"
+        showFooter={false}
+      >
+        {viewCustomer && (
+          <div align="center" className="space-y-4">
+            <div
+              label="Customer Details"
+              value="aaa"
+              className="grid grid-cols-2"
+            >
+              <p>
+                <strong>Name</strong>
+              </p>
+              <p>
+                {[
+                  (viewCustomer.first_name || "") +
+                    " " +
+                    (viewCustomer.last_name || ""),
+                ] || ""}
+              </p>
+              <p>
+                <strong>Email</strong>
+              </p>
+              <p>{viewCustomer.email || ""}</p>
+              <p>
+                <strong>Phone</strong>
+              </p>
+              <p>{viewCustomer.phone || ""}</p>
+              <p>
+                <strong>Whatsapp</strong>
+              </p>
+              <p>{viewCustomer.whatsapp || ""}</p>
+              <p>
+                <strong>Address</strong>
+              </p>
+              <p>
+                {[
+                  (viewCustomer.addressLine1 || "") +
+                    " " +
+                    (viewCustomer.addressLine2 || ""),
+                ] || ""}
+              </p>
+              <p>
+                <strong>Status</strong>
+              </p>
+              <p>{viewCustomer.status || ""}</p>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 };
