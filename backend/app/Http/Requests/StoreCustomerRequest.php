@@ -15,7 +15,7 @@ class StoreCustomerRequest extends FormRequest
     {
         return [
 
-            'customer_code' => 'required|string|max:50|unique:customers,customer_code',
+            'customer_code' => 'nullable|string|max:50|unique:customers,customer_code',
 
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -46,7 +46,6 @@ class StoreCustomerRequest extends FormRequest
     {
         return [
 
-            'customer_code.required' => 'Customer code is required',
             'customer_code.unique' => 'Customer code already exists',
 
             'first_name.required' => 'First name is required',

@@ -42,8 +42,20 @@ class Customer extends Model
         'is_active'
     ];
 
+    public static function generateCustomerCode(): string
+    {
+        $nextNumber = (int) static::withTrashed()->max('id') + 1;
+
+        do {
+            $code = 'CUS-' . str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
+            $nextNumber++;
+        } while (static::withTrashed()->where('customer_code', $code)->exists());
+
+        return $code;
+    }
+
     public function orders()
-{
-    return $this->hasMany(Order::class);
-}
+    {
+        return $this->hasMany(Order::class);
+    }
 }

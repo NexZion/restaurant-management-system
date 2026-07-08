@@ -22,7 +22,8 @@ import api from "../axiosClient";
 
 export const Customers = () => {
   const [formData, setFormData] = useState({
-    firstname: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     whatsapp: "",
@@ -34,8 +35,8 @@ export const Customers = () => {
     postal_code: "",
     customer_type: "",
     id_number: "",
-    id_type: "NIC",
-    statusOption: "Active",
+    id_type: "nic",
+    statusOption: "active",
   });
 
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -44,14 +45,36 @@ export const Customers = () => {
   const [customers, setCustomers] = useState([]);
   const [isSameAsPhone, setIsSameAsPhone] = useState(false);
   const [isDisabledWhatsapp, setIsDisabledWhatsapp] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showViewCustomer, setShowViewCustomer] = useState(false);
+  const [viewCustomer, setViewCustomer] = useState(null);
 
-  // useEffect(() => {
-  //   api.get("/roles").then((response) => {
-  //     const rolesData = response.data;
-  //     console.log("Fetched roles:", rolesData);
-  //     setRoles(rolesData);
-  //   });
-  // }, []);
+  const fetchCustomers = async () => {
+    try {
+      const response = await api.get("/customers");
+      console.log("Fetched customers:", response);
+      const customerData = response.data.data.data.map((customer) => ({
+        id: customer.id,
+        name: `${customer.first_name} ${customer.last_name}`,
+        customer_type: customer.customer_type,
+        district: customer.district,
+        phone: customer.phone,
+        statusOption: customer.status
+          ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1)
+          : "N/A",
+        customer_code: customer.customer_code,
+      }));
+      setCustomers(customerData);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
   const districts = [
     { value: "Ampara", label: "Ampara" },
     { value: "Anuradhapura", label: "Anuradhapura" },
@@ -81,29 +104,65 @@ export const Customers = () => {
   ];
 
   const customerTypes = [
-    { value: "NormalCustomer", label: "Normal Customer" },
-    { value: "CorporateCustomer", label: "Corporate Customer" },
-    { value: "VIP_Customer", label: "VIP Customer" },
+    { value: "regular", label: "Normal Customer" },
+    { value: "corporate", label: "Corporate Customer" },
+    { value: "vip", label: "VIP Customer" },
   ];
 
   const status = [
-    { value: "Active", label: "Active" },
-    { value: "Inactive", label: "Inactive" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "suspended", label: "Suspended" },
   ];
 
   const idTypes = [
-    { value: "National ID", label: "NIC" },
-    { value: "Passport", label: "Passport" },
+    { value: "nic", label: "NIC" },
+    { value: "passport", label: "Passport" },
   ];
 
   const columns = [
-    { key: "customer_id", label: "ID", sortable: true },
-    { key: "name", label: "name", sortable: true },
+    { key: "customer_code", label: "Customer Code", sortable: true },
+    { key: "name", label: "Name", sortable: true },
     { key: "customer_type", label: "Customer Type", sortable: true },
     { key: "district", label: "District" },
     { key: "phone", label: "Phone" },
-    { key: "status", label: "Status" },
+    { key: "statusOption", label: "Status" },
   ];
+
+  const handleEditCustomer = async (row) => {
+    try {
+      console.log("Editing customer with ID:", row.id);
+      const response = await api.get(`/customers/${row.id}`);
+      console.log("Fetched customer data:", response.data.data.customer_code);
+      const customer = response.data.data;
+
+      setEditingCustomer(customer);
+      setIsEditMode(true);
+
+      setFormData({
+        id: customer.id,
+        first_name: customer.first_name || "",
+        last_name: customer.last_name || "",
+        email: customer.email || "",
+        phone: customer.phone || "",
+        whatsapp: customer.whatsapp || "",
+        statusOption: customer.status || "active",
+        address_line1: customer.address_line1 || "",
+        address_line2: customer.address_line2 || "",
+        city: customer.city || "",
+        state: customer.state || "",
+        district: customer.district || "",
+        postal_code: customer.postal_code || "",
+        customer_type: customer.customer_type || "",
+        id_number: customer.id_number || "",
+        id_type: customer.id_type || "nic",
+      });
+
+      setShowAddCustomer(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const setFieldError = (field, message) => {
     setFieldErrors((prev) => {
@@ -122,10 +181,10 @@ export const Customers = () => {
   const validateSubmit = () => {
     const errors = {};
 
-    if (!(formData.firstname || "").trim())
-      errors.firstname = "First name is required.";
-    if (!(formData.lastname || "").trim())
-      errors.lastname = "Last name is required.";
+    if (!(formData.first_name || "").trim())
+      errors.first_name = "First name is required.";
+    if (!(formData.last_name || "").trim())
+      errors.last_name = "Last name is required.";
     if (!(formData.id_number || "").trim())
       errors.id_number = "ID number is required.";
     if (!(formData.email || "").trim()) errors.email = "Email is required.";
@@ -139,8 +198,8 @@ export const Customers = () => {
 
   const resetAddCustomerForm = () => {
     setFormData({
-      firstname: "",
-      lastname: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
       whatsapp: "",
@@ -152,8 +211,8 @@ export const Customers = () => {
       postal_code: "",
       customer_type: "",
       id_number: "",
-      id_type: "NIC",
-      statusOption: "Active",
+      id_type: "nic",
+      statusOption: "active",
     });
     setFieldErrors({});
   };
@@ -161,16 +220,19 @@ export const Customers = () => {
   const handleCloseAddCustomer = () => {
     resetAddCustomerForm();
     setShowAddCustomer(false);
+    setIsEditMode(false);
+    setEditingCustomer(null);
   };
+
   const handleSubmitCustomer = () => {
     console.log(fieldErrors);
     if (!validateSubmit()) return;
 
     setIsSubmitting(true);
 
-    const user = {
-      firstname: formData.firstname,
-      lastname: formData.lastname,
+    const customer = {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
       email: formData.email,
       phone: formData.phone,
       whatsapp: formData.whatsapp,
@@ -186,12 +248,61 @@ export const Customers = () => {
       status: formData.statusOption,
     };
 
-    console.log("Submitted customer:", user);
+    console.log("Submitted customer:", customer);
+    if (isEditMode) {
+      console.log("Editing customer with ID:", editingCustomer.id);
+      api.put(`/customers/${editingCustomer.id}`, customer);
+    } else {
+      api.post("/customers", customer);
+    }
 
     setIsSubmitting(false);
+    setIsEditMode(false);
     resetAddCustomerForm();
+    fetchCustomers();
     setShowAddCustomer(false);
   };
+
+  const handleDeleteCustomer = async (row) => {
+    try {
+      await api.delete(`/customers/${row.id}`);
+
+      //      const user = response.data.data;
+
+      // Refresh the table
+      fetchCustomers();
+
+      console.log("Customer deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete customer:", error);
+    }
+  };
+
+  const handleViewCustomer = async (row) => {
+    try {
+      const response = await api.get(`/customers/${row.id}`);
+
+      setViewCustomer(response.data.data);
+      setShowViewCustomer(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const DetailItem = ({ label, value, wide = false }) => (
+    <div
+      className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
+        wide ? "sm:col-span-2" : ""
+      }`}
+    >
+      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+        {value || "Not provided"}
+      </p>
+    </div>
+  );
   return (
     <div>
       {/* Header */}
@@ -227,9 +338,11 @@ export const Customers = () => {
         <Dialog
           isOpen={showAddCustomer}
           onClose={handleCloseAddCustomer}
-          title="Add Customer"
+          title={isEditMode ? "Edit Customer" : "Add Customer"}
           size="large"
-          primaryButtonText={isSubmitting ? "Saving..." : "Save"}
+          primaryButtonText={
+            isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
+          }
           secondaryButtonText="Cancel"
           primaryButtonDisabled={isSubmitting}
           secondaryButtonDisabled={isSubmitting}
@@ -278,24 +391,30 @@ export const Customers = () => {
                     <TextField
                       required
                       label="First Name"
-                      value={formData.firstname}
+                      value={formData.first_name}
                       onChange={(e) => {
-                        setFormData({ ...formData, firstname: e.target.value });
-                        setFieldError("firstname", "");
+                        setFormData({
+                          ...formData,
+                          first_name: e.target.value,
+                        });
+                        setFieldError("first_name", "");
                       }}
-                      helperText={fieldErrors.firstname || ""}
-                      error={!!fieldErrors.firstname}
+                      helperText={fieldErrors.first_name || ""}
+                      error={!!fieldErrors.first_name}
                     />
                     <TextField
                       required
                       label="Last Name"
-                      value={formData.lastname}
+                      value={formData.last_name}
                       onChange={(e) => {
-                        setFormData({ ...formData, lastname: e.target.value });
-                        setFieldError("lastname", "");
+                        setFormData({
+                          ...formData,
+                          last_name: e.target.value,
+                        });
+                        setFieldError("last_name", "");
                       }}
-                      helperText={fieldErrors.lastname || ""}
-                      error={!!fieldErrors.lastname}
+                      helperText={fieldErrors.last_name || ""}
+                      error={!!fieldErrors.last_name}
                     />
                     <SelectField
                       label="ID Type"
@@ -334,6 +453,7 @@ export const Customers = () => {
                     <PhoneField
                       required
                       label="Phone Number"
+                      defaultCode="+94"
                       value={formData.phone}
                       onChange={(value) => {
                         setFormData({ ...formData, phone: value });
@@ -347,6 +467,7 @@ export const Customers = () => {
                     <PhoneField
                       required
                       label="whatsapp Number"
+                      defaultCode="+94"
                       disabled={isDisabledWhatsapp}
                       value={formData.whatsapp}
                       onChange={(value) => {
@@ -435,6 +556,7 @@ export const Customers = () => {
                         label="District"
                         value={formData.district}
                         options={districts}
+                        searchable={true}
                         onChange={(e) => {
                           setFormData({
                             ...formData,
@@ -539,7 +661,7 @@ export const Customers = () => {
                 </svg>
               ),
               label: "Edit",
-              onClick: (row) => console.log("Edit", row),
+              onClick: handleEditCustomer,
             },
             {
               icon: (
@@ -558,7 +680,7 @@ export const Customers = () => {
                 </svg>
               ),
               label: "Delete",
-              onClick: (row) => console.log("Delete", row),
+              onClick: handleDeleteCustomer,
             },
             {
               icon: (
@@ -583,11 +705,111 @@ export const Customers = () => {
                 </svg>
               ),
               label: "View",
-              onClick: (row) => console.log("View", row),
+              onClick: handleViewCustomer,
             },
           ]}
         />
       </div>
+
+      <Dialog
+        isOpen={showViewCustomer}
+        onClose={() => setShowViewCustomer(false)}
+        title="Customer Profile"
+        size="medium"
+        showFooter={false}
+      >
+        {viewCustomer && (
+          <div className="space-y-6">
+            <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
+                    {`${viewCustomer.first_name || ""} ${viewCustomer.last_name || ""}`.trim() ||
+                      "Not provided"}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {viewCustomer.customer_code || "No customer code"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold capitalize text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
+                    {viewCustomer.customer_type || "Not provided"}
+                  </span>
+
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                    {viewCustomer.status || "Not provided"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-3">
+                <p className="truncate">{viewCustomer.email || "No email"}</p>
+                <p className="truncate">{viewCustomer.phone || "No phone"}</p>
+                <p className="truncate">
+                  {viewCustomer.whatsapp || "No whatsapp"}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Contact Details
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem label="Email" value={viewCustomer.email} />
+                <DetailItem label="Phone" value={viewCustomer.phone} />
+                <DetailItem label="Whatsapp" value={viewCustomer.whatsapp} />
+                <DetailItem
+                  label="Customer Type"
+                  value={viewCustomer.customer_type}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Personal Details
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  label="First Name"
+                  value={viewCustomer.first_name}
+                />
+                <DetailItem label="Last Name" value={viewCustomer.last_name} />
+                <DetailItem label="ID Type" value={viewCustomer.id_type} />
+                <DetailItem label="ID Number" value={viewCustomer.id_number} />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Address
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  label="Address Line 1"
+                  value={viewCustomer.address_line1}
+                />
+                <DetailItem
+                  label="Address Line 2"
+                  value={viewCustomer.address_line2}
+                />
+                <DetailItem label="City" value={viewCustomer.city} />
+                <DetailItem label="District" value={viewCustomer.district} />
+                <DetailItem label="State" value={viewCustomer.state} />
+                <DetailItem
+                  label="Postal Code"
+                  value={viewCustomer.postal_code}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 };

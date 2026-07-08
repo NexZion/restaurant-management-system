@@ -19,6 +19,7 @@ import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
 import { Stepper } from "../components/Stepper";
 import { AddItem } from "../components/AddItem";
 import api from "../axiosClient";
+import { storageUrl } from "../utils/storageUrl";
 
 export const Users = () => {
   const [formData, setFormData] = useState({
@@ -76,7 +77,9 @@ export const Users = () => {
         branch: user.branch ? user.branch.name : "N/A",
         phone: user.phone,
         email: user.email,
-        status: user.status,
+        status: user.status
+          ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
+          : "N/A",
       }));
 
       setUsers(usersData);
@@ -165,7 +168,6 @@ export const Users = () => {
   ];
 
   const columns = [
-    { key: "id", label: "ID", sortable: true },
     { key: "profileImage", label: "Image" },
     { key: "username", label: "Username", sortable: true },
     { key: "role", label: "Role", sortable: true },
@@ -381,6 +383,80 @@ export const Users = () => {
     }
   };
 
+  const formatValue = (value) => value || "Not provided";
+
+  const formatDate = (value) => {
+    if (!value) return "Not provided";
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+      ? value
+      : date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+  };
+
+  const getUserImageSrc = (user) => {
+    const image =
+      user?.profileImage ||
+      user?.profile_image ||
+      user?.profile_photo_path ||
+      user?.image;
+
+    if (!image) return null;
+    if (
+      typeof image === "string" &&
+      (image.startsWith("http") ||
+        image.startsWith("blob:") ||
+        image.startsWith("data:"))
+    ) {
+      return image;
+    }
+
+    return storageUrl(image);
+  };
+
+  const getInitials = (name = "", username = "") => {
+    const source = name || username || "User";
+    return source
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("");
+  };
+
+  const getStatusClass = (statusValue = "") => {
+    const normalized = statusValue.toLowerCase();
+
+    if (normalized === "active") {
+      return "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30";
+    }
+
+    if (normalized === "blocked" || normalized === "suspended") {
+      return "bg-red-50 text-red-700 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30";
+    }
+
+    return "bg-gray-100 text-gray-700 ring-gray-200 dark:bg-gray-700/60 dark:text-gray-200 dark:ring-gray-600";
+  };
+
+  const DetailItem = ({ label, value, wide = false }) => (
+    <div
+      className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
+        wide ? "sm:col-span-2" : ""
+      }`}
+    >
+      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+        {formatValue(value)}
+      </p>
+    </div>
+  );
+
   return (
     <div>
       {/* Header */}
@@ -487,6 +563,7 @@ export const Users = () => {
             <PhoneField
               required
               label="Phone Number"
+              defaultCode="+94"
               value={formData.phone}
               onChange={(value) => {
                 setFormData({ ...formData, phone: value });
@@ -500,6 +577,7 @@ export const Users = () => {
             <PhoneField
               required
               label="whatsapp Number"
+              defaultCode="+94"
               value={formData.whatsapp}
               onChange={(value) => {
                 setFormData({ ...formData, whatsapp: value });
@@ -794,64 +872,88 @@ export const Users = () => {
       <Dialog
         isOpen={showViewUser}
         onClose={() => setShowViewUser(false)}
-        title="View User"
-        size="large"
+        title="User Profile"
+        size="medium"
         showFooter={false}
       >
         {viewUser && (
-          <div align="center" className="space-y-4">
-            <strong>Profile Image</strong>
-            <img
-              src={viewUser.profileImage}
-              alt="Profile"
-              className="w-24 h-24 rounded-full"
-            />
+          <div className="space-y-6">
+            <div className="flex flex-col gap-5 rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024] sm:flex-row sm:items-center">
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-gray-200 text-2xl font-semibold text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200">
+                {viewUser.profileImage ? (
+                  <img
+                    src={viewUser.profileImage}
+                    alt={viewUser.name || "User"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>
+                    {(viewUser.name || viewUser.username || "U")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </span>
+                )}
+              </div>
 
-            <div label="User Details" value="aaa" className="grid grid-cols-2">
-              <p>
-                <strong>Name</strong>
-              </p>
-              <p>{viewUser.name || ""}</p>
-              <p>
-                <strong>Username</strong>
-              </p>
-              <p>{viewUser.username || ""}</p>
-              <p>
-                <strong>Email</strong>
-              </p>
-              <p>{viewUser.email || ""}</p>
-              <p>
-                <strong>Phone</strong>
-              </p>
-              <p>{viewUser.phone || ""}</p>
-              <p>
-                <strong>Whatsapp</strong>
-              </p>
-              <p>{viewUser.whatsapp || ""}</p>
-              <p>
-                <strong>Date of Birth</strong>
-              </p>
-              <p>{viewUser.dob || ""}</p>
-              <p>
-                <strong>Address</strong>
-              </p>
-              <p>{viewUser.address || ""}</p>
-              <p>
-                <strong>Role</strong>
-              </p>
-              <p>{viewUser.role.name || ""}</p>
-              <p>
-                <strong>Branch</strong>
-              </p>
-              <p>{viewUser.branch.name || ""}</p>
-              <p>
-                <strong>Status</strong>
-              </p>
-              <p>{viewUser.status || ""}</p>
-              <p>
-                <strong>Access Level</strong>
-              </p>
-              <p>{viewUser.accessLevel || ""}</p>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
+                      {viewUser.name || "Not provided"}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      @{viewUser.username || "not-provided"}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                      {viewUser.status || "Not provided"}
+                    </span>
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
+                      Level{" "}
+                      {viewUser.accessLevel ||
+                        viewUser.role?.access_level ||
+                        "N/A"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+                  <p className="truncate">{viewUser.email || "No email"}</p>
+                  <p className="truncate">{viewUser.phone || "No phone"}</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Work Details
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem label="Role" value={viewUser.role?.name} />
+                <DetailItem label="Branch" value={viewUser.branch?.name} />
+                <DetailItem
+                  label="Access Level"
+                  value={viewUser.accessLevel || viewUser.role?.access_level}
+                />
+                <DetailItem label="Status" value={viewUser.status} />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Personal Details
+              </h4>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem label="Full Name" value={viewUser.name} />
+                <DetailItem label="Username" value={viewUser.username} />
+                <DetailItem label="Email" value={viewUser.email} />
+                <DetailItem label="Phone" value={viewUser.phone} />
+                <DetailItem label="Whatsapp" value={viewUser.whatsapp} />
+                <DetailItem label="Date of Birth" value={viewUser.dob} />
+                <DetailItem label="Address" value={viewUser.address} wide />
+              </div>
             </div>
           </div>
         )}
