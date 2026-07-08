@@ -11,7 +11,8 @@ use App\Http\Requests\UpdateCustomerRequest;
 class CustomerController extends Controller
 {
     public function index(Request $request)
-    {    $user = $request->user();
+    {
+        $user = $request->user();
 
         if (!$user) {
             return response()->json([
@@ -27,7 +28,7 @@ class CustomerController extends Controller
             ], 403);
         }
 
-        $customers = Customer::paginate($request->input('per_page', 10));
+        $customers = Customer::paginate($request->input('per_page', 70));
 
         return response()->json([
             'success' => true,
@@ -36,7 +37,10 @@ class CustomerController extends Controller
     }
     public function store(StoreCustomerRequest $request)
     {
-        $customer = Customer::create($request->validated());
+        $data = $request->validated();
+        $data['customer_code'] = Customer::generateCustomerCode();
+
+        $customer = Customer::create($data);
 
         return response()->json([
             'success' => true,

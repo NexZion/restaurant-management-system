@@ -22,7 +22,6 @@ import api from "../axiosClient";
 
 export const Customers = () => {
   const [formData, setFormData] = useState({
-    customer_code: "",
     first_name: "",
     last_name: "",
     email: "",
@@ -61,7 +60,10 @@ export const Customers = () => {
         customer_type: customer.customer_type,
         district: customer.district,
         phone: customer.phone,
-        statusOption: customer.status,
+        statusOption: customer.status
+          ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1)
+          : "N/A",
+        customer_code: customer.customer_code,
       }));
       setCustomers(customerData);
     } catch (error) {
@@ -119,8 +121,8 @@ export const Customers = () => {
   ];
 
   const columns = [
-    { key: "id", label: "ID", sortable: true },
-    { key: "name", label: "name", sortable: true },
+    { key: "customer_code", label: "Customer Code", sortable: true },
+    { key: "name", label: "Name", sortable: true },
     { key: "customer_type", label: "Customer Type", sortable: true },
     { key: "district", label: "District" },
     { key: "phone", label: "Phone" },
@@ -139,7 +141,6 @@ export const Customers = () => {
 
       setFormData({
         id: customer.id,
-        customer_code: customer.customer_code || "",
         first_name: customer.first_name || "",
         last_name: customer.last_name || "",
         email: customer.email || "",
@@ -197,7 +198,6 @@ export const Customers = () => {
 
   const resetAddCustomerForm = () => {
     setFormData({
-      customer_code: "",
       first_name: "",
       last_name: "",
       email: "",
@@ -231,7 +231,6 @@ export const Customers = () => {
     setIsSubmitting(true);
 
     const customer = {
-      customer_code: formData.customer_code,
       first_name: formData.first_name,
       last_name: formData.last_name,
       email: formData.email,
@@ -289,6 +288,21 @@ export const Customers = () => {
       console.error(error);
     }
   };
+
+  const DetailItem = ({ label, value, wide = false }) => (
+    <div
+      className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
+        wide ? "sm:col-span-2" : ""
+      }`}
+    >
+      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+        {value || "Not provided"}
+      </p>
+    </div>
+  );
   return (
     <div>
       {/* Header */}
@@ -439,6 +453,7 @@ export const Customers = () => {
                     <PhoneField
                       required
                       label="Phone Number"
+                      defaultCode="+94"
                       value={formData.phone}
                       onChange={(value) => {
                         setFormData({ ...formData, phone: value });
@@ -452,6 +467,7 @@ export const Customers = () => {
                     <PhoneField
                       required
                       label="whatsapp Number"
+                      defaultCode="+94"
                       disabled={isDisabledWhatsapp}
                       value={formData.whatsapp}
                       onChange={(value) => {
@@ -540,6 +556,7 @@ export const Customers = () => {
                         label="District"
                         value={formData.district}
                         options={districts}
+                        searchable={true}
                         onChange={(e) => {
                           setFormData({
                             ...formData,
@@ -697,53 +714,98 @@ export const Customers = () => {
       <Dialog
         isOpen={showViewCustomer}
         onClose={() => setShowViewCustomer(false)}
-        title="View Customer"
-        size="large"
+        title="Customer Profile"
+        size="medium"
         showFooter={false}
       >
         {viewCustomer && (
-          <div align="center" className="space-y-4">
-            <div
-              label="Customer Details"
-              value="aaa"
-              className="grid grid-cols-2"
-            >
-              <p>
-                <strong>Name</strong>
-              </p>
-              <p>
-                {[
-                  (viewCustomer.first_name || "") +
-                    " " +
-                    (viewCustomer.last_name || ""),
-                ] || ""}
-              </p>
-              <p>
-                <strong>Email</strong>
-              </p>
-              <p>{viewCustomer.email || ""}</p>
-              <p>
-                <strong>Phone</strong>
-              </p>
-              <p>{viewCustomer.phone || ""}</p>
-              <p>
-                <strong>Whatsapp</strong>
-              </p>
-              <p>{viewCustomer.whatsapp || ""}</p>
-              <p>
-                <strong>Address</strong>
-              </p>
-              <p>
-                {[
-                  (viewCustomer.addressLine1 || "") +
-                    " " +
-                    (viewCustomer.addressLine2 || ""),
-                ] || ""}
-              </p>
-              <p>
-                <strong>Status</strong>
-              </p>
-              <p>{viewCustomer.status || ""}</p>
+          <div className="space-y-6">
+            <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
+                    {`${viewCustomer.first_name || ""} ${viewCustomer.last_name || ""}`.trim() ||
+                      "Not provided"}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {viewCustomer.customer_code || "No customer code"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold capitalize text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
+                    {viewCustomer.customer_type || "Not provided"}
+                  </span>
+
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                    {viewCustomer.status || "Not provided"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-3">
+                <p className="truncate">{viewCustomer.email || "No email"}</p>
+                <p className="truncate">{viewCustomer.phone || "No phone"}</p>
+                <p className="truncate">
+                  {viewCustomer.whatsapp || "No whatsapp"}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Contact Details
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem label="Email" value={viewCustomer.email} />
+                <DetailItem label="Phone" value={viewCustomer.phone} />
+                <DetailItem label="Whatsapp" value={viewCustomer.whatsapp} />
+                <DetailItem
+                  label="Customer Type"
+                  value={viewCustomer.customer_type}
+                />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Personal Details
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  label="First Name"
+                  value={viewCustomer.first_name}
+                />
+                <DetailItem label="Last Name" value={viewCustomer.last_name} />
+                <DetailItem label="ID Type" value={viewCustomer.id_type} />
+                <DetailItem label="ID Number" value={viewCustomer.id_number} />
+              </div>
+            </div>
+
+            <div>
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+                Address
+              </h4>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <DetailItem
+                  label="Address Line 1"
+                  value={viewCustomer.address_line1}
+                />
+                <DetailItem
+                  label="Address Line 2"
+                  value={viewCustomer.address_line2}
+                />
+                <DetailItem label="City" value={viewCustomer.city} />
+                <DetailItem label="District" value={viewCustomer.district} />
+                <DetailItem label="State" value={viewCustomer.state} />
+                <DetailItem
+                  label="Postal Code"
+                  value={viewCustomer.postal_code}
+                />
+              </div>
             </div>
           </div>
         )}
