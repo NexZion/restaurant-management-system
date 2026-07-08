@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\MenuMenuItemController;
 use App\Http\Controllers\Api\RestaurantTableController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
+use App\Http\Controllers\Api\OrderBillController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -71,4 +72,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('/orders/{order}/items/{item}', [OrderItemController::class, 'removeItem']);
     Route::patch('/orders/{order}/items/{item}/status', [OrderItemController::class, 'updateStatus']);
     Route::get('/orders/{order}/items/{item}', [OrderItemController::class, 'show']);
+
+    Route::post('/orders/{order}/bill', [OrderBillController::class, 'generateBill']);
+    Route::get('/orders/{order}/bill', [OrderBillController::class, 'show']);
+    Route::delete('/orders/{order}/bill', [OrderBillController::class, 'destroy']);
 });
