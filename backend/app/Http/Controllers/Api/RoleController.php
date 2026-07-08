@@ -74,7 +74,7 @@ class RoleController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, string $id)
     {
         $user = $request->user();
 
@@ -110,7 +110,7 @@ class RoleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateRoleRequest $request, $id)
+    public function update(UpdateRoleRequest $request, string $id)
     {
         $user = $request->user();
 
@@ -150,7 +150,7 @@ class RoleController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, string $id)
     {
         $user = $request->user();
 

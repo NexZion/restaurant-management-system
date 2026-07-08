@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuMenuItemController;
 use App\Http\Controllers\Api\RestaurantTableController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderItemController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -46,20 +47,28 @@ Route::prefix('auth')->group(function () {
 
 
 Route::middleware('auth:api')->group(function () {
-    
+
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('users', UserController::class);
     Route::apiResource('customers', CustomerController::class);
-    Route::apiResource('branches', BranchController::class);    
+    Route::apiResource('branches', BranchController::class);
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
     Route::apiResource('menu-item-images', MenuItemImageController::class);
-    Route::apiResource( 'menus', MenuController::class);
+    Route::apiResource('menus', MenuController::class);
+
     Route::post('/menus/{menu}/items', [MenuMenuItemController::class, 'attach']);
     Route::get('/menus/{menu}/items', [MenuMenuItemController::class, 'index']);
     Route::delete('/menus/{menu}/items/{item}', [MenuMenuItemController::class, 'detach']);
     Route::put('/menus/{menu}/items/{item}/order', [MenuMenuItemController::class, 'updateOrder']);
-    Route::apiResource('restaurant-tables', RestaurantTableController::class);  
+
+    Route::apiResource('restaurant-tables', RestaurantTableController::class);
     Route::apiResource('orders', OrderController::class);
-    
+
+    Route::get('/orders/{order}/items', [OrderItemController::class, 'getItems']);
+    Route::post('/orders/{order}/items', [OrderItemController::class, 'addItem']);
+    Route::put('/orders/{order}/items/{item}', [OrderItemController::class, 'updateQuantity']);
+    Route::delete('/orders/{order}/items/{item}', [OrderItemController::class, 'removeItem']);
+    Route::patch('/orders/{order}/items/{item}/status', [OrderItemController::class, 'updateStatus']);
+    Route::get('/orders/{order}/items/{item}', [OrderItemController::class, 'show']);
 });
