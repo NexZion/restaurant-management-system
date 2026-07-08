@@ -46,7 +46,6 @@ class StoreCustomerRequest extends FormRequest
     {
         return [
 
-            'customer_code.required' => 'Customer code is required',
             'customer_code.unique' => 'Customer code already exists',
 
             'first_name.required' => 'First name is required',
