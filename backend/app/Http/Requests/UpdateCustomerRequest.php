@@ -17,7 +17,7 @@ class UpdateCustomerRequest extends FormRequest
 
         return [
 
-            'customer_code' => 'required|string|max:50|unique:customers,customer_code,' . $customerId,
+            'customer_code' => 'nullable|string|max:50|unique:customers,customer_code,' . $customerId,
 
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
