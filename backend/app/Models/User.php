@@ -2,31 +2,85 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+
+class User extends Authenticatable implements JWTSubject
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use SoftDeletes, HasFactory;
+
+    protected $fillable = [
+
+        'name',
+        'username',
+        'email',
+        'phone',
+        'whatsapp',
+
+        'password',
+        'pin',
+
+        'role_id',
+        'branch_id',
+
+        'image',
+        'dob',
+        'address',
+
+        'status',
+
+        'failed_attempts',
+        'is_locked'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'pin'
+    ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * User belongs to a Role
      */
-    protected function casts(): array
+    public function role()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * User belongs to a Branch
+     */
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function createdOrders()
+    {
+        return $this->hasMany(
+            Order::class,
+            'created_by'
+        );
+    }
+
+    public function waiterOrders()
+    {
+        return $this->hasMany(
+            Order::class,
+            'waiter_id'
+        );
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
