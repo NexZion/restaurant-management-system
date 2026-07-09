@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { menuItems } from "../data/menuItems";
 import { Icon } from "./Icons";
 import { useTheme } from "../context/ThemeContext";
-import api from "../axiosClient";
 import { storageUrl } from "../utils/storageUrl";
+import { logoutUser } from "../utils/logout";
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -15,21 +15,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-  const [profileName, setProfileName] = useState("User");
-  const [profileRole, setProfileRole] = useState("N/A");
-  const [profilePhoto, setProfilePhoto] = useState(null);
-
-  const user = JSON.parse(localStorage.getItem("USER")) || {};
-  console.log("User from localStorage:", user.name);
-  useEffect(() => {
-    if (user) {
-      setProfileName(user.display_name || "User");
-      setProfileRole(user.position ? user.position.name : "N/A");
-      if (user.profile_photo_path) {
-        setProfilePhoto(storageUrl(user.profile_photo_path));
-      }
-    }
-  }, [user]);
+  const user = useMemo(
+    () => JSON.parse(localStorage.getItem("USER")) || {},
+    [],
+  );
+  const profileName = user.name || user.username || "User";
+  const profileRole = user.role?.name || `Role ID: ${user.role_id || "N/A"}`;
+  const photo = user.profileImage || user.profile_photo_path || user.image;
+  const profilePhoto = photo ? storageUrl(photo) : null;
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,21 +62,10 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   }, [isProfileMenuOpen]);
 
   const handleLogout = async () => {
-    try {
-      // Call logout API
-      await api.post("/logout");
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Clear all stored data regardless of API success
-      localStorage.removeItem("ACCESS_TOKEN");
-      localStorage.removeItem("TOKEN_EXPIRY");
-      localStorage.removeItem("REMEMBER_ME");
-      localStorage.removeItem("user");
-
-      // Redirect to login
-      navigate("/");
-    }
+    await logoutUser({
+      navigate,
+      onAfterLogout: () => setIsProfileMenuOpen(false),
+    });
   };
 
   return (
