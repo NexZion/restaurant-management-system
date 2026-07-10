@@ -14,7 +14,7 @@ class MenuCategoryController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => MenuCategory::with('branch')->get()
+            'data' => MenuCategory::all()
         ]);
     }
 
