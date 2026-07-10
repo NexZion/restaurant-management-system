@@ -1197,11 +1197,18 @@ export const Button = ({
   size = "medium", // small, medium, large
   startIcon = null,
   endIcon = null,
+  width = "auto",
+  height = "auto",
+  className = "",
+  style = {},
+  ...buttonProps
 }) => {
+  const cssSize = (value) => typeof value === "number" ? `${value}px` : value;
   const sizeStyles = {
     small: "px-3 py-1.5 text-xs",
     medium: "px-4 py-2 text-sm",
     large: "px-6 py-3 text-base",
+    icon: "p-0 text-sm",
   };
 
   const variantStyles = {
@@ -1237,13 +1244,22 @@ export const Button = ({
       disabled:text-gray-400 dark:disabled:text-gray-500
       disabled:bg-transparent
     `,
+    ghost: `
+      bg-transparent border-0
+      text-gray-500 dark:text-gray-400
+      hover:bg-blue-50 hover:text-blue-600
+      dark:hover:bg-blue-950/40 dark:hover:text-blue-400
+      disabled:text-gray-300 dark:disabled:text-gray-600
+    `,
   };
 
   return (
     <button
+      {...buttonProps}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
+      style={{ ...style, width: cssSize(width), height: cssSize(height) }}
       className={`
         ${sizeStyles[size]}
         ${variantStyles[variant]}
@@ -1253,6 +1269,7 @@ export const Button = ({
         disabled:cursor-not-allowed disabled:opacity-60
         flex items-center justify-center gap-2
         ${disabled ? "" : "cursor-pointer"}
+        ${className}
       `}
     >
       {loading ? (
@@ -1604,6 +1621,8 @@ export const ToggleSwitch = ({
   leftLabel = "", // Label for unchecked state
   rightLabel = "", // Label for checked state
   helperText = "",
+  checkedColor = "#3B82F6",
+  uncheckedColor = "#6B7280",
 }) => {
   const sizeStyles = {
     small: {
@@ -1657,7 +1676,7 @@ export const ToggleSwitch = ({
           className={`relative ${currentSize.switch} rounded-full transition-colors duration-300 ${
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
-          style={{ backgroundColor: checked ? "#3B82F6" : "#6B7280" }}
+          style={{ backgroundColor: checked ? checkedColor : uncheckedColor }}
         >
           <div
             className={`absolute ${currentSize.thumb} bg-white rounded-full transition-transform duration-300 flex items-center justify-center shadow-md`}
