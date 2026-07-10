@@ -6,6 +6,37 @@ import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups"
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider"
 import { Stepper } from "../components/Stepper"
 import { AddItem } from "../components/AddItem"
+import { MenuItemCardList } from "../components/MenuItemCardList"
+
+const demoMenuItems = [
+  {
+    id: 1,
+    code: 'M-001',
+    name: 'Classic Beef Burger',
+    category: 'Burgers',
+    description: 'Grilled beef patty, cheddar, lettuce, tomato, and house sauce.',
+    price: 12.5,
+    available: true,
+  },
+  {
+    id: 2,
+    code: 'M-014',
+    name: 'Margherita Pizza',
+    category: 'Pizza',
+    description: 'Tomato, fresh mozzarella, basil, and extra virgin olive oil.',
+    price: 15,
+    available: true,
+  },
+  {
+    id: 3,
+    code: 'M-027',
+    name: 'Chocolate Lava Cake',
+    category: 'Desserts',
+    description: 'Warm chocolate cake with a soft centre and vanilla ice cream.',
+    price: 7.75,
+    available: false,
+  },
+]
 
 export const Components = () => {
   const [username, setUsername] = useState("")
@@ -14,12 +45,12 @@ export const Components = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [agreed, setAgreed] = useState(false)
-  
+
   // Number Field States
   const [numberValue, setNumberValue] = useState('')
   const [ageValue, setAgeValue] = useState('')
   const [priceValue, setPriceValue] = useState('')
-  
+
   const [selectedOption1, setSelectedOption1] = useState("")
   const [selectedOption2, setSelectedOption2] = useState("")
   const [selectedOption3, setSelectedOption3] = useState([])
@@ -37,17 +68,17 @@ export const Components = () => {
   const [showWarningAlert, setShowWarningAlert] = useState(false)
   const [showInfoAlert, setShowInfoAlert] = useState(false)
   const [showDialog, setShowDialog] = useState(false)
-  
+
   const [showSnackbarBottom, setShowSnackbarBottom] = useState(false)
   const [showSnackbarTop, setShowSnackbarTop] = useState(false)
   const [showSnackbarLeft, setShowSnackbarLeft] = useState(false)
   const [showSnackbarRight, setShowSnackbarRight] = useState(false)
-  
+
   const [showLoadingDialog, setShowLoadingDialog] = useState(false)
-  
+
   const [description, setDescription] = useState("")
   const [richTextContent, setRichTextContent] = useState("<p>Edit this rich text content...</p>")
-  
+
   const [showDrawer, setShowDrawer] = useState(false)
 
   // Stepper states
@@ -68,29 +99,29 @@ export const Components = () => {
   const [demoPhoneError, setDemoPhoneError] = useState('')
 
   const demoCategoryItems = [
-    { id: 1,  name: 'Electronics',         parent_id: null },
-    { id: 2,  name: 'Computers',           parent_id: 1    },
-    { id: 3,  name: 'Laptops',             parent_id: 2    },
-    { id: 4,  name: 'Desktops',            parent_id: 2    },
-    { id: 5,  name: 'Accessories',         parent_id: 2    },
-    { id: 6,  name: 'Smartphones',         parent_id: 1    },
-    { id: 7,  name: 'Android',             parent_id: 6    },
-    { id: 8,  name: 'iOS',                 parent_id: 6    },
-    { id: 9,  name: 'Audio',               parent_id: 1    },
-    { id: 10, name: 'Headphones',          parent_id: 9    },
-    { id: 11, name: 'Speakers',            parent_id: 9    },
-    { id: 12, name: 'Clothing',            parent_id: null },
-    { id: 13, name: 'Men',                 parent_id: 12   },
-    { id: 14, name: 'T-Shirts',            parent_id: 13   },
-    { id: 15, name: 'Jeans',               parent_id: 13   },
-    { id: 16, name: 'Women',               parent_id: 12   },
-    { id: 17, name: 'Dresses',             parent_id: 16   },
-    { id: 18, name: 'Tops',                parent_id: 16   },
-    { id: 19, name: 'Food & Beverages',    parent_id: null },
-    { id: 20, name: 'Beverages',           parent_id: 19   },
-    { id: 21, name: 'Soft Drinks',         parent_id: 20   },
-    { id: 22, name: 'Juices',              parent_id: 20   },
-    { id: 23, name: 'Snacks',              parent_id: 19   },
+    { id: 1, name: 'Electronics', parent_id: null },
+    { id: 2, name: 'Computers', parent_id: 1 },
+    { id: 3, name: 'Laptops', parent_id: 2 },
+    { id: 4, name: 'Desktops', parent_id: 2 },
+    { id: 5, name: 'Accessories', parent_id: 2 },
+    { id: 6, name: 'Smartphones', parent_id: 1 },
+    { id: 7, name: 'Android', parent_id: 6 },
+    { id: 8, name: 'iOS', parent_id: 6 },
+    { id: 9, name: 'Audio', parent_id: 1 },
+    { id: 10, name: 'Headphones', parent_id: 9 },
+    { id: 11, name: 'Speakers', parent_id: 9 },
+    { id: 12, name: 'Clothing', parent_id: null },
+    { id: 13, name: 'Men', parent_id: 12 },
+    { id: 14, name: 'T-Shirts', parent_id: 13 },
+    { id: 15, name: 'Jeans', parent_id: 13 },
+    { id: 16, name: 'Women', parent_id: 12 },
+    { id: 17, name: 'Dresses', parent_id: 16 },
+    { id: 18, name: 'Tops', parent_id: 16 },
+    { id: 19, name: 'Food & Beverages', parent_id: null },
+    { id: 20, name: 'Beverages', parent_id: 19 },
+    { id: 21, name: 'Soft Drinks', parent_id: 20 },
+    { id: 22, name: 'Juices', parent_id: 20 },
+    { id: 23, name: 'Snacks', parent_id: 19 },
   ]
 
   const genderOptions = [
@@ -119,7 +150,31 @@ export const Components = () => {
 
   return (
     <>
-    <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Image Upload Field</h1>
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Menu Item Card List</h1>
+      <MenuItemCardList
+        items={demoMenuItems}
+        columns={3}
+        currency="USD"
+        onView={(item) => console.log('View', item)}
+        onEdit={(item) => console.log('Edit', item)}
+        onDelete={(item) => console.log('Delete', item)}
+      />
+
+      <h2 className="my-5 text-xl font-bold text-gray-900 dark:text-white">Billing / POS Example</h2>
+      <MenuItemCardList
+        items={demoMenuItems}
+        columns={6}
+        variant="compact"
+        gap="tight"
+        currency="USD"
+        show={{ description: false, code: false, actions: false }}
+        cartButtonHeight={36}
+        cartButtonWidth="100%"
+        onAddToCart={(item) => console.log('Add to cart', item)}
+        onCardClick={(item) => console.log('Selected', item)}
+      />
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Image Upload Field</h1>
       <ImageUploadField
         label="Profile Image"
         value={uploadedImage}
@@ -132,17 +187,17 @@ export const Components = () => {
       <h1 className="mb-5 text-2xl font-bold text-gray-900 dark:text-white">TextField</h1>
       <div className="flex flex-col gap-4">
         <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <TextField 
-          label="Password" 
+        <TextField
+          label="Password"
           type="password"
-          value={password} 
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           helperText="Password toggle enabled by default"
         />
-        <TextField 
-          label="Password (No Toggle)" 
+        <TextField
+          label="Password (No Toggle)"
           type="password"
-          value={password} 
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           showPasswordToggle={false}
           helperText="Password toggle disabled"
@@ -150,9 +205,9 @@ export const Components = () => {
       </div>
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">TextArea</h1>
-      <TextAreaField 
-        label="Description" 
-        value={description} 
+      <TextAreaField
+        label="Description"
+        value={description}
         onChange={(e) => setDescription(e.target.value)}
         rows={4}
         resize="vertical"
@@ -161,9 +216,9 @@ export const Components = () => {
       />
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Rich Text Editor</h1>
-      <TextAreaField 
-        label="Rich Text Content" 
-        value={richTextContent} 
+      <TextAreaField
+        label="Rich Text Content"
+        value={richTextContent}
         onChange={(e) => setRichTextContent(e.target.value)}
         richText={true}
         rows={6}
@@ -187,12 +242,12 @@ export const Components = () => {
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Number Fields</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
-        <NumberField 
+        <NumberField
           label="Basic Number"
           value={numberValue}
           onChange={(e) => setNumberValue(e.target.value)}
         />
-        <NumberField 
+        <NumberField
           label="Age"
           value={ageValue}
           onChange={(e) => setAgeValue(e.target.value)}
@@ -251,7 +306,7 @@ export const Components = () => {
         <ToggleSwitch
           label="Disabled"
           checked={false}
-          onChange={() => {}}
+          onChange={() => { }}
           disabled
           helperText="This toggle is disabled"
         />
@@ -320,12 +375,12 @@ export const Components = () => {
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Accordion</h1>
       <Accordion
         items={[
-          { 
-            title: 'Simple Text Content', 
-            content: 'This is simple text content in the accordion.' 
+          {
+            title: 'Simple Text Content',
+            content: 'This is simple text content in the accordion.'
           },
-          { 
-            title: 'Form Fields', 
+          {
+            title: 'Form Fields',
             content: (
               <div className="space-y-3">
                 <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -334,8 +389,8 @@ export const Components = () => {
               </div>
             )
           },
-          { 
-            title: 'Rich Content with Images & Lists', 
+          {
+            title: 'Rich Content with Images & Lists',
             content: (
               <div className="space-y-2">
                 <p className="font-semibold">Features:</p>
@@ -351,20 +406,20 @@ export const Components = () => {
               </div>
             )
           },
-          { 
-            title: 'Nested Components', 
+          {
+            title: 'Nested Components',
             content: (
               <div className="space-y-3">
                 <CheckboxField label="Enable notifications" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-                <SelectField 
-                  label="Choose option" 
-                  value={selectedOption1} 
-                  options={options} 
-                  onChange={(e) => setSelectedOption1(e.target.value)} 
+                <SelectField
+                  label="Choose option"
+                  value={selectedOption1}
+                  options={options}
+                  onChange={(e) => setSelectedOption1(e.target.value)}
                 />
-                <TextAreaField 
-                  label="Comments" 
-                  value={description} 
+                <TextAreaField
+                  label="Comments"
+                  value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
                 />
@@ -549,29 +604,29 @@ export const Components = () => {
             <li>Respects sidebar when fullscreen</li>
             <li>Smooth slide animation</li>
           </ul>
-          
-          <TextField 
-            label="Name" 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
+
+          <TextField
+            label="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
-          <TextField 
-            label="Email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
+          <TextField
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
-          <TextAreaField 
-            label="Message" 
-            value={description} 
+          <TextAreaField
+            label="Message"
+            value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
           />
-          
+
           <div className="flex gap-2">
             <Button variant="primary">Submit</Button>
             <Button variant="outlined" onClick={() => setShowDrawer(false)}>Cancel</Button>
           </div>
-          
+
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-8">
             Click the fullscreen icon to expand the drawer to full width (respecting the sidebar).
           </p>
@@ -593,9 +648,9 @@ export const Components = () => {
                   <p className="text-gray-600 dark:text-gray-400">Update your profile information and preferences.</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     <TextField label="First Name" value={name} onChange={(e) => setName(e.target.value)} />
-                    <TextField label="Last Name" value="" onChange={() => {}} />
+                    <TextField label="Last Name" value="" onChange={() => { }} />
                     <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" fullWidth />
-                    <TextField label="Phone" value="" onChange={() => {}} />
+                    <TextField label="Phone" value="" onChange={() => { }} />
                   </div>
                   <div className="mt-6">
                     <Button variant="primary">Save Changes</Button>
@@ -613,10 +668,10 @@ export const Components = () => {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Security Settings</h2>
                   <p className="text-gray-600 dark:text-gray-400">Manage your password and authentication methods.</p>
                   <div className="space-y-4 mt-6">
-                    <TextField label="Current Password" type="password" value="" onChange={() => {}} fullWidth />
-                    <TextField label="New Password" type="password" value="" onChange={() => {}} fullWidth />
-                    <TextField label="Confirm Password" type="password" value="" onChange={() => {}} fullWidth />
-                    <CheckboxField label="Enable two-factor authentication" checked={false} onChange={() => {}} />
+                    <TextField label="Current Password" type="password" value="" onChange={() => { }} fullWidth />
+                    <TextField label="New Password" type="password" value="" onChange={() => { }} fullWidth />
+                    <TextField label="Confirm Password" type="password" value="" onChange={() => { }} fullWidth />
+                    <CheckboxField label="Enable two-factor authentication" checked={false} onChange={() => { }} />
                   </div>
                   <div className="mt-6">
                     <Button variant="primary">Update Password</Button>
@@ -633,10 +688,10 @@ export const Components = () => {
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Notification Preferences</h2>
                   <p className="text-gray-600 dark:text-gray-400">Choose how you want to be notified.</p>
                   <div className="space-y-4 mt-6">
-                    <CheckboxField label="Email notifications" checked={true} onChange={() => {}} />
-                    <CheckboxField label="Push notifications" checked={true} onChange={() => {}} />
-                    <CheckboxField label="SMS notifications" checked={false} onChange={() => {}} />
-                    <CheckboxField label="Weekly summary" checked={true} onChange={() => {}} />
+                    <CheckboxField label="Email notifications" checked={true} onChange={() => { }} />
+                    <CheckboxField label="Push notifications" checked={true} onChange={() => { }} />
+                    <CheckboxField label="SMS notifications" checked={false} onChange={() => { }} />
+                    <CheckboxField label="Weekly summary" checked={true} onChange={() => { }} />
                   </div>
                   <div className="mt-6">
                     <Button variant="primary">Save Preferences</Button>
@@ -792,11 +847,11 @@ export const Components = () => {
           activeStep={stepperStep3}
           onStepClick={setStepperStep3}
           steps={[
-            { label: 'Cart',     content: <p className="text-sm text-gray-500 dark:text-gray-400">Your cart has 3 items. Review them before proceeding.</p> },
+            { label: 'Cart', content: <p className="text-sm text-gray-500 dark:text-gray-400">Your cart has 3 items. Review them before proceeding.</p> },
             { label: 'Shipping', content: <p className="text-sm text-gray-500 dark:text-gray-400">Enter your delivery address and choose a shipping method.</p> },
-            { label: 'Payment',  content: <p className="text-sm text-gray-500 dark:text-gray-400">Provide your payment information securely.</p> },
-            { label: 'Review',   content: <p className="text-sm text-gray-500 dark:text-gray-400">Review your full order — items, address, and payment — before placing.</p> },
-            { label: 'Placed',   content: <p className="text-sm text-green-600 dark:text-green-400">🎉 Order placed! You'll receive a confirmation email shortly.</p> },
+            { label: 'Payment', content: <p className="text-sm text-gray-500 dark:text-gray-400">Provide your payment information securely.</p> },
+            { label: 'Review', content: <p className="text-sm text-gray-500 dark:text-gray-400">Review your full order — items, address, and payment — before placing.</p> },
+            { label: 'Placed', content: <p className="text-sm text-green-600 dark:text-green-400">🎉 Order placed! You'll receive a confirmation email shortly.</p> },
           ]}
         />
         <div className="flex gap-2 mt-8 justify-center">
@@ -874,38 +929,38 @@ export const Components = () => {
           addLabel="Add Attribute"
           fields={[
             {
-              key:         'name',
-              label:       'Attribute Name',
-              type:        'text',
+              key: 'name',
+              label: 'Attribute Name',
+              type: 'text',
               placeholder: 'e.g. Color',
-              width:       '1fr',
-              required:    true,
+              width: '1fr',
+              required: true,
             },
             {
-              key:     'type',
-              label:   'Type',
-              type:    'select',
-              width:   '160px',
+              key: 'type',
+              label: 'Type',
+              type: 'select',
+              width: '160px',
               options: [
-                { value: 'text',    label: 'Text' },
-                { value: 'number',  label: 'Number' },
+                { value: 'text', label: 'Text' },
+                { value: 'number', label: 'Number' },
                 { value: 'boolean', label: 'Boolean' },
-                { value: 'color',   label: 'Color' },
-                { value: 'size',    label: 'Size' },
+                { value: 'color', label: 'Color' },
+                { value: 'size', label: 'Size' },
               ],
             },
             {
-              key:         'value',
-              label:       'Value(s)',
-              type:        'text',
+              key: 'value',
+              label: 'Value(s)',
+              type: 'text',
               placeholder: 'e.g. Red, Blue, Green',
-              width:       '2fr',
+              width: '2fr',
             },
             {
-              key:          'filterable',
-              label:        'Filterable',
-              type:         'toggle',
-              width:        '80px',
+              key: 'filterable',
+              label: 'Filterable',
+              type: 'toggle',
+              width: '80px',
               defaultValue: false,
             },
           ]}
@@ -931,32 +986,32 @@ export const Components = () => {
           addLabel="Add Price Tier"
           fields={[
             {
-              key:     'tier',
-              label:   'Price Type',
-              type:    'select',
-              width:   '180px',
+              key: 'tier',
+              label: 'Price Type',
+              type: 'select',
+              width: '180px',
               options: [
-                { value: 'retail',     label: 'Retail' },
-                { value: 'wholesale',  label: 'Wholesale' },
-                { value: 'distributor',label: 'Distributor' },
-                { value: 'vip',        label: 'VIP / Member' },
+                { value: 'retail', label: 'Retail' },
+                { value: 'wholesale', label: 'Wholesale' },
+                { value: 'distributor', label: 'Distributor' },
+                { value: 'vip', label: 'VIP / Member' },
               ],
               required: true,
             },
             {
-              key:         'amount',
-              label:       'Amount',
-              type:        'number',
+              key: 'amount',
+              label: 'Amount',
+              type: 'number',
               placeholder: '0.00',
-              width:       '120px',
-              required:    true,
+              width: '120px',
+              required: true,
             },
             {
-              key:         'notes',
-              label:       'Notes',
-              type:        'text',
+              key: 'notes',
+              label: 'Notes',
+              type: 'text',
               placeholder: 'Optional note...',
-              width:       '1fr',
+              width: '1fr',
             },
           ]}
           value={demoPrices}
@@ -1022,7 +1077,7 @@ export const Components = () => {
         <PhoneField
           label="Phone (disabled)"
           value="+49 30123456"
-          onChange={() => {}}
+          onChange={() => { }}
           defaultCode="+49"
           fullWidth
           disabled

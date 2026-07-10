@@ -108,6 +108,8 @@ class AuthController extends Controller
             'ip_address' => $request->ip()
         ]);
 
+        $user->load(['role', 'branch']);
+
         return response()->json([
             'success' => true,
             'message' => 'Login Successful',
@@ -147,9 +149,12 @@ class AuthController extends Controller
      */
     public function me()
     {
+        $user = Auth::guard('api')->user();
+        $user?->load(['role', 'branch']);
+
         return response()->json([
             'success' => true,
-            'user' => Auth::guard('api')->user()
+            'user' => $user
         ]);
     }
 
@@ -188,6 +193,7 @@ class AuthController extends Controller
 
         // generate token
         $token = JWTAuth::fromUser($user);
+        $user->load(['role', 'branch']);
 
         return response()->json([
             'success' => true,
