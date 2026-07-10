@@ -12,8 +12,6 @@ class MenuCategory extends Model
 
     protected $fillable = [
 
-        'branch_id',
-
         'name',
 
         'description',
