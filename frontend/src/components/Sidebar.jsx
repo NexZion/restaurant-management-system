@@ -6,6 +6,8 @@ import { Icon } from "./Icons";
 import { useTheme } from "../context/ThemeContext";
 import { storageUrl } from "../utils/storageUrl";
 import { logoutUser } from "../utils/logout";
+import { ToggleSwitch } from "./DataFields";
+import api from "../axiosClient";
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -15,12 +17,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-  const user = useMemo(
+  const storedUser = useMemo(
     () => JSON.parse(localStorage.getItem("USER")) || {},
     [],
   );
+  const [user, setUser] = useState(storedUser);
   const profileName = user.name || user.username || "User";
-  const profileRole = user.role?.name || `Role ID: ${user.role_id || "N/A"}`;
+  const profileRole = user.role?.name || "Loading role...";
   const photo = user.profileImage || user.profile_photo_path || user.image;
   const profilePhoto = photo ? storageUrl(photo) : null;
 
@@ -33,6 +36,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (user.role?.name || !user.role_id) return;
+
+    api.get("auth/me")
+      .then(({ data }) => {
+        if (!data.user) return;
+        setUser(data.user);
+        localStorage.setItem("USER", JSON.stringify(data.user));
+      })
+      .catch(() => {
+        // Keep the stored profile if it cannot be refreshed.
+      });
+  }, [user.role?.name, user.role_id]);
 
   const toggleGroup = (groupName) => {
     setExpandedGroups((prev) => ({
@@ -254,31 +271,28 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             </div>
 
             {/* Theme Toggle Switch */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleTheme();
-              }}
-              className="relative w-10 h-5 sm:w-12 sm:h-6 rounded-full transition-colors duration-300 flex-shrink-0"
-              style={{ backgroundColor: isDarkMode ? "#4B5563" : "#79b7fd" }}
+            <div
+              className="flex-shrink-0"
+              onClick={(event) => event.stopPropagation()}
             >
-              <div
-                className="absolute top-0.5 left-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full transition-transform duration-300 flex items-center justify-center"
-                style={{
-                  transform: isDarkMode ? "translateX(0)" : "translateX(20px)",
-                }}
-              >
-                {isDarkMode ? (
+              <ToggleSwitch
+                checked={!isDarkMode}
+                onChange={toggleTheme}
+                size="medium"
+                checkedColor="#79b7fd"
+                uncheckedColor="#4B5563"
+                leftIcon={
                   <svg
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-800"
+                    className="h-full w-full text-gray-800"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                   </svg>
-                ) : (
+                }
+                rightIcon={
                   <svg
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500"
+                    className="h-full w-full text-yellow-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -288,9 +302,9 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                       clipRule="evenodd"
                     />
                   </svg>
-                )}
-              </div>
-            </button>
+                }
+              />
+            </div>
           </div>
         </div>
       </div>

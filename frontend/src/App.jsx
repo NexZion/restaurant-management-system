@@ -10,6 +10,8 @@ import { Customers } from "./pages/Customers";
 import { Menus } from "./pages/Menu/Menus";
 import { MenuItems } from "./pages/Menu/MenuItems";
 import { MenuCategories } from "./pages/Menu/MenuCategories";
+import { CashierBilling } from "./pages/CashierBilling";
+import { POSNewOrder } from "./pages/WaiterOrdering";
 
 function App() {
   return (
@@ -18,6 +20,22 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<Login />} /> */}
           <Route path="/" element={<Login />} />
+          <Route
+            path="/pos/new-order"
+            element={
+              <ProtectedRoute>
+                <POSNewOrder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pos/billing"
+            element={
+              <ProtectedRoute>
+                <CashierBilling />
+              </ProtectedRoute>
+            }
+          />
           <Route
             element={
               <ProtectedRoute>
