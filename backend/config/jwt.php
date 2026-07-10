@@ -101,7 +101,20 @@ return [
     |
     */
 
-    'ttl' => env('JWT_TTL', 15),
+    'ttl' => env('JWT_TTL', 60),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Time To Live
+    |--------------------------------------------------------------------------
+    |
+    | These env-backed values are used by the login flow to choose the token
+    | lifetime for normal and remember-me logins.
+    |
+    */
+
+    'login_ttl' => env('JWT_LOGIN_TTL', env('JWT_TTL', 60)),
+    'remember_ttl' => env('JWT_REMEMBER_TTL', 10080),
 
     /*
     |--------------------------------------------------------------------------
@@ -120,7 +133,7 @@ return [
     |
     */
 
-    'refresh_ttl' => env('JWT_REFRESH_TTL', 10080),
+    'refresh_ttl' => env('JWT_REFRESH_TTL', 20160),
 
     /*
     |--------------------------------------------------------------------------

@@ -53,40 +53,39 @@ export const Users = () => {
   const [showViewUser, setShowViewUser] = useState(false);
   const [viewUser, setViewUser] = useState(null);
 
-  const [filters, setFilters] = useState({
-    role: "",
-    branch: "",
-    status: "",
-  });
+  const status = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+    { value: "blocked", label: "Blocked" },
+  ];
 
-  const fetchUsers = async () => {
-    try {
-      const response = await api.get("/users", {
-        // params: {
-        //   role: filters.role,
-        //   branch: filters.branch,
-        //   status: filters.status,
-        // },
-      });
+  const accessLevels = [
+    { value: "1", label: "1" },
+    { value: "2", label: "2" },
+    { value: "3", label: "3" },
+    { value: "4", label: "4" },
+    { value: "5", label: "5" },
+  ];
 
-      const usersData = response.data.data.map((user) => ({
-        id: user.id,
-        profileImage: user.profileImage,
-        username: user.username,
-        role: user.role ? user.role.name : "N/A",
-        branch: user.branch ? user.branch.name : "N/A",
-        phone: user.phone,
-        email: user.email,
-        status: user.status
-          ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
-          : "N/A",
-      }));
+  const columns = [
+    { key: "profileImage", label: "Image" },
+    { key: "fullname", label: "Full Name", sortable: true },
+    { key: "role", label: "Role", sortable: true },
+    { key: "branch", label: "Branch", sortable: true },
+    { key: "phone", label: "Phone" },
+    { key: "status", label: "Status" },
+  ];
 
-      setUsers(usersData);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const pinRoles = ["cashier", "waiter"];
+
+  const selectedRoleName =
+    roles
+      .find((role) => String(role.value) === String(formData.roleOption))
+      ?.label?.toLowerCase() || "";
+
+  const roleSelected = Boolean(formData.roleOption);
+  const shouldShowPin = roleSelected && pinRoles.includes(selectedRoleName);
+  const shouldValidatePin = pinRoles.includes(selectedRoleName);
 
   useEffect(() => {
     api.get("/roles").then((response) => {
@@ -118,9 +117,45 @@ export const Users = () => {
     });
   }, []);
 
+  const [filters, setFilters] = useState({
+    role: "",
+    branch: "",
+    status: "",
+  });
+
   useEffect(() => {
     fetchUsers();
   }, [filters]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get("/users", {
+        // params: {
+        //   role: filters.role,
+        //   branch: filters.branch,
+        //   status: filters.status,
+        // },
+      });
+
+      const usersData = response.data.data.map((user) => ({
+        id: user.id,
+        fullname: user.name,
+        profileImage: user.profileImage,
+        username: user.username,
+        role: user.role ? user.role.name : "N/A",
+        branch: user.branch ? user.branch.name : "N/A",
+        phone: user.phone,
+        email: user.email,
+        status: user.status
+          ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
+          : "N/A",
+      }));
+
+      setUsers(usersData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleEditUser = async (row) => {
     try {
@@ -153,35 +188,6 @@ export const Users = () => {
     }
   };
 
-  const status = [
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
-    { value: "blocked", label: "Blocked" },
-  ];
-
-  const accessLevels = [
-    { value: "1", label: "1" },
-    { value: "2", label: "2" },
-    { value: "3", label: "3" },
-    { value: "4", label: "4" },
-    { value: "5", label: "5" },
-  ];
-
-  const columns = [
-    { key: "profileImage", label: "Image" },
-    { key: "username", label: "Username", sortable: true },
-    { key: "role", label: "Role", sortable: true },
-    { key: "branch", label: "Branch", sortable: true },
-    { key: "phone", label: "Phone" },
-    { key: "email", label: "Email" },
-    { key: "status", label: "Status" },
-  ];
-
-  const pinRoles = ["cashier", "waiter"];
-  const roleSelected = Boolean(formData.roleOption);
-  const shouldShowPin = roleSelected && pinRoles.includes(formData.roleOption);
-  const shouldValidatePin = pinRoles.includes(formData.roleOption);
-
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
@@ -203,7 +209,7 @@ export const Users = () => {
     setFormData({ ...formData, roleOption: value });
 
     setFormData({ ...formData, password: "", confirmPassword: "" });
-    if (!pinRoles.includes(value)) {
+    if (!pinRoles.includes(selectedRoleName)) {
       setFormData({ ...formData, pin: "", confirmPin: "" });
     }
 
@@ -240,8 +246,8 @@ export const Users = () => {
     if (!formData.email.trim()) errors.email = "Email is required.";
     if (!formData.phone) errors.phone = "Phone number is required.";
     if (!formData.whatsapp) errors.whatsapp = "Whatsapp number is required.";
-    if (!formData.roleOption) errors.setRole = "Role is required.";
-    if (!formData.branchOption) errors.setBranch = "Branch is required.";
+    if (!formData.roleOption) errors.role = "Role is required.";
+    if (!formData.branchOption) errors.branch = "Branch is required.";
 
     const usernameExists = users.some(
       (user) =>
@@ -594,7 +600,7 @@ export const Users = () => {
               value={formData.roleOption}
               options={roles}
               onChange={(e) => {
-                setFormData({ ...formData, roleOption: e.target.value });
+                handleRoleChange(e.target.value);
               }}
             />
             <SelectField
