@@ -53,6 +53,17 @@ export const menuItems = [
     ]
   },
   { type: 'item', name: 'Customers', path: '/customers', icon: 'customers' },
+
+   { 
+    type: 'group', 
+    name: 'Menu',
+    icon: 'Menu',
+    items: [
+      { name: 'Menus', path: '/menu/menus' },
+      { name: 'Menu Items', path: '/menu/menu-items' },
+      { name: 'Menu Categories', path: '/menu/menu-categories' },
+    ]
+  },
   { 
     type: 'group', 
     name: 'Reports',

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthSession, getStoredToken, isSessionValid } from "./utils/authStorage";
 
 const axiosClient = axios.create({
     baseURL: `${import.meta.env.VITE_API_URL}/api`,
@@ -10,7 +11,13 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('ACCESS_TOKEN')
+        const token = getStoredToken()
+
+        if (token && !isSessionValid()) {
+            window.location.href = '/'
+            return Promise.reject(new axios.Cancel('Session expired'));
+        }
+
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -26,7 +33,8 @@ axiosClient.interceptors.response.use(
     },
     (error) => {
         if (error.response && error.response.status === 401) {
-            localStorage.removeItem('ACCESS_TOKEN')
+            clearAuthSession()
+            window.location.href = '/'
         }
 
         return Promise.reject(error);
