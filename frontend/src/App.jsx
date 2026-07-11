@@ -7,6 +7,7 @@ import { Components } from "./pages/components";
 import { Login } from "./pages/Login";
 import { Users } from "./pages/Users";
 import { Customers } from "./pages/Customers";
+import { Orders } from "./pages/Orders/Orders";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/components" element={<Components />} />
+            <Route path="/Orders/Orders" element={<Orders />} />
           </Route>
         </Routes>
       </BrowserRouter>

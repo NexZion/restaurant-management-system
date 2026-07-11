@@ -17,7 +17,8 @@ class OrderController extends Controller
             'table',
             'customer',
             'creator',
-            'waiter'
+            'waiter',
+            'bill'
         ])->latest()->get();
 
         return response()->json([
@@ -51,7 +52,14 @@ class OrderController extends Controller
     }
     public function show($id)
     {
-        $order = Order::find($id);
+        $order = Order::with([
+            'branch',
+            'table',
+            'customer',
+            'creator',
+            'waiter',
+            'bill'
+        ])->find($id);
 
         if (!$order) {
 
