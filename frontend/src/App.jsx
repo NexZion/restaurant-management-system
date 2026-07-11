@@ -48,6 +48,9 @@ function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/components" element={<Components />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/Orders/Orders" element={<Orders />} />
+            <Route path="/orders/orders" element={<Orders />} />
           </Route>
         </Routes>
       </BrowserRouter>
