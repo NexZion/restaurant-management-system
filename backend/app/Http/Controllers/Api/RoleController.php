@@ -13,33 +13,34 @@ class RoleController extends Controller
 {
 
 
-    
+
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $user = $request->user();
+public function index(Request $request)
+{
+    // Get logged-in user
+    $user = $request->user();
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please login first'
-            ], 401);
-        }
-
-        if ($user->role_id != 1) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only admins can view roles'
-            ], 403);
-        }
+    // Check access level
+    if ($user->role->access_level != 100) {
 
         return response()->json([
-            'success' => true,
-            'data' => Role::all()
-        ]);
+            'success' => false,
+            'message' => 'Only Admin can access this.'
+        ], 403);
+
     }
+
+    // User is Admin
+    $roles = Role::all();
+
+    return response()->json([
+        'success' => true,
+        'data' => $roles
+    ]);
+}
+
 
     /**
      * Store a newly created resource in storage.
@@ -55,7 +56,7 @@ class RoleController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can create roles'
@@ -85,7 +86,7 @@ class RoleController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can view roles'
@@ -121,7 +122,7 @@ class RoleController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can update roles'
@@ -161,7 +162,7 @@ class RoleController extends Controller
             ], 401);
         }
 
-        if ($user->role_id != 1) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can delete roles'
