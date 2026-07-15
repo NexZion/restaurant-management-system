@@ -440,7 +440,7 @@ export const MenuCategories = () => {
       <Dialog
         isOpen={showViewMenuCategories}
         onClose={() => setShowViewMenuCategories(false)}
-        title="Menu Category Profile"
+        title="Menu Category"
         size="medium"
         showFooter={false}
       >
@@ -467,7 +467,7 @@ export const MenuCategories = () => {
               <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
                 Menu Category Details
               </h4>
-              <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-gray-200 text-2xl font-semibold text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200">
+              <div className="flex h-50 w-80 shrink-0 items-center justify-center overflow-hidden  border-4 border-white bg-gray-200 text-2xl font-semibold text-gray-600 shadow-sm dark:border-gray-800 dark:bg-gray-700 dark:text-gray-200 ">
                 {viewMenuCategories.image ? (
                   <img
                     src={viewMenuCategories.image}
@@ -483,9 +483,8 @@ export const MenuCategories = () => {
                 )}
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 pt-4">
                 <DetailItem label="Name" value={viewMenuCategories.name} />
-                <DetailItem label="Status" value={viewMenuCategories.status} />
                 <DetailItem
                   label="Display Order"
                   value={viewMenuCategories.displayOrder}
