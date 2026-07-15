@@ -21,10 +21,10 @@ public function store(StoreBranchRequest $request)
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins can create branches'
+                'message' => 'Only admins and managers can create branches'
             ], 403);
         }
 
@@ -47,10 +47,10 @@ public function store(StoreBranchRequest $request)
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins can view branches'
+                'message' => 'Only admins and managers can view branches'
             ], 403);
         }
 
@@ -101,10 +101,10 @@ public function store(StoreBranchRequest $request)
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins can update branches'
+                'message' => 'Only admins and managers can update branches'
             ], 403);
         }
 
@@ -137,10 +137,10 @@ public function store(StoreBranchRequest $request)
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins can delete branches'
+                'message' => 'Only admins and managers can delete branches'
             ], 403);
         }
 
