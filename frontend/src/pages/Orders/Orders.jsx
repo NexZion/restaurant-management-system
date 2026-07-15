@@ -18,6 +18,7 @@ import { Accordion } from "../../components/Accordion";
 import { Dialog } from "../../components/Popups";
 import MenuItemSearch from "../../components/MenuItemSearch";
 import api from "../../axiosClient";
+import { getStoredUser } from "../../utils/authStorage";
 
 const formatText = (value) => {
   if (!value) return "N/A";
@@ -108,6 +109,7 @@ export const Orders = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFormRole, setIsFormRole] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
   const [customerDialogData, setCustomerDialogData] = useState({
@@ -163,14 +165,6 @@ export const Orders = () => {
     }
   };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
   const fetchCustomers = async () => {
     try {
       const response = await api.get("/customers");
@@ -201,6 +195,42 @@ export const Orders = () => {
       return [];
     }
   };
+
+  const fetchMenuItems = async () => {
+    try {
+      const response = await api.get("/menu-items");
+      const payload = response?.data?.data ?? [];
+      const data = Array.isArray(payload) ? payload : [];
+
+      const normalizedMenuItems = data.map((item) => ({
+        id: item.id,
+        name: item.name || "Unnamed item",
+        image:
+          item.images?.[0]?.image_path ||
+          item.image ||
+          item.image_url ||
+          "",
+        category: item.menu_category?.name || item.category?.name || "Uncategorized",
+        price: Number(item.base_price ?? item.price ?? 0),
+      }));
+
+      setMenuItems(normalizedMenuItems);
+      return normalizedMenuItems;
+    } catch (error) {
+      console.error("Error fetching menu items:", error);
+      setMenuItems([]);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+    fetchMenuItems();
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   const filteredOrders = useMemo(() => {
     const list = filters.status
@@ -308,6 +338,10 @@ export const Orders = () => {
 
     if (!formData.totalAmount) {
       errors.totalAmount = "Total amount is required.";
+    }
+
+    if (orderItems.length === 0) {
+      errors.orderItems = "At least one order item is required.";
     }
 
     setFieldErrors(errors);
@@ -486,7 +520,7 @@ export const Orders = () => {
       itemId: selectedMenuItem.id,
       image: selectedMenuItem.image,
       name: selectedMenuItem.name,
-      category: selectedMenuItem.category?.name || "Uncategorized",
+      category: selectedMenuItem.category || "Uncategorized",
       quantity,
       unitPrice,
       discountAppliedPerUnit,
@@ -495,7 +529,7 @@ export const Orders = () => {
 
     const updatedOrderItems = [...orderItems, newOrderItem];
     const updatedTotal = updatedOrderItems.reduce(
-      (sum, item) => sum + Number(item.netPrice || 0) * Number(item.quantity || 1),
+      (sum, item) => sum + Number(item.netPrice || 0),
       0,
     );
 
@@ -525,11 +559,7 @@ export const Orders = () => {
     setFormData((prev) => ({
       ...prev,
       totalAmount: updatedOrderItems
-        .reduce(
-          (sum, item) =>
-            sum + Number(item.netPrice || 0) * Number(item.quantity || 1),
-          0,
-        )
+        .reduce((sum, item) => sum + Number(item.netPrice || 0), 0)
         .toFixed(2),
     }));
   };
@@ -539,13 +569,45 @@ export const Orders = () => {
 
     setIsSubmitting(true);
 
+    const currentUser = getStoredUser();
+    const branchId = currentUser?.branch_id || currentUser?.branch?.id || null;
+    const subtotal = Number(orderItemsTotal || 0);
+    const orderDiscountAmount =
+      formData.overallDiscountType === "percent"
+        ? (subtotal * Number(formData.overallDiscountAmount || 0)) / 100
+        : formData.overallDiscountType === "fixed"
+          ? Number(formData.overallDiscountAmount || 0)
+          : 0;
+    const netTotal = Math.max(0, subtotal - orderDiscountAmount);
+
     const payload = {
-      order_number: formData.orderNumber,
-      customer_name: formData.customerName,
+      branch_id: branchId,
+      order_number: formData.orderNumber.trim(),
+      customer_id: formData.customerId || null,
+      customer_name: formData.customerName || "",
+      order_type: formData.orderType === "dine_in" ? "dining" : formData.orderType,
+      table_id: formData.tableNumber && /^\d+$/.test(formData.tableNumber)
+        ? Number(formData.tableNumber)
+        : null,
       status: formData.status,
-      bill_status: formData.paymentStatus,
-      grand_total: formData.totalAmount,
+      is_online: false,
       notes: formData.notes,
+      items: orderItems.map((item) => ({
+        menu_item_id: item.itemId,
+        quantity: Number(item.quantity || 1),
+        unit_price: Number(item.unitPrice || 0),
+        discount: Number(item.discountAppliedPerUnit || 0),
+        total_price: Number(item.netPrice || 0),
+        notes: item.notes || null,
+      })),
+      bill: {
+        subtotal,
+        discount: orderDiscountAmount,
+        tax: 0,
+        service_charge: 0,
+        grand_total: netTotal,
+        bill_status: formData.paymentStatus || "unpaid",
+      },
     };
 
     try {
@@ -651,33 +713,6 @@ export const Orders = () => {
     { value: "Ratnapura", label: "Ratnapura" },
     { value: "Trincomalee", label: "Trincomalee" },
     { value: "Vavuniya", label: "Vavuniya" },
-  ];
-
-  const menuItems = [
-    {
-      id: "pizza",
-      name: "Smoky BBQ Pizza",
-      image:
-        "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=120&q=80",
-      category: { name: "Signature Pizzas" },
-      price: 1200,
-    },
-    {
-      id: "burger",
-      name: "Classic Cheese Burger",
-      image:
-        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=120&q=80",
-      category: { name: "Burgers" },
-      price: 850,
-    },
-    {
-      id: "pasta",
-      name: "Creamy Alfredo Pasta",
-      image:
-        "https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?auto=format&fit=crop&w=120&q=80",
-      category: { name: "Pasta" },
-      price: 980,
-    },
   ];
 
   const discountTypes = [
