@@ -14,7 +14,7 @@ class MenuCategoryController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => MenuCategory::with('branch')->get()
+            'data' => MenuCategory::all()
         ]);
     }
 
@@ -31,7 +31,7 @@ class MenuCategoryController extends Controller
 
     public function show($id)
     {
-        $category = MenuCategory::with('branch')->find($id);
+        $category = MenuCategory::find($id);
 
         if (!$category) {
 
