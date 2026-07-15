@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\Models\MenuItem;
+use App\Models\OrderItem;
 
 class OrderController extends Controller
 {
@@ -42,6 +44,38 @@ class OrderController extends Controller
             'created_by' => $request->user()?->id,
             'waiter_id' => $request->waiter_id
         ]));
+
+        foreach ($request->items as $item) {
+            $menuItem = MenuItem::find($item['menu_item_id']);
+
+            if (!$menuItem) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Menu item not found'
+                ], 404);
+            }
+
+            $unitPrice = $menuItem->base_price;
+
+            $quantity = $request->quantity;
+
+            $totalPrice = $unitPrice * $quantity;
+
+            $orderItem = OrderItem::Create([
+
+                'order_id' => $order->id,
+
+                'menu_item_id' => $menuItem->id,
+
+                'quantity' => $quantity,
+
+                'unit_price' => $unitPrice,
+
+                'total_price' => $totalPrice,
+
+                'notes' => $request->notes
+            ]);
+        }
 
         return response()->json([
             'success' => true,

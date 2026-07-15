@@ -4,7 +4,7 @@ import logo from '../assets/logo.png'
 import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../components/DataFields'
 import { MenuItemCardList } from '../components/MenuItemCardList'
 import { useTheme } from '../context/ThemeContext'
-
+ 
 const menuItems = [
   { id: 1, code: 'M-001', name: 'Classic Beef Burger', category: 'Burgers', description: 'Beef, cheddar and house sauce', price: 1450, available: true },
   { id: 2, code: 'M-002', name: 'Chicken Burger', category: 'Burgers', description: 'Crispy chicken and fresh slaw', price: 1250, available: true },

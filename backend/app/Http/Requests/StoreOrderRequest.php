@@ -11,12 +11,12 @@ class StoreOrderRequest extends FormRequest
         return true;
     }
 
-   
+
     public function rules(): array
 {
     return [
 
-        'branch_id' => 'required|exists:branches,id',
+        'branch_id' => 'nullable|exists:branches,id',
 
         'table_id' => 'nullable|exists:restaurant_tables,id',
 
@@ -24,11 +24,16 @@ class StoreOrderRequest extends FormRequest
 
         'waiter_id' => 'nullable|exists:users,id',
 
-        'order_type' => 'required|in:dining,takeaway,delivery',
+        'order_type' => 'nullable|in:dining,takeaway,delivery',
 
         'is_online' => 'nullable|boolean',
 
-        'notes' => 'nullable|string|max:1000'
+        'notes' => 'nullable|string|max:1000',
+
+        'items' => 'required|array',
+        'items.*.menu_item_id' => 'required|exists:menu_items,id',
+        'items.*.quantity' => 'required|integer|min:1',
+        'items.*.notes' => 'nullable|string|max:500'
     ];
 }
 }

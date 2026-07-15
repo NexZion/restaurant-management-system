@@ -7,18 +7,20 @@ use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreMenuItemRequest;
 use App\Http\Requests\UpdateMenuItemRequest;
+use App\Http\Resources\MenuItemListResource;
 
 class MenuItemController extends Controller
 {
     public function index()
     {
+        $menuItems = MenuItem::with([
+            'menuCategory',
+            'images'
+        ])->get();
+
         return response()->json([
             'success' => true,
-            'data' => MenuItem::with([
-                'menuCategory',
-                'images'
-
-            ])->get()
+            'data' => MenuItemListResource::collection($menuItems)
         ]);
     }
 
@@ -87,7 +89,7 @@ class MenuItemController extends Controller
                 'message' => 'Menu item not found'
             ], 404);
         }
-        
+
         $item->status = 'unavailable';
         $item->save();
 
