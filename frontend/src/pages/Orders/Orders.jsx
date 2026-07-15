@@ -109,6 +109,7 @@ export const Orders = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isFormRole, setIsFormRole] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [tables, setTables] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [orderItems, setOrderItems] = useState([]);
   const [showAddCustomerDialog, setShowAddCustomerDialog] = useState(false);
@@ -196,6 +197,28 @@ export const Orders = () => {
     }
   };
 
+  const fetchTables = async () => {
+    try {
+      const response = await api.get("/restaurant-tables");
+      const payload = response?.data?.data ?? [];
+      const data = Array.isArray(payload) ? payload : [];
+
+      const normalizedTables = data.map((table) => ({
+        id: table.id,
+        table_number: table.table_number || "NULL",
+        capacity: table.capacity || "N/A",
+        status: table.status || "N/A",
+      }));
+
+      setTables(normalizedTables);
+      return normalizedTables;
+    } catch (error) {
+      console.error("Error fetching tables:", error);
+      setTables([]);
+      return [];
+    }
+  };
+
   const fetchMenuItems = async () => {
     try {
       const response = await api.get("/menu-items");
@@ -206,11 +229,9 @@ export const Orders = () => {
         id: item.id,
         name: item.name || "Unnamed item",
         image:
-          item.images?.[0]?.image_path ||
-          item.image ||
-          item.image_url ||
-          "",
-        category: item.menu_category?.name || item.category?.name || "Uncategorized",
+          item.images?.[0]?.image_path || item.image || item.image_url || "",
+        category:
+          item.menu_category?.name || item.category?.name || "Uncategorized",
         price: Number(item.base_price ?? item.price ?? 0),
       }));
 
@@ -226,6 +247,7 @@ export const Orders = () => {
   useEffect(() => {
     fetchCustomers();
     fetchMenuItems();
+    fetchTables();
   }, []);
 
   useEffect(() => {
@@ -248,12 +270,7 @@ export const Orders = () => {
   }, [filters.status, orders, sortDirection]);
 
   const orderItemsTotal = useMemo(
-    () =>
-      orderItems.reduce(
-        (sum, item) =>
-          sum + Number(item.netPrice || 0),
-        0,
-      ),
+    () => orderItems.reduce((sum, item) => sum + Number(item.netPrice || 0), 0),
     [orderItems],
   );
 
@@ -261,7 +278,10 @@ export const Orders = () => {
     const subtotal = Number(orderItemsTotal || 0);
     const amount = Number(formData.overallDiscountAmount || 0);
 
-    if (!formData.overallDiscountType || formData.overallDiscountType === "none") {
+    if (
+      !formData.overallDiscountType ||
+      formData.overallDiscountType === "none"
+    ) {
       return 0;
     }
 
@@ -274,10 +294,18 @@ export const Orders = () => {
     }
 
     return 0;
-  }, [formData.overallDiscountAmount, formData.overallDiscountType, orderItemsTotal]);
+  }, [
+    formData.overallDiscountAmount,
+    formData.overallDiscountType,
+    orderItemsTotal,
+  ]);
 
   const orderNetTotal = useMemo(
-    () => Math.max(0, Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0)),
+    () =>
+      Math.max(
+        0,
+        Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0),
+      ),
     [orderItemsTotal, overallDiscountAmount],
   );
 
@@ -328,13 +356,13 @@ export const Orders = () => {
   const validateSubmit = () => {
     const errors = {};
 
-    if (!formData.customerId) {
-      errors.customerId = "Customer is required.";
-    }
+    // if (!formData.customerId) {
+    //   errors.customerId = "Customer is required.";
+    // }
 
-    if (!formData.orderNumber.trim()) {
-      errors.orderNumber = "Order number is required.";
-    }
+    // if (!formData.orderNumber.trim()) {
+    //   errors.orderNumber = "Order number is required.";
+    // }
 
     if (!formData.totalAmount) {
       errors.totalAmount = "Total amount is required.";
@@ -461,8 +489,13 @@ export const Orders = () => {
 
     try {
       const response = await api.post("/customers", customerPayload);
-      const createdCustomer = response?.data?.data?.customer ?? response?.data?.data ?? response?.data ?? null;
-      const createdCustomerId = createdCustomer?.id ?? createdCustomer?.customer_id ?? null;
+      const createdCustomer =
+        response?.data?.data?.customer ??
+        response?.data?.data ??
+        response?.data ??
+        null;
+      const createdCustomerId =
+        createdCustomer?.id ?? createdCustomer?.customer_id ?? null;
 
       await fetchCustomers();
 
@@ -513,7 +546,7 @@ export const Orders = () => {
       formData.discountType,
       formData.discount,
     );
-    const netPrice = (Math.max(0, unitPrice - discountAppliedPerUnit))*quantity;
+    const netPrice = Math.max(0, unitPrice - discountAppliedPerUnit) * quantity;
 
     const newOrderItem = {
       id: `${selectedMenuItem.id}-${Date.now()}`,
@@ -565,12 +598,19 @@ export const Orders = () => {
   };
 
   const handleSubmitOrder = async () => {
-    if (!validateSubmit()) return;
+    console.log("===== handleSubmitOrder called =====");
+    //if (!validateSubmit()) return;
+    const isValid = validateSubmit();
+    console.log("Validation Result:", isValid);
+
+    if (!isValid) return;
 
     setIsSubmitting(true);
 
     const currentUser = getStoredUser();
     const branchId = currentUser?.branch_id || currentUser?.branch?.id || null;
+    console.log("Current User:", currentUser);
+    console.log("Branch ID:", branchId);
     const subtotal = Number(orderItemsTotal || 0);
     const orderDiscountAmount =
       formData.overallDiscountType === "percent"
@@ -579,16 +619,26 @@ export const Orders = () => {
           ? Number(formData.overallDiscountAmount || 0)
           : 0;
     const netTotal = Math.max(0, subtotal - orderDiscountAmount);
+    console.log("Subtotal:", subtotal);
+    console.log("Order Discount:", orderDiscountAmount);
+    console.log("Net Total:", netTotal);
+    console.log("Form Data:", formData);
+    console.log("Order Items:", orderItems);
+    console.log("Table Number:", formData.tableNumber);
+    console.log(
+      "Table ID before payload:",
+      formData.tableNumber && /^\d+$/.test(formData.tableNumber)
+        ? Number(formData.tableNumber)
+        : null,
+    );
 
     const payload = {
       branch_id: branchId,
-      order_number: formData.orderNumber.trim(),
       customer_id: formData.customerId || null,
       customer_name: formData.customerName || "",
-      order_type: formData.orderType === "dine_in" ? "dining" : formData.orderType,
-      table_id: formData.tableNumber && /^\d+$/.test(formData.tableNumber)
-        ? Number(formData.tableNumber)
-        : null,
+      order_type:
+        formData.orderType === "dine_in" ? "dining" : formData.orderType,
+      table_id: formData.tableNumber || "",
       status: formData.status,
       is_online: false,
       notes: formData.notes,
@@ -609,12 +659,20 @@ export const Orders = () => {
         bill_status: formData.paymentStatus || "unpaid",
       },
     };
+    console.log("Payload to API:");
+    console.log(JSON.stringify(payload, null, 2));
 
     try {
       if (isEditMode && editingOrder?.id) {
-        await api.put(`/orders/${editingOrder.id}`, payload);
+        //await api.put(`/orders/${editingOrder.id}`, payload);
+        const response = await api.put(`/orders/${editingOrder.id}`, payload);
+        console.log("Update Response:", response);
+        console.log("Update Response Data:", response.data);
       } else {
-        await api.post("/orders", payload);
+        //await api.post("/orders", payload);
+        const response = await api.post("/orders", payload);
+        console.log("API Response:", response);
+        console.log("Response Data:", response.data);
       }
 
       setIsEditMode(false);
@@ -622,7 +680,18 @@ export const Orders = () => {
       fetchOrders();
       setShowAddOrder(false);
     } catch (error) {
+      //console.error("Error saving order:", error);
       console.error("Error saving order:", error);
+
+      if (error.response) {
+        console.log("Status:", error.response.status);
+        console.log("Response Data:", error.response.data);
+        console.log("Headers:", error.response.headers);
+      } else if (error.request) {
+        console.log("Request sent but no response:", error.request);
+      } else {
+        console.log("Error Message:", error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -664,11 +733,11 @@ export const Orders = () => {
     { value: "delivery", label: "Delivery" },
   ];
 
-  const tables = [
-    { value: "T1", label: "Table 1" },
-    { value: "T2", label: "Table 2" },
-    { value: "T3", label: "Table 3" },
-  ];
+  // const tables = [
+  //   { value: "T1", label: "Table 1" },
+  //   { value: "T2", label: "Table 2" },
+  //   { value: "T3", label: "Table 3" },
+  // ];
 
   const customerTypes = [
     { value: "regular", label: "Normal Customer" },
@@ -1000,8 +1069,16 @@ export const Orders = () => {
 
                     <SelectField
                       label="Table"
-                      value={formData.tableNumber}
-                      options={tables}
+                      searchable
+                      value={formData.tableNumber || ""}
+                      options={tables
+                        .filter((table) => table.status === "available")
+                        .map((table) => ({
+                          value: table.id,
+                          label: `Table ${table.table_number} (${table.capacity} seats)`,
+                        }))}
+                      helperText={fieldErrors.tableNumber || ""}
+                      error={!!fieldErrors.tableNumber}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
@@ -1094,7 +1171,8 @@ export const Orders = () => {
                         </p>
                       </div>
                       <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
-                        {orderItems.length} item{orderItems.length === 1 ? "" : "s"}
+                        {orderItems.length} item
+                        {orderItems.length === 1 ? "" : "s"}
                       </span>
                     </div>
 
@@ -1132,11 +1210,15 @@ export const Orders = () => {
                                       />
                                     ) : (
                                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
-                                        {item.name?.slice(0, 2)?.toUpperCase() || "IT"}
+                                        {item.name
+                                          ?.slice(0, 2)
+                                          ?.toUpperCase() || "IT"}
                                       </div>
                                     )}
                                     <div>
-                                      <div className="font-semibold">{item.name}</div>
+                                      <div className="font-semibold">
+                                        {item.name}
+                                      </div>
                                     </div>
                                   </div>
                                 </td>
@@ -1158,7 +1240,9 @@ export const Orders = () => {
                                 <td className="rounded-r-lg px-2 py-2 text-right">
                                   <button
                                     type="button"
-                                    onClick={() => handleRemoveOrderItem(item.id)}
+                                    onClick={() =>
+                                      handleRemoveOrderItem(item.id)
+                                    }
                                     className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
                                     aria-label="Remove item"
                                   >
