@@ -7,6 +7,7 @@ import { Components } from "./pages/components";
 import { Login } from "./pages/Login";
 import { Users } from "./pages/Users";
 import { Customers } from "./pages/Customers";
+import { Orders } from "./pages/Orders/Orders";
 import { Menus } from "./pages/Menu/Menus";
 import { MenuItems } from "./pages/Menu/MenuItems";
 import { MenuCategories } from "./pages/Menu/MenuCategories";
@@ -47,6 +48,9 @@ function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/components" element={<Components />} />
+            <Route path="/orders" element={<Orders />} />
+            <Route path="/Orders/Orders" element={<Orders />} />
+            <Route path="/orders/orders" element={<Orders />} />
             <Route path="/menu/menus" element={<Menus />} />
             <Route path="/menu/menu-items" element={<MenuItems />} />
             <Route path="/menu/menu-categories" element={<MenuCategories />} />
