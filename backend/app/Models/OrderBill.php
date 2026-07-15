@@ -23,4 +23,9 @@ class OrderBill extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
 }

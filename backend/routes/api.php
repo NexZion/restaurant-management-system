@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\RestaurantTableController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
 use App\Http\Controllers\Api\OrderBillController;
+use App\Http\Controllers\Api\PaymentController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -76,4 +77,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/orders/{order}/bill', [OrderBillController::class, 'generateBill']);
     Route::get('/orders/{order}/bill', [OrderBillController::class, 'show']);
     Route::delete('/orders/{order}/bill', [OrderBillController::class, 'destroy']);
+
+    Route::post('/bills/{bill}/pay', [PaymentController::class, 'pay']);
+    Route::get('/bills/{bill}/payment', [PaymentController::class, 'show']);
+    Route::put('/bills/{bill}/payment', [PaymentController::class, 'update']);
+    Route::delete('/bills/{bill}/payment', [PaymentController::class, 'destroy']);
 });

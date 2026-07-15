@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   TextField,
   CheckboxField,
@@ -10,6 +10,7 @@ import logoImage from "../assets/logo.png";
 import CosmicBackground from "../components/CosmicBackground";
 import api from "../axiosClient";
 import { useNavigate } from "react-router-dom";
+import { isSessionValid, saveAuthSession } from "../utils/authStorage";
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -20,19 +21,30 @@ export const Login = () => {
   const [toggle2, setToggle2] = useState(isDarkMode);
 
   useEffect(() => {
-    toggleTheme();
-  }, [toggle2]);
+    if (toggle2 !== isDarkMode) {
+      toggleTheme();
+    }
+  }, [isDarkMode, toggle2, toggleTheme]);
+
+  useEffect(() => {
+    if (isSessionValid()) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // Simulate login API call
     api
-      .post("auth/login", { login, password })
+      .post("auth/login", { login, password, rememberMe })
       .then((response) => {
         console.log("Login successful:", response.data);
-        localStorage.setItem("ACCESS_TOKEN", response.data.token);
-        localStorage.setItem("USER", JSON.stringify(response.data.user));
-        navigate("/dashboard");
+        saveAuthSession({
+          token: response.data.token,
+          user: response.data.user,
+          rememberMe,
+        });
+        navigate("/dashboard", { replace: true });
       })
       .catch((error) => {
         console.error("Login failed:", error);

@@ -11,96 +11,112 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\LoginAttempt;
 
 class AuthController extends Controller
-{   
+{
 
     /**
      * User Login
      */
-   public function login(Request $request)
-{
-    // validate request
-    $request->validate([
-        'login' => 'required',
-        'password' => 'required'
-    ]);
+    public function login(Request $request)
+    {
+        // validate request
+        $request->validate([
+            'login' => 'required',
+            'password' => 'required',
+            'rememberMe' => 'sometimes|boolean'
+        ]);
 
-    // determine login field
-    $login = $request->login;
+        $rememberMe = $request->boolean('rememberMe');
+        $tokenTtl = $rememberMe
+            ? (int) config('jwt.remember_ttl', config('jwt.ttl', 60))
+            : (int) config('jwt.login_ttl', config('jwt.ttl', 60));
+        $jwtFactory = Auth::factory();
+        $originalTtl = config('jwt.ttl');
 
-    $field = filter_var($login, FILTER_VALIDATE_EMAIL)
-        ? 'email'
-        : 'username';
+        $jwtFactory->setTTL($tokenTtl);
 
-    // find user
-    $user = User::where($field, $login)->first();
+        // determine login field
+        $login = $request->login;
 
-    // check user exists
-    if (!$user) {
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials'
-        ], 401);
-    }
+        // find user
+        $user = User::where($field, $login)->first();
 
-    // check account locked
-    if ($user->is_locked) {
+        // check user exists
+        if (!$user) {
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Account is locked'
-        ], 403);
-    }
-
-    // login credentials
-    $credentials = [
-        $field => $login,
-        'password' => $request->password
-    ];
-
-    // attempt login
-    if (!$token = Auth::attempt($credentials)) {
-
-        // increment failed attempts
-        $user->failed_attempts += 1;
-
-        // lock account after 10 attempts
-        if ($user->failed_attempts >= 10) {
-            $user->is_locked = true;
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
+        // check account locked
+        if ($user->is_locked) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is locked'
+            ], 403);
+        }
+
+        // login credentials
+        $credentials = [
+            $field => $login,
+            'password' => $request->password
+        ];
+
+        // attempt login
+        try {
+            if (!$token = Auth::attempt($credentials)) {
+
+                // increment failed attempts
+                $user->failed_attempts += 1;
+
+                // lock account after 10 attempts
+                if ($user->failed_attempts >= 10) {
+                    $user->is_locked = true;
+                }
+
+                $user->save();
+
+                LoginAttempt::create([
+                    'email' => $user->email,
+                    'status' => 'failed',
+                    'ip_address' => $request->ip()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid credentials',
+                    'failed_attempts' => $user->failed_attempts
+                ], 401);
+            }
+        } finally {
+            $jwtFactory->setTTL($originalTtl);
+        }
+
+        // reset failed attempts after success
+        $user->failed_attempts = 0;
         $user->save();
 
         LoginAttempt::create([
             'email' => $user->email,
-            'status' => 'failed',
+            'status' => 'success',
             'ip_address' => $request->ip()
         ]);
 
+        $user->load(['role', 'branch']);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Invalid credentials',
-            'failed_attempts' => $user->failed_attempts
-        ], 401);
+            'success' => true,
+            'message' => 'Login Successful',
+            'token' => $token,
+            'user' => $user
+        ]);
     }
-
-    // reset failed attempts after success
-    $user->failed_attempts = 0;
-    $user->save();
-
-    LoginAttempt::create([
-        'email' => $user->email,
-        'status' => 'success',
-        'ip_address' => $request->ip()
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Login Successful',
-        'token' => $token,
-        'user' => $user
-    ]);
-}
 
     public function logout()
     {
@@ -133,9 +149,12 @@ class AuthController extends Controller
      */
     public function me()
     {
+        $user = Auth::guard('api')->user();
+        $user?->load(['role', 'branch']);
+
         return response()->json([
             'success' => true,
-            'user' => Auth::guard('api')->user()
+            'user' => $user
         ]);
     }
 
@@ -174,6 +193,7 @@ class AuthController extends Controller
 
         // generate token
         $token = JWTAuth::fromUser($user);
+        $user->load(['role', 'branch']);
 
         return response()->json([
             'success' => true,
