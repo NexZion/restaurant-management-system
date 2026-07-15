@@ -51,6 +51,9 @@ function App() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/Orders/Orders" element={<Orders />} />
             <Route path="/orders/orders" element={<Orders />} />
+            <Route path="/menu/menus" element={<Menus />} />
+            <Route path="/menu/menu-items" element={<MenuItems />} />
+            <Route path="/menu/menu-categories" element={<MenuCategories />} />
           </Route>
         </Routes>
       </BrowserRouter>

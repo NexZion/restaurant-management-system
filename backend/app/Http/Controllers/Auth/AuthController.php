@@ -149,8 +149,15 @@ class AuthController extends Controller
      */
     public function me()
     {
+        /**
+         * @var \App\Models\User|null $user
+         */
+
         $user = Auth::guard('api')->user();
-        $user?->load(['role', 'branch']);
+        if ($user) {
+           $user?->load(['role', 'branch']);
+        }
+       
 
         return response()->json([
             'success' => true,
