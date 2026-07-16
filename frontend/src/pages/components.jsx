@@ -55,6 +55,10 @@ export const Components = () => {
   const [selectedOption2, setSelectedOption2] = useState("")
   const [selectedOption3, setSelectedOption3] = useState([])
   const [selectedOption4, setSelectedOption4] = useState([])
+  const [selectedImageOptionSmall, setSelectedImageOptionSmall] = useState("")
+  const [selectedImageOptionMedium, setSelectedImageOptionMedium] = useState("")
+  const [selectedImageOptionLarge, setSelectedImageOptionLarge] = useState("")
+  const [selectedImageOptionXLarge, setSelectedImageOptionXLarge] = useState("")
 
   const [gender, setGender] = useState('')
 
@@ -134,6 +138,24 @@ export const Components = () => {
     { value: '1', label: 'Option 1' },
     { value: '2', label: 'Option 2' },
     { value: '3', label: 'Option 3' }
+  ]
+
+  const imageOptions = [
+    {
+      value: 'burger',
+      label: 'Classic Beef Burger',
+      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      value: 'pizza',
+      label: 'Margherita Pizza',
+      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      value: 'dessert',
+      label: 'Chocolate Lava Cake',
+      image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=120&q=80',
+    },
   ]
 
   const columns = [
@@ -230,6 +252,42 @@ export const Components = () => {
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField</h1>
       <SelectField label="Options" value={selectedOption2} options={options} searchable={true} onChange={(e) => setSelectedOption2(e.target.value)} />
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField With Images</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <SelectField
+          label="Small Images"
+          value={selectedImageOptionSmall}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="small"
+          onChange={(e) => setSelectedImageOptionSmall(e.target.value)}
+        />
+        <SelectField
+          label="Medium Images"
+          value={selectedImageOptionMedium}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="medium"
+          onChange={(e) => setSelectedImageOptionMedium(e.target.value)}
+        />
+        <SelectField
+          label="Large Images"
+          value={selectedImageOptionLarge}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="large"
+          onChange={(e) => setSelectedImageOptionLarge(e.target.value)}
+        />
+        <SelectField
+          label="Extra Large Images"
+          value={selectedImageOptionXLarge}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="xlarge"
+          onChange={(e) => setSelectedImageOptionXLarge(e.target.value)}
+        />
+      </div>
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Multiple SelectField</h1>
       <SelectField label="Options" value={selectedOption3} options={options} multiple={true} onChange={(e) => setSelectedOption3(e.target.value)} />

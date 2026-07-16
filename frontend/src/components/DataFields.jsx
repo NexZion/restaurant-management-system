@@ -649,7 +649,7 @@ export const SelectField = ({
   label,
   value,
   onChange,
-  options = [], // Array of {value, label} objects
+  options = [], // Array of {value, label, image} objects
   error = false,
   helperText = "",
   disabled = false,
@@ -661,6 +661,7 @@ export const SelectField = ({
   placeholder = "",
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
+  optionImageSize = "medium", // small, medium, large, xlarge
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -678,11 +679,61 @@ export const SelectField = ({
     standard: `border-b ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600"}`,
   };
 
+  const optionImageSizes = {
+    small: "w-6 h-6",
+    medium: "w-9 h-9",
+    large: "w-12 h-12",
+    xlarge: "w-16 h-16",
+  };
+  const selectedImageSizes = {
+    small: "w-5 h-5",
+    medium: "w-7 h-7",
+    large: "w-9 h-9",
+    xlarge: "w-12 h-12",
+  };
+  const selectImageHeights = {
+    small: "min-h-14",
+    medium: "min-h-16",
+    large: "min-h-20",
+    xlarge: "min-h-24",
+  };
+  const optionRowPadding = {
+    small: "py-2",
+    medium: "py-3",
+    large: "py-3",
+    xlarge: "py-4",
+  };
+  const imageSizeClass = optionImageSizes[optionImageSize] || optionImageSizes.medium;
+  const selectedImageSizeClass =
+    selectedImageSizes[optionImageSize] || selectedImageSizes.medium;
+  const selectImageHeightClass =
+    selectImageHeights[optionImageSize] || selectImageHeights.medium;
+  const optionRowPaddingClass =
+    optionRowPadding[optionImageSize] || optionRowPadding.medium;
+
+  const getOptionImage = (option) => option?.image || option?.imageSrc || "";
+  const hasOptionImages = options.some((option) => getOptionImage(option));
+
+  const renderOptionImage = (option, sizeClass = imageSizeClass) => {
+    const image = getOptionImage(option);
+
+    if (!image) return null;
+
+    return (
+      <img
+        src={image}
+        alt={option?.imageAlt || option?.label || ""}
+        className={`${sizeClass} rounded object-cover flex-shrink-0 bg-gray-100 dark:bg-gray-800`}
+        loading="lazy"
+      />
+    );
+  };
+
   // Filter options based on search query
   const filteredOptions =
     searchable && searchQuery
       ? options.filter((opt) =>
-          opt.label.toLowerCase().includes(searchQuery.toLowerCase()),
+          String(opt.label).toLowerCase().includes(searchQuery.toLowerCase()),
         )
       : options;
 
@@ -783,7 +834,7 @@ export const SelectField = ({
           onBlur={() => setIsFocused(false)}
           className={`
             w-full px-3 text-sm text-left flex items-center justify-between gap-2
-            ${label ? "min-h-14 py-2" : "py-3"}
+            ${hasOptionImages ? `${selectImageHeightClass} py-2` : label ? "min-h-14 py-2" : "py-3"}
             bg-transparent
             outline-none
             transition-all duration-200
@@ -799,6 +850,7 @@ export const SelectField = ({
                   className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded text-xs"
                   onClick={(e) => e.stopPropagation()}
                 >
+                  {renderOptionImage(opt, "w-5 h-5")}
                   <span>{opt.label}</span>
                   <button
                     type="button"
@@ -821,11 +873,16 @@ export const SelectField = ({
               ))
             ) : (
               <span
-                className={`${hasValue ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
+                className={`inline-flex items-center gap-2 min-w-0 ${hasValue ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
               >
-                {!multiple && selectedOption
-                  ? selectedOption.label
-                  : placeholder}
+                {!multiple && selectedOption ? (
+                  <>
+                    {renderOptionImage(selectedOption, selectedImageSizeClass)}
+                    <span className="truncate">{selectedOption.label}</span>
+                  </>
+                ) : (
+                  placeholder
+                )}
               </span>
             )}
           </div>
@@ -933,7 +990,7 @@ export const SelectField = ({
                         key={option.value}
                         onClick={() => handleSelect(option.value)}
                         className={`
-                        px-4 py-3 text-sm cursor-pointer transition-colors duration-150 flex items-center gap-3
+                        px-4 ${getOptionImage(option) ? optionRowPaddingClass : "py-3"} text-sm cursor-pointer transition-colors duration-150 flex items-center gap-3
                         ${
                           isSelected(option.value)
                             ? "bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-white"
@@ -966,6 +1023,7 @@ export const SelectField = ({
                             )}
                           </div>
                         )}
+                        {renderOptionImage(option)}
                         <span className="flex-1">{option.label}</span>
                       </div>
                     ))
