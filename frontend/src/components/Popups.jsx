@@ -117,7 +117,7 @@ export const Alert = ({
     >
       <div 
         className={`
-          min-w-[320px] max-w-md px-4 py-3 rounded-lg border-2 shadow-lg
+          min-w-[320px] max-w-md px-4 py-3 rounded-xl border shadow-2xl backdrop-blur
           flex items-start gap-3
           ${styles.light} ${styles.dark}
         `}
@@ -255,8 +255,8 @@ export const Dialog = ({
       {/* Backdrop */}
       <div
         className={`
-          fixed inset-0 bg-black z-50 transition-opacity duration-300
-          ${visible ? 'opacity-50' : 'opacity-0 pointer-events-none'}
+          fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm transition-opacity duration-300 dark:bg-[#0b0d12]/75
+          ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}
         onClick={handleClose}
       />
@@ -265,7 +265,7 @@ export const Dialog = ({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
           className={`
-            ${sizeClasses[size]} w-full bg-white dark:bg-[#18181B] rounded-lg shadow-2xl
+            ${sizeClasses[size]} w-full rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/20 dark:border-[#252a35] dark:bg-[#111318] dark:shadow-black/50
             flex flex-col max-h-[90vh] pointer-events-auto
             transition-all duration-300 ease-out
             ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
@@ -274,14 +274,14 @@ export const Dialog = ({
         >
           {/* Header */}
           {showHeader && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-600 flex-shrink-0">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-[#252a35]">
+              <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
                 {title}
               </h2>
               {showCloseButton && (
                 <button
                   onClick={handleClose}
-                  className="p-1 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -292,33 +292,33 @@ export const Dialog = ({
           )}
 
           {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 text-gray-900 dark:text-white">
+          <div className="flex-1 overflow-y-auto px-6 py-5 text-slate-900 dark:text-white">
             {children}
-          </div>
 
-          {/* Footer */}
-          {showFooter && (
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-300 dark:border-gray-600 flex-shrink-0">
-            {showSecondaryButton && (
-              <button
-                onClick={handleSecondaryButtonClick}                
-                disabled={secondaryButtonDisabled}
-                className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-white bg-transparent border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              >
-                {secondaryButtonText}
-              </button>)
-            }
-            {showPrimaryButton && (
-              <button
-                onClick={handlePrimaryButtonClick}
-                disabled={primaryButtonDisabled}
-                className="px-4 py-2 text-sm font-medium text-white dark:text-gray-900 bg-blue-600 dark:bg-white rounded hover:bg-blue-700 dark:hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-600 dark:disabled:hover:bg-white"
-              >
-                {primaryButtonText}
-              </button>)
-            }
-            </div>
-          )}
+            {/* Footer */}
+            {showFooter && (
+              <div className="-mx-6 -mb-5 mt-5 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-4 dark:border-[#252a35] dark:bg-[#171a21]">
+              {showSecondaryButton && (
+                <button
+                  onClick={handleSecondaryButtonClick}
+                  disabled={secondaryButtonDisabled}
+                  className="inline-flex min-h-10 min-w-28 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#252a35] dark:bg-[#111318] dark:text-white dark:hover:bg-[#1f2430]"
+                >
+                  {secondaryButtonText}
+                </button>)
+              }
+              {showPrimaryButton && (
+                <button
+                  onClick={handlePrimaryButtonClick}
+                  disabled={primaryButtonDisabled}
+                  className="inline-flex min-h-10 min-w-28 items-center justify-center rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 dark:border-blue-400 dark:bg-blue-500 dark:hover:bg-blue-400"
+                >
+                  {primaryButtonText}
+                </button>)
+              }
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
@@ -409,9 +409,9 @@ export const Snackbar = ({
     >
       <div 
         className="
-          min-w-[320px] max-w-md px-4 py-3 rounded-lg shadow-lg
+          min-w-[320px] max-w-md px-4 py-3 rounded-xl shadow-2xl
           flex items-center gap-3
-          bg-gray-700 dark:bg-gray-800 text-white
+          bg-slate-900 text-white dark:bg-slate-800
         "
       >
         {/* Message */}
@@ -478,7 +478,7 @@ export const Loading = ({
     return (
       <div className={`
         fixed inset-0 z-50 flex items-center justify-center
-        ${overlay ? 'bg-black/50' : 'bg-white dark:bg-[#18181B]'}
+        ${overlay ? 'bg-slate-950/55 backdrop-blur-sm' : 'bg-white dark:bg-[#111318]'}
       `}>
         {spinner}
       </div>
@@ -540,7 +540,7 @@ export const Drawer = ({
     <>
       {/* Backdrop - Partially transparent - Always covers entire screen */}
       <div
-        className="fixed top-0 right-0 bottom-0 left-0 bg-black z-40"
+        className="fixed bottom-0 left-0 right-0 top-0 z-40 bg-slate-950 backdrop-blur-sm"
         style={{
           opacity: visible ? 0.3 : 0,
           transition: 'opacity 0.3s ease-out'
@@ -550,7 +550,7 @@ export const Drawer = ({
 
       {/* Drawer */}
       <div
-        className="fixed top-0 bottom-0 right-0 bg-white dark:bg-[#18181B] shadow-2xl z-50 flex flex-col"
+        className="fixed bottom-0 right-0 top-0 z-50 flex flex-col border-l border-slate-200 bg-white shadow-2xl shadow-slate-950/20 dark:border-slate-800 dark:bg-[#111318] dark:shadow-black/50"
         style={{
           width: isFullScreen ? '100%' : '50%',
           transform: visible ? 'translateX(0)' : 'translateX(100%)',
@@ -559,15 +559,15 @@ export const Drawer = ({
       >
         {/* Header */}
         {showHeader && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-300 dark:border-gray-600 flex-shrink-0">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+            <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
               {title}
             </h2>
             <div className="flex items-center gap-2">
               {/* Fullscreen Toggle Button */}
               <button
                 onClick={toggleFullScreen}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                 title={isFullScreen ? 'Half Screen' : 'Fullscreen'}
               >
                 {isFullScreen ? (
@@ -585,7 +585,7 @@ export const Drawer = ({
               {showCloseButton && (
                 <button
                   onClick={handleClose}
-                  className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                   title="Close"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -598,7 +598,7 @@ export const Drawer = ({
         )}
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 text-gray-900 dark:text-white">
+        <div className="flex-1 overflow-y-auto px-6 py-5 text-slate-900 dark:text-white">
           {children}
         </div>
       </div>

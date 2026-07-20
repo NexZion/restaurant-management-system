@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Button } from './DataFields'
 
 const PlaceholderImage = ({ compact }) => (
-  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 via-gray-50 to-violet-100 dark:from-[#24242a] dark:via-[#202024] dark:to-[#292533]">
-    <div className="rounded-full bg-white/80 p-3 shadow-sm dark:bg-white/5">
+  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-950/40">
+    <div className="rounded-full bg-white/85 p-3 shadow-sm ring-1 ring-slate-200/80 dark:bg-white/5 dark:ring-white/10">
       <svg className={compact ? 'h-6 w-6 text-blue-400' : 'h-9 w-9 text-blue-400'} fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.5c-3.5-3-7.5-.5-7.5 3 0 4.5 7.5 8.5 7.5 8.5s7.5-4 7.5-8.5c0-3.5-4-6-7.5-3z" />
       </svg>
@@ -111,7 +111,7 @@ export const MenuItemCardList = ({
 
   if (!items.length) {
     return (
-      <div className={`rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-[#18181B] dark:text-gray-400 ${className}`}>
+      <div className={`rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500 shadow-sm dark:border-slate-700 dark:bg-[#111318] dark:text-slate-400 ${className}`}>
         {emptyMessage}
       </div>
     )
@@ -127,15 +127,15 @@ export const MenuItemCardList = ({
           <article
             key={item.id}
             onClick={onCardClick ? () => onCardClick(item) : undefined}
-            className={`group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg dark:border-gray-700 dark:bg-[#18181B] dark:hover:border-gray-600 ${onCardClick ? 'cursor-pointer' : ''} ${cardClassName}`}
+            className={`group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/70 dark:border-slate-800 dark:bg-[#111318] dark:hover:border-blue-400/30 dark:hover:shadow-black/30 ${onCardClick ? 'cursor-pointer' : ''} ${cardClassName}`}
           >
             {visible.image && (
-              <div className={`relative overflow-hidden bg-gray-100 dark:bg-[#212125] ${compact ? 'h-28' : 'h-44'}`}>
+              <div className={`relative overflow-hidden bg-slate-100 dark:bg-[#171a21] ${compact ? 'h-28' : 'h-44'}`}>
                 {renderImage ? renderImage(item) : item.image ? (
                   <img src={item.image} alt={item.name || 'Menu item'} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 ) : <PlaceholderImage compact={compact} />}
                 {visible.status && (
-                  <span className={`absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 font-medium shadow-sm backdrop-blur ${compact ? 'text-[10px]' : 'text-xs'} ${item.available !== false ? 'border-green-200 bg-white/90 text-green-700 dark:border-green-800 dark:bg-green-950/90 dark:text-green-300' : 'border-gray-200 bg-white/90 text-gray-600 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-300'}`}>
+                  <span className={`absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 font-semibold shadow-sm backdrop-blur ${compact ? 'text-[10px]' : 'text-xs'} ${item.available !== false ? 'border-emerald-200 bg-white/90 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-300' : 'border-slate-200 bg-white/90 text-slate-600 dark:border-slate-700 dark:bg-slate-900/90 dark:text-slate-300'}`}>
                     <span className={`h-1.5 w-1.5 rounded-full ${item.available !== false ? 'bg-green-500' : 'bg-gray-400'}`} />
                     {item.available !== false ? 'Available' : 'Unavailable'}
                   </span>
@@ -152,23 +152,23 @@ export const MenuItemCardList = ({
               )}
 
               {visible.category && item.category && (
-                <p className={`mb-1 truncate font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 ${compact ? 'text-[10px]' : 'text-xs'}`}>{item.category}</p>
+                <p className={`mb-1 truncate font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-300 ${compact ? 'text-[10px]' : 'text-xs'}`}>{item.category}</p>
               )}
 
               <div className="flex items-start justify-between gap-2">
-                {visible.name && <h3 className={`min-w-0 flex-1 font-semibold leading-tight text-gray-900 dark:text-white ${compact ? 'line-clamp-2 text-sm' : 'truncate text-lg'}`}>{item.name}</h3>}
-                {visible.price && <p className={`shrink-0 font-bold text-gray-900 dark:text-white ${compact ? 'text-sm' : 'text-lg'}`}>{formatPrice(item.price, item)}</p>}
+                {visible.name && <h3 className={`min-w-0 flex-1 font-semibold leading-tight text-slate-950 dark:text-white ${compact ? 'line-clamp-2 text-sm' : 'truncate text-lg'}`}>{item.name}</h3>}
+                {visible.price && <p className={`shrink-0 font-bold text-slate-950 dark:text-white ${compact ? 'text-sm' : 'text-lg'}`}>{formatPrice(item.price, item)}</p>}
               </div>
 
               {visible.description && item.description && (
-                <p className={`text-gray-600 dark:text-gray-400 ${compact ? 'mt-1 line-clamp-2 text-xs leading-4' : 'mt-2 min-h-10 line-clamp-2 text-sm leading-5'}`}>{item.description}</p>
+                <p className={`text-slate-600 dark:text-slate-400 ${compact ? 'mt-1 line-clamp-2 text-xs leading-4' : 'mt-2 min-h-10 line-clamp-2 text-sm leading-5'}`}>{item.description}</p>
               )}
 
               {renderExtra && <div className="mt-3">{renderExtra(item)}</div>}
 
               <div className="mt-auto pt-3">
                 {renderFooter ? renderFooter(item) : (visible.code || (visible.actions && actions.length > 0)) && (
-                  <div className="flex min-h-8 items-center justify-between gap-2 border-t border-gray-100 pt-2 dark:border-gray-700">
+                  <div className="flex min-h-8 items-center justify-between gap-2 border-t border-slate-100 pt-2 dark:border-slate-800">
                     {visible.code && <span className="truncate text-[11px] text-gray-500 dark:text-gray-400">{item.code ? `#${item.code}` : `#${item.id}`}</span>}
                     {visible.actions && actions.length > 0 && (
                       <div className="ml-auto flex items-center gap-0.5">
@@ -214,7 +214,7 @@ export const MenuItemCardList = ({
       </div>
 
       {pagination && totalPages > 1 && (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Showing {(activePage - 1) * safePageSize + 1}–{Math.min(activePage * safePageSize, items.length)} of {items.length}
           </p>
