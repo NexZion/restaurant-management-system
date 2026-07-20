@@ -18,6 +18,8 @@ import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
 import { Stepper } from "../components/Stepper";
 import { AddItem } from "../components/AddItem";
+import { ProfileView } from "../components/ProfileView";
+import { Chip } from "../components/Chip";
 import api from "../axiosClient";
 
 export const Customers = () => {
@@ -43,6 +45,7 @@ export const Customers = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [isCustomersLoading, setIsCustomersLoading] = useState(false);
   const [isSameAsPhone, setIsSameAsPhone] = useState(false);
   const [isDisabledWhatsapp, setIsDisabledWhatsapp] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
@@ -51,6 +54,7 @@ export const Customers = () => {
   const [viewCustomer, setViewCustomer] = useState(null);
 
   const fetchCustomers = async () => {
+    setIsCustomersLoading(true);
     try {
       const response = await api.get("/customers");
       console.log("Fetched customers:", response);
@@ -60,14 +64,18 @@ export const Customers = () => {
         customer_type: customer.customer_type,
         district: customer.district,
         phone: customer.phone,
+        status: customer.status || "N/A",
         statusOption: customer.status
           ? customer.status.charAt(0).toUpperCase() + customer.status.slice(1)
           : "N/A",
+        statusChip: <Chip status={customer.status || "N/A"} size="small" />,
         customer_code: customer.customer_code,
       }));
       setCustomers(customerData);
     } catch (error) {
       console.error("Error fetching customers:", error);
+    } finally {
+      setIsCustomersLoading(false);
     }
   };
 
@@ -126,7 +134,7 @@ export const Customers = () => {
     { key: "customer_type", label: "Customer Type", sortable: true },
     { key: "district", label: "District" },
     { key: "phone", label: "Phone" },
-    { key: "statusOption", label: "Status" },
+    { key: "statusChip", label: "Status" },
   ];
 
   const handleEditCustomer = async (row) => {
@@ -289,20 +297,6 @@ export const Customers = () => {
     }
   };
 
-  const DetailItem = ({ label, value, wide = false }) => (
-    <div
-      className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
-        wide ? "sm:col-span-2" : ""
-      }`}
-    >
-      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
-        {label}
-      </p>
-      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
-        {value || "Not provided"}
-      </p>
-    </div>
-  );
   return (
     <div>
       {/* Header */}
@@ -643,6 +637,7 @@ export const Customers = () => {
           searchable={true}
           filterable={false}
           pagination={true}
+          loading={isCustomersLoading}
           actions={[
             {
               icon: (
@@ -719,95 +714,62 @@ export const Customers = () => {
         showFooter={false}
       >
         {viewCustomer && (
-          <div className="space-y-6">
-            <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
-                    {`${viewCustomer.first_name || ""} ${viewCustomer.last_name || ""}`.trim() ||
-                      "Not provided"}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {viewCustomer.customer_code || "No customer code"}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold capitalize text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
-                    {viewCustomer.customer_type || "Not provided"}
-                  </span>
-
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                    {viewCustomer.status || "Not provided"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-3">
-                <p className="truncate">{viewCustomer.email || "No email"}</p>
-                <p className="truncate">{viewCustomer.phone || "No phone"}</p>
-                <p className="truncate">
-                  {viewCustomer.whatsapp || "No whatsapp"}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                Contact Details
-              </h4>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem label="Email" value={viewCustomer.email} />
-                <DetailItem label="Phone" value={viewCustomer.phone} />
-                <DetailItem label="Whatsapp" value={viewCustomer.whatsapp} />
-                <DetailItem
-                  label="Customer Type"
-                  value={viewCustomer.customer_type}
-                />
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                Personal Details
-              </h4>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem
-                  label="First Name"
-                  value={viewCustomer.first_name}
-                />
-                <DetailItem label="Last Name" value={viewCustomer.last_name} />
-                <DetailItem label="ID Type" value={viewCustomer.id_type} />
-                <DetailItem label="ID Number" value={viewCustomer.id_number} />
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
-                Address
-              </h4>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <DetailItem
-                  label="Address Line 1"
-                  value={viewCustomer.address_line1}
-                />
-                <DetailItem
-                  label="Address Line 2"
-                  value={viewCustomer.address_line2}
-                />
-                <DetailItem label="City" value={viewCustomer.city} />
-                <DetailItem label="District" value={viewCustomer.district} />
-                <DetailItem label="State" value={viewCustomer.state} />
-                <DetailItem
-                  label="Postal Code"
-                  value={viewCustomer.postal_code}
-                />
-              </div>
-            </div>
-          </div>
+          <ProfileView
+            title={
+              `${viewCustomer.first_name || ""} ${viewCustomer.last_name || ""}`.trim() ||
+              "Not provided"
+            }
+            subtitle={viewCustomer.customer_code || "No customer code"}
+            avatarAlt="Customer"
+            badges={[
+              { value: viewCustomer.customer_type, tone: "default" },
+              { value: viewCustomer.status },
+            ]}
+            highlights={[
+              { label: "Email", value: viewCustomer.email },
+              { label: "Phone", value: viewCustomer.phone },
+              { label: "Whatsapp", value: viewCustomer.whatsapp },
+            ]}
+            sections={[
+              {
+                title: "Contact Details",
+                items: [
+                  { label: "Email", value: viewCustomer.email },
+                  { label: "Phone", value: viewCustomer.phone },
+                  { label: "Whatsapp", value: viewCustomer.whatsapp },
+                  { label: "Customer Type", value: viewCustomer.customer_type },
+                ],
+              },
+              {
+                title: "Personal Details",
+                items: [
+                  { label: "First Name", value: viewCustomer.first_name },
+                  { label: "Last Name", value: viewCustomer.last_name },
+                  { label: "ID Type", value: viewCustomer.id_type },
+                  { label: "ID Number", value: viewCustomer.id_number },
+                ],
+              },
+              {
+                title: "Address",
+                items: [
+                  {
+                    label: "Address Line 1",
+                    value: viewCustomer.address_line1,
+                    wide: true,
+                  },
+                  {
+                    label: "Address Line 2",
+                    value: viewCustomer.address_line2,
+                    wide: true,
+                  },
+                  { label: "City", value: viewCustomer.city },
+                  { label: "District", value: viewCustomer.district },
+                  { label: "State", value: viewCustomer.state },
+                  { label: "Postal Code", value: viewCustomer.postal_code },
+                ],
+              },
+            ]}
+          />
         )}
       </Dialog>
     </div>

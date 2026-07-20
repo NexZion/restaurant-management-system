@@ -52,10 +52,10 @@ const HorizontalStepper = ({ steps, activeStep, onStepClick, clickable }) => {
               className={`relative z-10 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-sm font-semibold transition-colors flex-shrink-0
                 ${clickable ? 'cursor-pointer' : 'cursor-default'}
                 ${isCompleted
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-sm shadow-blue-600/20'
                   : isActive
-                    ? 'bg-blue-600 dark:bg-blue-500 text-white ring-2 sm:ring-4 ring-blue-100 dark:ring-blue-900/40'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white ring-4 ring-blue-500/15 shadow-sm shadow-blue-600/20'
+                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-700'
                 }`}
             >
               {step.icon && !isCompleted ? step.icon : isCompleted ? <CheckIcon /> : idx + 1}
@@ -100,8 +100,8 @@ const VerticalStepper = ({ steps, activeStep, onStepClick, clickable }) => {
                   ${isCompleted
                     ? 'bg-blue-600 dark:bg-blue-500 text-white'
                     : isActive
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white ring-2 sm:ring-4 ring-blue-100 dark:ring-blue-900/40'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                    ? 'bg-blue-600 dark:bg-blue-500 text-white ring-4 ring-blue-500/15'
+                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-700'
                   }`}
               >
                 {step.icon && !isCompleted ? step.icon : isCompleted ? <CheckIcon /> : idx + 1}
@@ -251,7 +251,7 @@ export const Stepper = ({
 
       {/* Step content panel */}
       {hasContent && (
-        <div className="mt-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#18181B] overflow-hidden">
+        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]">
           {stepFadeInStyle}
           <div
             key={activeStep}

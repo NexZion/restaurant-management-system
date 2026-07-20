@@ -13,6 +13,7 @@ import { MenuItems } from "./pages/Menu/MenuItems";
 import { MenuCategories } from "./pages/Menu/MenuCategories";
 import { CashierBilling } from "./pages/CashierBilling";
 import { POSNewOrder } from "./pages/WaiterOrdering";
+import { NotFound } from "./pages/NotFound";
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
             <Route path="/menu/menus" element={<Menus />} />
             <Route path="/menu/menu-items" element={<MenuItems />} />
             <Route path="/menu/menu-categories" element={<MenuCategories />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </BrowserRouter>

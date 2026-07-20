@@ -59,14 +59,14 @@ export default function MenuItemSearch({
 
   return (
     <div className="relative z-50 w-full overflow-visible" ref={wrapperRef}>
-      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
         {label}
       </label>
 
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-gray-50 px-3 py-2.5 text-left text-sm text-gray-900 shadow-sm outline-none transition-colors focus:border-blue-600 dark:border-gray-600 dark:bg-[#18181B] dark:text-white dark:focus:border-white"
+        className="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-left text-sm text-slate-950 shadow-sm outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
       >
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {selected ? (
@@ -75,10 +75,10 @@ export default function MenuItemSearch({
                 <img
                   src={selected.image}
                   alt={selected.name}
-                  className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                className="h-10 w-10 shrink-0 rounded-lg object-cover shadow-sm"
                 />
               ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-semibold text-white">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-semibold text-white shadow-sm">
                   {selected.name?.slice(0, 2)?.toUpperCase() || "IT"}
                 </div>
               )}
@@ -93,7 +93,7 @@ export default function MenuItemSearch({
               </div>
             </>
           ) : (
-            <span className="text-gray-400 dark:text-gray-500">{placeholder}</span>
+          <span className="text-slate-400 dark:text-slate-500">{placeholder}</span>
           )}
         </div>
 
@@ -104,14 +104,14 @@ export default function MenuItemSearch({
       </button>
 
       {open && (
-        <div className="absolute z-[9999] mt-1 w-full overflow-hidden rounded-lg border border-gray-300 bg-white shadow-2xl dark:border-gray-600 dark:bg-[#212125]">
-          <div className="border-b border-gray-200 p-2 dark:border-gray-700">
-            <div className="flex items-center rounded border border-gray-200 bg-gray-50 px-2 dark:border-gray-700 dark:bg-[#18181B]">
+        <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40">
+          <div className="border-b border-slate-100 p-2 dark:border-slate-800">
+            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 dark:border-slate-700 dark:bg-[#111318]">
               <FiSearch className="text-gray-400" size={16} />
 
               <input
                 type="text"
-                className="h-9 w-full border-none bg-transparent px-2 text-sm text-gray-900 outline-none dark:text-white"
+                className="h-9 w-full border-none bg-transparent px-2 text-sm text-slate-950 outline-none dark:text-white"
                 placeholder="Search item or category..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -136,18 +136,18 @@ export default function MenuItemSearch({
                     key={item.id}
                     type="button"
                     onClick={() => handleSelect(item)}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
-                      isSelected ? "bg-blue-50 dark:bg-gray-700" : ""
+                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
+                      isSelected ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100" : ""
                     }`}
                   >
                     {item.image ? (
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                        className="h-12 w-12 shrink-0 rounded-lg object-cover shadow-sm"
                       />
                     ) : (
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-300 to-slate-500 text-xs font-bold text-white">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 text-xs font-bold text-white shadow-sm">
                         {item.name?.slice(0, 2)?.toUpperCase() || "IT"}
                       </div>
                     )}

@@ -52,10 +52,9 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   }, [user.role?.name, user.role_id]);
 
   const toggleGroup = (groupName) => {
-    setExpandedGroups((prev) => ({
-      ...prev,
-      [groupName]: !prev[groupName],
-    }));
+    setExpandedGroups((prev) =>
+      prev[groupName] ? {} : { [groupName]: true },
+    );
   };
 
   // Close profile menu when clicking outside
@@ -90,14 +89,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       {/* Backdrop — mobile/tablet only */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-sm lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       )}
 
       <div
-        className="relative flex flex-col w-[280px] bg-white dark:bg-[#09090B] text-gray-900 dark:text-white border-r border-gray-300 dark:border-gray-800 flex-shrink-0"
+        className="relative flex w-[280px] flex-shrink-0 flex-col border-r border-slate-200/80 bg-white text-slate-900 shadow-xl shadow-slate-200/40 dark:border-slate-800/80 dark:bg-[#0f1117] dark:text-white dark:shadow-black/20"
         style={
           isMobile
             ? {
@@ -114,11 +113,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             : { height: "100dvh" }
         }
       >
-        <div className="flex flex-col items-center py-8 px-6 border-b border-gray-300 dark:border-gray-800">
+        <div className="relative flex flex-col items-center border-b border-slate-100 px-6 py-7 dark:border-slate-800">
           {/* Close button — mobile/tablet only */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white lg:hidden"
             aria-label="Close sidebar"
           >
             <svg
@@ -137,31 +136,34 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           </button>
           <img
             src={logo}
-            className="invert dark:invert-0 w-[70%] h-auto"
+            className="h-auto w-[68%] invert transition-opacity dark:invert-0"
             alt="Logo"
           />
         </div>
 
-        <div className="flex flex-col flex-1 px-4 py-3 sm:py-6 gap-4 sm:gap-6 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4 sm:gap-6 sm:py-5">
           <div className="flex flex-col gap-1">
             {menuItems.map((item, index) =>
               item.type === "item" ? (
                 <Link
                   key={index}
                   to={item.path}
-                  onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200 ${
+                  onClick={() => {
+                    setExpandedGroups({});
+                    onClose();
+                  }}
+                  className={`group flex items-center gap-3 rounded-lg px-3.5 py-2.5 transition-all duration-200 hover:bg-slate-100 hover:text-slate-950 dark:hover:bg-slate-800/80 ${
                     location.pathname === item.path
-                      ? "bg-blue-100 dark:bg-[#161617] border-l-4 border-blue-600 dark:border-white"
+                      ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-blue-500/12 dark:text-blue-200 dark:ring-blue-400/20"
                       : ""
                   }`}
                 >
                   <Icon
                     name={item.icon}
-                    className={`w-5 h-5 ${location.pathname === item.path ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
+                    className={`h-5 w-5 ${location.pathname === item.path ? "text-blue-600 dark:text-blue-300" : "text-slate-500 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200"}`}
                   />
                   <span
-                    className={`text-sm font-medium ${location.pathname === item.path ? "text-blue-600 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}
+                    className={`text-sm font-medium ${location.pathname === item.path ? "text-blue-700 dark:text-blue-100" : "text-slate-700 group-hover:text-slate-950 dark:text-slate-300 dark:group-hover:text-white"}`}
                   >
                     {item.name}
                   </span>
@@ -170,17 +172,17 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 <div key={index} className="flex flex-col">
                   <div
                     onClick={() => toggleGroup(item.name)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200"
+                    className="group flex cursor-pointer items-center gap-3 rounded-lg px-3.5 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                   >
                     <Icon
                       name={item.icon}
-                      className="w-5 h-5 text-gray-500 dark:text-gray-400"
+                      className="h-5 w-5 text-slate-500 group-hover:text-slate-800 dark:text-slate-400 dark:group-hover:text-slate-200"
                     />
-                    <span className="text-sm font-medium flex-1 text-gray-700 dark:text-gray-300">
+                    <span className="flex-1 text-sm font-medium text-slate-700 group-hover:text-slate-950 dark:text-slate-300 dark:group-hover:text-white">
                       {item.name}
                     </span>
                     <svg
-                      className={`w-4 h-4 transition-transform duration-200 ${expandedGroups[item.name] ? "rotate-180" : ""}`}
+                      className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${expandedGroups[item.name] ? "rotate-180" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -195,20 +197,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   </div>
 
                   {expandedGroups[item.name] && (
-                    <div className="flex flex-col ml-4 mt-1 gap-1">
+                    <div className="ml-5 mt-1 flex flex-col gap-1 border-l border-slate-200 pl-2 dark:border-slate-800">
                       {item.items.map((subItem, subIndex) => (
                         <Link
                           key={subIndex}
                           to={subItem.path}
                           onClick={onClose}
-                          className={`flex items-center px-4 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200 ${
+                          className={`flex cursor-pointer items-center rounded-lg px-3 py-2 transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 ${
                             location.pathname === subItem.path
-                              ? "bg-blue-100 dark:bg-[#161617] border-l-4 border-blue-600 dark:border-white"
+                              ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/12 dark:text-blue-100 dark:ring-blue-400/20"
                               : ""
                           }`}
                         >
                           <span
-                            className={`text-sm ${location.pathname === subItem.path ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
+                            className={`text-sm ${location.pathname === subItem.path ? "text-blue-700 dark:text-blue-100" : "text-slate-600 dark:text-slate-300"}`}
                           >
                             {subItem.name}
                           </span>
@@ -224,22 +226,22 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
         <div className="relative flex-shrink-0" ref={profileMenuRef}>
           {isProfileMenuOpen && (
-            <div className="absolute bottom-full left-0 right-0 mb-0 mx-2 sm:mx-4 bg-white dark:bg-[#212125] rounded-lg shadow-lg border border-gray-300 dark:border-gray-700 overflow-hidden">
+            <div className="absolute bottom-full left-0 right-0 mx-2 mb-2 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40 sm:mx-4">
               <div className="flex flex-col">
                 <div
-                  className="px-3 sm:px-4 py-2 hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200"
+                  className="cursor-pointer px-3 py-2.5 transition-colors duration-200 hover:bg-slate-50 dark:hover:bg-slate-800 sm:px-4"
                   onClick={() => {
                     navigate("/settings");
                     setIsProfileMenuOpen(false);
                   }}
                 >
-                  <span className="text-sm text-gray-900 dark:text-white">
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">
                     Settings
                   </span>
                 </div>
-                <hr className="my-1 border-gray-300 dark:border-gray-700" />
+                <hr className="my-1 border-slate-100 dark:border-slate-800" />
                 <div
-                  className="px-3 sm:px-4 py-2 hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200"
+                  className="cursor-pointer px-3 py-2.5 transition-colors duration-200 hover:bg-red-50 dark:hover:bg-red-950/30 sm:px-4"
                   onClick={handleLogout}
                 >
                   <span className="text-sm text-red-600 dark:text-red-400">
@@ -252,20 +254,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
           <div
             onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-            className="flex items-center gap-2 sm:gap-3 px-2 sm:px-3 py-2 sm:py-3 m-2 sm:m-3 rounded-lg border-t border-gray-300 dark:border-gray-800 hover:bg-blue-100 dark:hover:bg-[#161617] cursor-pointer transition-colors duration-200"
+            className="m-2 flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 transition-all duration-200 hover:border-blue-200 hover:bg-white hover:shadow-sm dark:border-slate-800 dark:bg-[#171a21] dark:hover:border-slate-700 dark:hover:bg-slate-800/60 sm:m-3 sm:gap-3 sm:px-3 sm:py-3"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 p-0.5 sm:h-10 sm:w-10">
               <img
                 src={profilePhoto}
                 alt=""
-                className="rounded-full w-8 h-8 sm:w-10 sm:h-10 object-cover"
+                className="h-full w-full rounded-full object-cover"
               />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+              <div className="truncate text-xs font-semibold text-slate-950 dark:text-white sm:text-sm">
                 {profileName}
               </div>
-              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
+              <div className="truncate text-[10px] text-slate-500 dark:text-slate-400 sm:text-xs">
                 {profileRole}
               </div>
             </div>

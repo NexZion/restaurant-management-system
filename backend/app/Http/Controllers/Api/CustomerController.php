@@ -21,13 +21,6 @@ class CustomerController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only admins can create branches'
-            ], 403);
-        }
-
         $customers = Customer::paginate($request->input('per_page', 70));
 
         return response()->json([

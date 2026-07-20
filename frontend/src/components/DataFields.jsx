@@ -23,9 +23,9 @@ export const TextField = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-600 focus:border-blue-600 dark:focus:border-white"} rounded`,
-    filled: `border-b-2 ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"} bg-gray-100 dark:bg-gray-800 rounded-t`,
-    standard: `border-b ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"}`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
   const isPasswordField = type === "password";
@@ -40,8 +40,8 @@ export const TextField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
             {label}
@@ -111,9 +111,9 @@ export const TextField = ({
             w-full text-sm
             ${label ? "py-4" : "py-3"}
             ${isPasswordField && showPasswordToggle ? "px-3 pr-10" : "px-3"}
-            bg-transparent
-            text-gray-900 dark:text-white
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            bg-white dark:bg-[#111318]
+            text-slate-950 dark:text-white
+            placeholder:text-slate-400 dark:placeholder:text-slate-500
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -205,7 +205,7 @@ export const ImageUploadField = ({
         style={{ width: avatarSize, height: avatarSize }}
       >
         <div
-          className={`rounded-full border-2 ${error ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden`}
+          className={`flex items-center justify-center overflow-hidden rounded-full border-2 shadow-sm ${error ? "border-red-500" : "border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900"}`}
           style={{ width: avatarSize, height: avatarSize }}
         >
           {avatarUrl ? (
@@ -222,7 +222,7 @@ export const ImageUploadField = ({
           <button
             type="button"
             onClick={handleUploadClick}
-            className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+            className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-full bg-slate-950/55 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100"
             tabIndex={-1}
             style={{ width: avatarSize, height: avatarSize }}
           >
@@ -248,7 +248,7 @@ export const ImageUploadField = ({
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-lg border-2 border-white dark:border-gray-800 z-10"
+            className="absolute -right-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-xs text-white shadow-lg transition-colors hover:bg-red-600 dark:border-slate-900"
             tabIndex={-1}
             title="Remove image"
           >
@@ -328,8 +328,8 @@ export const ImageGridUploadField = ({
       )}
 
       <div
-        className={`relative group rounded border-2 overflow-hidden bg-gray-50 dark:bg-gray-800
-          ${error ? "border-red-500" : "border-gray-200 dark:border-gray-700"}
+        className={`group relative overflow-hidden rounded-lg border-2 bg-slate-50 shadow-sm dark:bg-slate-900
+          ${error ? "border-red-500" : "border-slate-200 dark:border-slate-700"}
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         `}
         style={{ aspectRatio }}
@@ -345,7 +345,7 @@ export const ImageGridUploadField = ({
             }}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5 text-gray-300 dark:text-gray-600">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-slate-300 dark:text-slate-600">
             <svg
               className="w-8 h-8"
               fill="none"
@@ -365,7 +365,7 @@ export const ImageGridUploadField = ({
 
         {/* Hover overlay */}
         {!disabled && previewUrl && (
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/0 opacity-0 transition-colors group-hover:bg-slate-950/55 group-hover:opacity-100">
             <div className="flex flex-col items-center gap-1 text-white">
               <svg
                 className="w-6 h-6"
@@ -393,7 +393,7 @@ export const ImageGridUploadField = ({
               e.stopPropagation();
               onChange?.(null);
             }}
-            className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded w-5 h-5 flex items-center justify-center text-xs shadow z-10 transition-colors"
+            className="absolute right-1 top-1 z-10 flex h-5 w-5 items-center justify-center rounded-md bg-red-500 text-xs text-white shadow transition-colors hover:bg-red-600"
             tabIndex={-1}
             title="Remove image"
           >
@@ -443,9 +443,9 @@ export const NumberField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-600 focus:border-blue-600 dark:focus:border-white"} rounded`,
-    filled: `border-b-2 ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"} bg-gray-100 dark:bg-gray-800 rounded-t`,
-    standard: `border-b ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"}`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
   const normalizeNumber = (rawValue) => {
@@ -552,8 +552,8 @@ export const NumberField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
             {label}
@@ -562,12 +562,12 @@ export const NumberField = ({
         )}
 
         {/* Custom Increment/Decrement Buttons */}
-        <div className="absolute right-0 top-0 bottom-0 flex flex-col border-l border-gray-300 dark:border-gray-600">
+        <div className="absolute bottom-0 right-0 top-0 flex flex-col overflow-hidden border-l border-slate-200 dark:border-slate-700">
           <button
             type="button"
             onClick={handleIncrement}
             disabled={disabled}
-            className="flex-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800"
           >
             <svg
               className="w-3 h-3 text-gray-600 dark:text-gray-400"
@@ -583,12 +583,12 @@ export const NumberField = ({
               />
             </svg>
           </button>
-          <div className="h-px bg-gray-300 dark:bg-gray-600" />
+          <div className="h-px bg-slate-200 dark:bg-slate-700" />
           <button
             type="button"
             onClick={handleDecrement}
             disabled={disabled}
-            className="flex-1 px-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800"
           >
             <svg
               className="w-3 h-3 text-gray-600 dark:text-gray-400"
@@ -621,9 +621,9 @@ export const NumberField = ({
           className={`
             w-full pr-10 pl-3 text-sm
             ${label ? "py-4" : "py-3"}
-            bg-transparent
-            text-gray-900 dark:text-white
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            bg-white dark:bg-[#111318]
+            text-slate-950 dark:text-white
+            placeholder:text-slate-400 dark:placeholder:text-slate-500
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -672,11 +672,12 @@ export const SelectField = ({
     width: 0,
   });
   const selectButtonRef = useRef(null);
+  const selectSearchRef = useRef(null);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-600 dark:border-white" : "border-gray-300 dark:border-gray-600"} rounded`,
-    filled: `border-b-2 ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600"} bg-gray-100 dark:bg-gray-800 rounded-t`,
-    standard: `border-b ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600"}`,
+    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-blue-400" : "border-slate-300 dark:border-slate-700"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-blue-400" : "border-slate-200 dark:border-slate-700"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    standard: `border-b ${error ? "border-b-red-500" : isOpen ? "border-b-blue-500" : "border-b-slate-300 dark:border-b-slate-700"}`,
   };
 
   const optionImageSizes = {
@@ -756,6 +757,9 @@ export const SelectField = ({
         ? valueArray.filter((v) => v !== optionValue)
         : [...valueArray, optionValue];
       onChange({ target: { value: newValue } });
+      if (searchable) {
+        requestAnimationFrame(() => selectSearchRef.current?.focus());
+      }
     } else {
       // Single selection
       onChange({ target: { value: optionValue } });
@@ -790,6 +794,11 @@ export const SelectField = ({
     setIsOpen(!isOpen);
   };
 
+  useEffect(() => {
+    if (!isOpen || !searchable) return;
+    requestAnimationFrame(() => selectSearchRef.current?.focus());
+  }, [isOpen, searchable]);
+
   // Update position on scroll/resize when open
   useEffect(() => {
     if (isOpen) {
@@ -815,8 +824,8 @@ export const SelectField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${hasValue || isOpen ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isOpen ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${hasValue || isOpen ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isOpen ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
             {label}
@@ -835,7 +844,7 @@ export const SelectField = ({
           className={`
             w-full px-3 text-sm text-left flex items-center justify-between gap-2
             ${hasOptionImages ? `${selectImageHeightClass} py-2` : label ? "min-h-14 py-2" : "py-3"}
-            bg-transparent
+            bg-white dark:bg-[#111318]
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -847,7 +856,7 @@ export const SelectField = ({
               selectedOptions.map((opt) => (
                 <div
                   key={opt.value}
-                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded text-xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {renderOptionImage(opt, "w-5 h-5")}
@@ -855,7 +864,7 @@ export const SelectField = ({
                   <button
                     type="button"
                     onClick={(e) => handleRemoveChip(opt.value, e)}
-                    className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors"
+                    className="rounded-full p-0.5 transition-colors hover:bg-blue-100 dark:hover:bg-blue-500/20"
                   >
                     <svg
                       className="w-3 h-3"
@@ -873,7 +882,7 @@ export const SelectField = ({
               ))
             ) : (
               <span
-                className={`inline-flex items-center gap-2 min-w-0 ${hasValue ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
+                className={`inline-flex min-w-0 items-center gap-2 ${hasValue ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-slate-500"}`}
               >
                 {!multiple && selectedOption ? (
                   <>
@@ -887,7 +896,7 @@ export const SelectField = ({
             )}
           </div>
           <svg
-            className={`w-5 h-5 shrink-0 transition-transform duration-200 text-gray-600 dark:text-gray-400 ${isOpen ? "rotate-180" : ""}`}
+            className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 dark:text-slate-400 ${isOpen ? "rotate-180" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -917,7 +926,7 @@ export const SelectField = ({
 
               {/* Options List */}
               <div
-                className="fixed bg-white dark:bg-[#212125] border border-gray-300 dark:border-gray-600 rounded shadow-lg z-9999"
+                className="fixed z-9999 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40"
                 style={{
                   left: `${dropdownPosition.left}px`,
                   top: `${dropdownPosition.top}px`,
@@ -928,7 +937,7 @@ export const SelectField = ({
               >
                 {/* Search Input (only if searchable) */}
                 {searchable && (
-                  <div className="flex items-center gap-2 sticky top-0 p-2 bg-white dark:bg-[#212125] border-b border-gray-200 dark:border-gray-700">
+                  <div className="sticky top-0 flex items-center gap-2 border-b border-slate-100 bg-white p-2 dark:border-slate-800 dark:bg-[#171a21]">
                     {/* Expands */}
                     <div className="relative flex-1 min-w-0">
                       <svg
@@ -946,11 +955,12 @@ export const SelectField = ({
                       </svg>
 
                       <input
+                        ref={selectSearchRef}
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search..."
-                        className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 dark:bg-[#18181B] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded outline-none focus:border-blue-600 dark:focus:border-white transition-colors"
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
@@ -990,11 +1000,11 @@ export const SelectField = ({
                         key={option.value}
                         onClick={() => handleSelect(option.value)}
                         className={`
-                        px-4 ${getOptionImage(option) ? optionRowPaddingClass : "py-3"} text-sm cursor-pointer transition-colors duration-150 flex items-center gap-3
+                        flex cursor-pointer items-center gap-3 px-4 ${getOptionImage(option) ? optionRowPaddingClass : "py-3"} text-sm transition-colors duration-150
                         ${
                           isSelected(option.value)
-                            ? "bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-white"
-                            : "text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                            ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100"
+                            : "text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800"
                         }
                       `}
                       >
@@ -1004,8 +1014,8 @@ export const SelectField = ({
                             className={`w-4 h-4 border-2 rounded flex items-center justify-center flex-shrink-0 transition-colors
                           ${
                             isSelected(option.value)
-                              ? "bg-blue-600 dark:bg-white border-blue-600 dark:border-white"
-                              : "border-gray-300 dark:border-gray-600"
+                              ? "bg-blue-600 border-blue-600 dark:bg-blue-400 dark:border-blue-400"
+                              : "border-slate-300 dark:border-slate-600"
                           }`}
                           >
                             {isSelected(option.value) && (
@@ -1082,20 +1092,20 @@ export const CheckboxField = ({
           <div
             onClick={handleClick}
             className={`
-              w-5 h-5 border-2 rounded flex items-center justify-center transition-all duration-200
+              flex h-5 w-5 items-center justify-center rounded-md border-2 shadow-sm transition-all duration-200
               ${
                 checked
-                  ? "bg-blue-600 dark:bg-white border-blue-600 dark:border-white"
+                  ? "border-blue-600 bg-blue-600 dark:border-blue-400 dark:bg-blue-400"
                   : error
                     ? "border-red-500"
-                    : "border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-white"
+                    : "border-slate-300 bg-white hover:border-blue-500 dark:border-slate-600 dark:bg-[#111318] dark:hover:border-blue-400"
               }
               ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}
           >
             {checked && (
               <svg
-                className="w-3.5 h-3.5 text-white dark:text-gray-900"
+                className="h-3.5 w-3.5 text-white"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -1113,7 +1123,7 @@ export const CheckboxField = ({
             onClick={handleClick}
             className={`
               ml-3 text-sm select-none
-              ${error ? "text-red-500" : "text-gray-900 dark:text-white"}
+              ${error ? "text-red-500" : "text-slate-900 dark:text-white"}
               ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}
           >
@@ -1192,19 +1202,19 @@ export const RadioField = ({
                         }
                   }
                   className={`
-                    w-5 h-5 border-2 rounded-full flex items-center justify-center transition-all duration-200
+                    flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all duration-200 dark:bg-[#111318]
                     ${
                       isSelected
-                        ? "border-blue-600 dark:border-white"
+                        ? "border-blue-600 dark:border-blue-400"
                         : error
                           ? "border-red-500"
-                          : "border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-white"
+                          : "border-slate-300 hover:border-blue-500 dark:border-slate-600 dark:hover:border-blue-400"
                     }
                     ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                   `}
                 >
                   {isSelected && (
-                    <div className="w-2.5 h-2.5 bg-blue-600 dark:bg-white rounded-full"></div>
+                    <div className="h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></div>
                   )}
                 </div>
               </div>
@@ -1220,7 +1230,7 @@ export const RadioField = ({
                   }
                   className={`
                     ml-3 text-sm select-none
-                    ${error ? "text-red-500" : "text-gray-900 dark:text-white"}
+                    ${error ? "text-red-500" : "text-slate-900 dark:text-white"}
                     ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                   `}
                 >
@@ -1271,43 +1281,47 @@ export const Button = ({
 
   const variantStyles = {
     primary: `
-      bg-blue-600 dark:bg-white 
-      text-white dark:text-gray-900 
-      border-2 border-blue-600 dark:border-white
-      hover:bg-blue-700 dark:hover:bg-gray-100
-      hover:border-blue-700 dark:hover:border-gray-100
-      active:bg-blue-800 dark:active:bg-gray-200
-      disabled:bg-blue-300 dark:disabled:bg-gray-400
-      disabled:border-blue-300 dark:disabled:border-gray-400
-      disabled:text-white dark:disabled:text-gray-600
+      bg-blue-600 dark:bg-blue-500
+      text-white dark:text-white
+      border border-blue-600 dark:border-blue-400
+      shadow-sm shadow-blue-600/20
+      hover:bg-blue-700 dark:hover:bg-blue-400
+      hover:border-blue-700 dark:hover:border-blue-300
+      hover:shadow-md hover:shadow-blue-600/20
+      active:bg-blue-800 dark:active:bg-blue-500
+      disabled:bg-blue-300 dark:disabled:bg-blue-900/60
+      disabled:border-blue-300 dark:disabled:border-blue-900/60
+      disabled:text-white dark:disabled:text-blue-200
     `,
     secondary: `
-      bg-red-600 dark:bg-red-700
-      text-white dark:text-white
-      border-2 border-red-600 dark:border-red-700
-      hover:bg-red-700 dark:hover:bg-red-800
-      hover:border-red-700 dark:hover:border-red-800
-      active:bg-red-800 dark:active:bg-red-900
-      disabled:bg-red-300 dark:disabled:bg-red-900/50
-      disabled:border-red-300 dark:disabled:border-red-900/50
-      disabled:text-red-100 dark:disabled:text-red-300
+      bg-white dark:bg-slate-800
+      text-slate-700 dark:text-slate-100
+      border border-slate-200 dark:border-slate-700
+      shadow-sm
+      hover:bg-slate-50 dark:hover:bg-slate-700
+      hover:border-slate-300 dark:hover:border-slate-600
+      active:bg-slate-100 dark:active:bg-slate-800
+      disabled:bg-slate-100 dark:disabled:bg-slate-900
+      disabled:text-slate-400 dark:disabled:text-slate-500
     `,
     outlined: `
-      bg-transparent
-      text-blue-600 dark:text-white
-      border-2 border-blue-600 dark:border-white
-      hover:bg-blue-50 dark:hover:bg-gray-800
-      active:bg-blue-100 dark:active:bg-gray-700
-      disabled:border-gray-300 dark:disabled:border-gray-600
-      disabled:text-gray-400 dark:disabled:text-gray-500
+      bg-white/70 dark:bg-transparent
+      text-blue-700 dark:text-blue-300
+      border border-blue-200 dark:border-blue-400/30
+      shadow-sm
+      hover:bg-blue-50 dark:hover:bg-blue-500/10
+      hover:border-blue-300 dark:hover:border-blue-400/50
+      active:bg-blue-100 dark:active:bg-blue-500/15
+      disabled:border-slate-300 dark:disabled:border-slate-700
+      disabled:text-slate-400 dark:disabled:text-slate-500
       disabled:bg-transparent
     `,
     ghost: `
       bg-transparent border-0
-      text-gray-500 dark:text-gray-400
+      text-slate-500 dark:text-slate-400
       hover:bg-blue-50 hover:text-blue-600
-      dark:hover:bg-blue-950/40 dark:hover:text-blue-400
-      disabled:text-gray-300 dark:disabled:text-gray-600
+      dark:hover:bg-blue-500/10 dark:hover:text-blue-300
+      disabled:text-slate-300 dark:disabled:text-slate-600
     `,
   };
 
@@ -1322,8 +1336,8 @@ export const Button = ({
         ${sizeStyles[size]}
         ${variantStyles[variant]}
         ${fullWidth ? "w-full" : ""}
-        font-medium rounded
-        transition-all duration-200
+        font-semibold rounded-lg
+        transition-all duration-200 focus:ring-4 focus:ring-blue-500/15
         disabled:cursor-not-allowed disabled:opacity-60
         flex items-center justify-center gap-2
         ${disabled ? "" : "cursor-pointer"}
@@ -1366,9 +1380,9 @@ export const TextAreaField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-600 focus:border-blue-600 dark:focus:border-white"} rounded`,
-    filled: `border-b-2 ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"} bg-gray-100 dark:bg-gray-800 rounded-t`,
-    standard: `border-b ${error ? "border-b-red-500" : "border-b-gray-300 dark:border-b-gray-600 focus:border-b-blue-600"}`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
   const resizeStyles = {
@@ -1429,7 +1443,7 @@ export const TextAreaField = ({
 
           {/* Rich Text Toolbar */}
           {!disabled && (
-            <div className="flex flex-wrap gap-1 p-2 mb-2 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-t">
+            <div className="mb-2 flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
               <button
                 type="button"
                 onMouseDown={(e) => {
@@ -1581,13 +1595,13 @@ export const TextAreaField = ({
             suppressContentEditableWarning
             className={`
               w-full px-3 py-3 text-sm
-              bg-transparent
-              text-gray-900 dark:text-white
+              bg-white dark:bg-[#111318]
+              text-slate-950 dark:text-white
               outline-none
               transition-all duration-200
               overflow-y-auto
               ${variantStyles[variant]}
-              ${disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900" : ""}
+              ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-900" : ""}
               ${resizeStyles[resize]}
             `}
             style={{ minHeight: `${rows * 1.5}rem` }}
@@ -1614,8 +1628,8 @@ export const TextAreaField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-3"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-3"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
             {label}
@@ -1637,9 +1651,9 @@ export const TextAreaField = ({
           className={`
             w-full px-3 text-sm
             ${label ? "pt-6 pb-3" : "py-3"}
-            bg-transparent
-            text-gray-900 dark:text-white
-            placeholder:text-gray-400 dark:placeholder:text-gray-500
+            bg-white dark:bg-[#111318]
+            text-slate-950 dark:text-white
+            placeholder:text-slate-400 dark:placeholder:text-slate-500
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -1719,7 +1733,7 @@ export const ToggleSwitch = ({
 
         {/* Main Label */}
         {label && !leftLabel && !rightLabel && (
-          <label className="text-sm font-medium text-gray-900 dark:text-white">
+          <label className="text-sm font-medium text-slate-900 dark:text-white">
             {label}
           </label>
         )}
@@ -1731,13 +1745,13 @@ export const ToggleSwitch = ({
             !disabled && onChange({ target: { checked: !checked } })
           }
           disabled={disabled}
-          className={`relative ${currentSize.switch} rounded-full transition-colors duration-300 ${
+          className={`relative ${currentSize.switch} rounded-full shadow-inner ring-1 ring-black/5 transition-all duration-300 dark:ring-white/10 ${
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
           style={{ backgroundColor: checked ? checkedColor : uncheckedColor }}
         >
           <div
-            className={`absolute ${currentSize.thumb} bg-white rounded-full transition-transform duration-300 flex items-center justify-center shadow-md`}
+            className={`absolute ${currentSize.thumb} flex items-center justify-center rounded-full bg-white shadow-md shadow-slate-900/20 transition-transform duration-300`}
             style={{
               transform: checked ? currentSize.translate : "translateX(0)",
             }}
@@ -1755,7 +1769,7 @@ export const ToggleSwitch = ({
         {/* Right Label */}
         {rightLabel && (
           <span
-            className={`text-sm ${checked ? "text-gray-900 dark:text-white font-medium" : "text-gray-500 dark:text-gray-400"}`}
+            className={`text-sm ${checked ? "font-medium text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}
           >
             {rightLabel}
           </span>
@@ -1764,7 +1778,7 @@ export const ToggleSwitch = ({
 
       {/* Helper Text */}
       {helperText && (
-        <span className="text-xs text-gray-500 dark:text-gray-400">
+        <span className="text-xs text-slate-500 dark:text-slate-400">
           {helperText}
         </span>
       )}
@@ -1813,6 +1827,7 @@ export const CategoryTreeField = ({
   const [summaryText, setSummaryText] = useState("");
   const containerRef = useRef(null);
   const triggerContentRef = useRef(null);
+  const categorySearchRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -1823,6 +1838,11 @@ export const CategoryTreeField = ({
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !searchable) return;
+    requestAnimationFrame(() => categorySearchRef.current?.focus());
+  }, [open, searchable]);
 
   const nodeMap = useMemo(() => {
     const m = {};
@@ -2086,6 +2106,7 @@ export const CategoryTreeField = ({
                   />
                 </svg>
                 <input
+                  ref={categorySearchRef}
                   autoFocus
                   type="text"
                   value={search}
@@ -2736,6 +2757,28 @@ const COUNTRY_CODES = [
   { code: "ZW", name: "Zimbabwe", dial: "+263" },
 ];
 
+const CountryFlag = ({ code, name, className = "" }) => {
+  if (!code) return null;
+
+  const flagCode = code.toLowerCase();
+
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-sm bg-slate-100 ring-1 ring-slate-200 dark:bg-white/10 dark:ring-white/10 ${className}`}
+      aria-hidden="true"
+      title={name}
+    >
+      <img
+        src={`https://flagcdn.com/w40/${flagCode}.png`}
+        srcSet={`https://flagcdn.com/w80/${flagCode}.png 2x`}
+        alt=""
+        loading="lazy"
+        className="h-full w-full object-cover"
+      />
+    </span>
+  );
+};
+
 export const PhoneField = ({
   label,
   value = "",
@@ -2860,8 +2903,8 @@ export const PhoneField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${isFocused || hasValue ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${isFocused || hasValue ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
             {label}
@@ -2871,13 +2914,13 @@ export const PhoneField = ({
 
         {/* Combined input row */}
         <div
-          className={`flex items-center border rounded transition-all duration-200
+          className={`flex items-center rounded-lg border bg-white shadow-sm transition-all duration-200 dark:bg-[#111318]
             ${
               error
                 ? "border-red-500"
                 : isFocused
-                  ? "border-blue-600 dark:border-white"
-                  : "border-gray-300 dark:border-gray-600"
+                  ? "border-blue-500 dark:border-blue-400"
+                  : "border-slate-300 dark:border-slate-700"
             }
             ${disabled ? "opacity-50" : ""}
           `}
@@ -2890,22 +2933,19 @@ export const PhoneField = ({
             onClick={openDrop}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex items-center gap-1.5 px-2.5 border-r border-gray-300 dark:border-gray-600 flex-shrink-0 h-full
+            className={`flex h-full flex-shrink-0 items-center gap-1.5 border-r border-slate-200 px-2.5 dark:border-slate-700
               ${label ? "py-4" : "py-3"}
-              bg-transparent text-sm text-gray-900 dark:text-white
-              ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"}
-              transition-colors rounded-l
+              bg-transparent text-sm text-slate-950 dark:text-white
+              ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"}
+              transition-colors rounded-l-lg
             `}
           >
-            {/* Flag emoji derived from country code */}
             {selectedCountry && (
-              <span className="text-base leading-none">
-                {selectedCountry.code
-                  .toUpperCase()
-                  .replace(/./g, (c) =>
-                    String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)),
-                  )}
-              </span>
+              <CountryFlag
+                code={selectedCountry.code}
+                name={selectedCountry.name}
+                className="h-4 w-6"
+              />
             )}
             <span className="font-medium text-xs">{dialCode}</span>
             <svg
@@ -2933,8 +2973,8 @@ export const PhoneField = ({
             required={required}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex-1 px-3 text-sm bg-transparent text-gray-900 dark:text-white
-              placeholder:text-gray-400 dark:placeholder:text-gray-500
+            className={`flex-1 bg-transparent px-3 text-sm text-slate-950 dark:text-white
+              placeholder:text-slate-400 dark:placeholder:text-slate-500
               outline-none
               ${label ? "py-4" : "py-3"}
               ${disabled ? "cursor-not-allowed" : ""}
@@ -2956,7 +2996,7 @@ export const PhoneField = ({
             />
             <div
               ref={dropdownRef}
-              className="fixed z-[9999] bg-white dark:bg-[#212125] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg overflow-hidden"
+              className="fixed z-[9999] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40"
               style={{
                 top: dropPos.top,
                 left: dropPos.left,
@@ -2964,7 +3004,7 @@ export const PhoneField = ({
               }}
             >
               {/* Search */}
-              <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+              <div className="border-b border-slate-100 p-2 dark:border-slate-800">
                 <div className="relative">
                   <svg
                     className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
@@ -2985,7 +3025,7 @@ export const PhoneField = ({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search country or code…"
-                    className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-[#18181B] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 rounded outline-none focus:border-blue-500"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
@@ -3005,19 +3045,11 @@ export const PhoneField = ({
                       className={`flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer transition-colors
                     ${
                       c.dial === dialCode
-                        ? "bg-blue-50 dark:bg-gray-700 text-blue-600 dark:text-white"
-                        : "text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100"
+                        : "text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
                     }`}
                     >
-                      <span className="text-base w-6 text-center">
-                        {c.code
-                          .toUpperCase()
-                          .replace(/./g, (ch) =>
-                            String.fromCodePoint(
-                              0x1f1e6 - 65 + ch.charCodeAt(0),
-                            ),
-                          )}
-                      </span>
+                      <CountryFlag code={c.code} name={c.name} className="h-4 w-6" />
                       <span className="flex-1 truncate">{c.name}</span>
                       <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
                         {c.dial}

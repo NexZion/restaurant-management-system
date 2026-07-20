@@ -7,6 +7,8 @@ import { SectionDivider, VerticalTabs } from "../components/SectionDivider"
 import { Stepper } from "../components/Stepper"
 import { AddItem } from "../components/AddItem"
 import { MenuItemCardList } from "../components/MenuItemCardList"
+import { ProfileView } from "../components/ProfileView"
+import { Chip } from "../components/Chip"
 
 const demoMenuItems = [
   {
@@ -101,6 +103,7 @@ export const Components = () => {
   const [demoPhone, setDemoPhone] = useState('')
   const [demoPhoneRequired, setDemoPhoneRequired] = useState('')
   const [demoPhoneError, setDemoPhoneError] = useState('')
+  const [clearableChip, setClearableChip] = useState('Pending')
 
   const demoCategoryItems = [
     { id: 1, name: 'Electronics', parent_id: null },
@@ -922,7 +925,7 @@ export const Components = () => {
 
       {/* SectionDivider Horizontal Tabs */}
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Horizontal Tabs (SectionDivider)</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6 border border-gray-600" style={{ minHeight: '300px' }}>
+      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6" style={{ minHeight: '300px' }}>
         <SectionDivider
           tabs={[
             {
@@ -1146,6 +1149,70 @@ export const Components = () => {
             <code className="text-xs text-green-600 dark:text-green-400">{demoPhone}</code>
           </div>
         )}
+      </div>
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Status Chip</h1>
+      <div className="flex max-w-2xl flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-[#18181B]">
+        <div className="flex flex-wrap gap-2">
+          <Chip tone="emerald">Active</Chip>
+          <Chip tone="blue">Serving</Chip>
+          <Chip tone="amber">Pending</Chip>
+          <Chip tone="red">Blocked</Chip>
+          <Chip tone="violet">Reserved</Chip>
+          <Chip tone="slate">Inactive</Chip>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Chip status="completed" size="small" />
+          <Chip status="cooking" size="small" />
+          <Chip status="delivery" size="small" />
+          {clearableChip && (
+            <Chip status={clearableChip} onClear={() => setClearableChip('')} />
+          )}
+          {!clearableChip && (
+            <Button size="small" variant="outlined" onClick={() => setClearableChip('Pending')}>
+              Reset Chip
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Profile View</h1>
+      <div className="max-w-2xl">
+        <ProfileView
+          title="Ariana Fernando"
+          subtitle="@ariana.manager"
+          badges={[
+            { value: "active" },
+            { label: "Level", value: "Manager", tone: "default" },
+          ]}
+          highlights={[
+            { label: "Email", value: "ariana@restaurant.test" },
+            { label: "Phone", value: "+94 771234567" },
+            { label: "Branch", value: "Colombo Central" },
+          ]}
+          sections={[
+            {
+              title: "Work Details",
+              items: [
+                { label: "Role", value: "Restaurant Manager" },
+                { label: "Branch", value: "Colombo Central" },
+                { label: "Access Level", value: "Admin" },
+                { label: "Status", value: "Active" },
+              ],
+            },
+            {
+              title: "Personal Details",
+              items: [
+                { label: "Full Name", value: "Ariana Fernando" },
+                { label: "Username", value: "ariana.manager" },
+                { label: "Email", value: "ariana@restaurant.test" },
+                { label: "Phone", value: "+94 771234567" },
+                { label: "Whatsapp", value: "+94 771234567" },
+                { label: "Address", value: "No. 18, Park Street, Colombo", wide: true },
+              ],
+            },
+          ]}
+        />
       </div>
 
     </>
