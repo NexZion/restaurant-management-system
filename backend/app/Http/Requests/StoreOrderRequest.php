@@ -11,12 +11,12 @@ class StoreOrderRequest extends FormRequest
         return true;
     }
 
-   
+
     public function rules(): array
 {
     return [
 
-        'branch_id' => 'required|exists:branches,id',
+        'branch_id' => 'nullable|exists:branches,id',
 
         'order_number' => 'nullable|string|max:50',
 
@@ -26,7 +26,7 @@ class StoreOrderRequest extends FormRequest
 
         'waiter_id' => 'nullable|exists:users,id',
 
-        'order_type' => 'required|in:dining,takeaway,delivery',
+        'order_type' => 'nullable|in:dining,takeaway,delivery',
 
         'status' => 'nullable|in:pending,accepted,preparing,ready,served,completed,cancelled',
 
@@ -34,21 +34,10 @@ class StoreOrderRequest extends FormRequest
 
         'notes' => 'nullable|string|max:1000',
 
-        'items' => 'nullable|array',
-        'items.*.menu_item_id' => 'required_with:items|exists:menu_items,id',
-        'items.*.quantity' => 'required_with:items|integer|min:1',
-        'items.*.unit_price' => 'required_with:items|numeric|min:0',
-        'items.*.discount' => 'nullable|numeric|min:0',
-        'items.*.total_price' => 'required_with:items|numeric|min:0',
-        'items.*.notes' => 'nullable|string|max:500',
-
-        'bill' => 'nullable|array',
-        'bill.subtotal' => 'nullable|numeric|min:0',
-        'bill.discount' => 'nullable|numeric|min:0',
-        'bill.tax' => 'nullable|numeric|min:0',
-        'bill.service_charge' => 'nullable|numeric|min:0',
-        'bill.grand_total' => 'nullable|numeric|min:0',
-        'bill.bill_status' => 'nullable|in:unpaid,paid,partial',
+        'items' => 'required|array',
+        'items.*.menu_item_id' => 'required|exists:menu_items,id',
+        'items.*.quantity' => 'required|integer|min:1',
+        'items.*.notes' => 'nullable|string|max:500'
     ];
 }
 }
