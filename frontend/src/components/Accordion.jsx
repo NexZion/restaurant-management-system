@@ -43,19 +43,22 @@ export const Accordion = ({
 
   const variantStyles = {
     outlined: {
-      container: 'border border-gray-300 dark:border-gray-600 rounded',
-      item: 'border-b border-gray-300 dark:border-gray-600 last:border-b-0',
-      header: 'hover:bg-gray-50 dark:hover:bg-[#212125]'
+      container: 'overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
+      item: 'border-b border-slate-100 last:border-b-0 dark:border-slate-800',
+      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
+      content: 'bg-white dark:bg-[#111318]'
     },
     filled: {
-      container: 'rounded',
-      item: 'mb-2 last:mb-0',
-      header: 'bg-gray-50 dark:bg-[#212125] hover:bg-gray-100 dark:hover:bg-gray-700 rounded'
+      container: '',
+      item: 'mb-2 last:mb-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
+      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
+      content: 'bg-white dark:bg-[#111318]'
     },
     standard: {
       container: '',
-      item: 'border border-gray-300 dark:border-gray-600 rounded mb-4',
-      header: 'hover:bg-gray-50 dark:hover:bg-[#212125]'
+      item: 'mb-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
+      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
+      content: 'bg-white dark:bg-[#111318]'
     }
   }
 
@@ -97,7 +100,7 @@ export const Accordion = ({
                 )}
 
                 {/* Title */}
-                <div className="flex-1 text-md font-semibold text-gray-900 dark:text-white">
+                <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-white">
                   {item.title}
                 </div>
 
@@ -116,7 +119,7 @@ export const Accordion = ({
                   ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
                 `}
               >
-                <div className="sm:px-6 sm:py-6 px-2 py-4 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-[#18181B]">
+                <div className={`${styles.content} px-3 py-4 text-sm text-slate-700 dark:text-slate-300 sm:px-6 sm:py-6`}>
                   {item.content}
                 </div>
               </div>
@@ -154,14 +157,14 @@ export const AccordionItem = ({
   const icon = isExpanded ? (openIcon || defaultOpenIcon) : (closeIcon || defaultCloseIcon)
 
   return (
-    <div className="border-b border-gray-300 dark:border-gray-600 last:border-b-0">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]">
       <button
         type='button'
         onClick={onToggle}
         disabled={disabled}
         className={`
           w-full px-4 py-3 flex items-center justify-between gap-3 text-left transition-colors
-          hover:bg-gray-50 dark:hover:bg-[#212125]
+          hover:bg-slate-50 dark:hover:bg-slate-800/60
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
       >
@@ -171,7 +174,7 @@ export const AccordionItem = ({
           </div>
         )}
 
-        <div className="flex-1 text-sm font-medium text-gray-900 dark:text-white">
+        <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-white">
           {title}
         </div>
 
@@ -188,7 +191,7 @@ export const AccordionItem = ({
           ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
         `}
       >
-        <div className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-[#18181B]">
+        <div className="bg-white px-4 py-3 text-sm text-slate-700 dark:bg-[#111318] dark:text-slate-300">
           {content}
         </div>
       </div>

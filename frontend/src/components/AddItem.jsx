@@ -117,7 +117,7 @@ export const ImageGridField = ({
         <div className="flex flex-col gap-3">
             {/* Top bar */}
             <div className="flex items-center justify-between">
-                {label && <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>}
+                {label && <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>}
                 <Button
                     type="button"
                     variant="outlined"
@@ -149,7 +149,7 @@ export const ImageGridField = ({
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center gap-3 py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
                 >
                     <svg className="w-10 h-10 text-gray-300 dark:text-gray-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -186,7 +186,7 @@ export const ImageGridField = ({
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                                className="aspect-square rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-400 dark:hover:border-blue-500 transition-colors cursor-pointer"
+                            className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-slate-700 dark:bg-slate-900/40 dark:hover:border-blue-500"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -197,7 +197,7 @@ export const ImageGridField = ({
                     </div>
 
                     {/* Footer count */}
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 mt-3">
+                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-slate-800">
                         <span className="text-xs text-gray-400 dark:text-gray-500">
                             {value.length} image{value.length !== 1 ? 's' : ''}
                         </span>
@@ -283,7 +283,7 @@ export const ImageGrid = ({
             {/* Header */}
             <div className="flex items-center justify-between">
                 {label && (
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
                 )}
                 <Button
                     type="button"
@@ -315,7 +315,7 @@ export const ImageGrid = ({
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center gap-3 py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
                 >
                     <svg className="w-10 h-10 text-gray-300 dark:text-gray-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -357,7 +357,7 @@ export const ImageGrid = ({
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="rounded border-2 border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:text-blue-400 dark:hover:border-blue-500 dark:hover:text-blue-400 transition-colors cursor-pointer bg-gray-50 dark:bg-gray-800"
+                                    className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-slate-700 dark:bg-slate-900/40 dark:hover:border-blue-500 dark:hover:text-blue-400"
                                     style={{ aspectRatio: '4/3' }}
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,7 +371,7 @@ export const ImageGrid = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="pt-2 mt-3 border-t border-gray-100 dark:border-gray-800">
+                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-slate-800">
                         <span className="text-xs text-gray-400 dark:text-gray-500">
                             {value.length} image{value.length !== 1 ? 's' : ''}
                         </span>
@@ -388,7 +388,7 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
     const [orderEditing, setOrderEditing] = useState(false)
 
     return (
-        <div className="group relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             {/* Thumbnail */}
             {url ? (
                 <img
@@ -677,7 +677,7 @@ export const AddItem = ({
 
             <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                 {label
-                    ? <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
+            ? <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
                     : <span />
                 }
                 <Button
@@ -698,7 +698,7 @@ export const AddItem = ({
             {value.length === 0 ? (
                 <div
                     onClick={addRow}
-                    className="flex flex-col items-center justify-center gap-3 py-10 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-blue-300 dark:hover:border-blue-600 transition-colors group"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
                 >
                     <div className="group-hover:scale-110 transition-transform duration-200">
                         {emptyIcon || <DefaultEmptyIcon />}
@@ -746,7 +746,7 @@ export const AddItem = ({
                         </div>
                     ))}
 
-                    <div className="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
                         <span className="text-xs text-gray-400 dark:text-gray-500">
                             {value.length} row{value.length !== 1 ? 's' : ''}
                         </span>

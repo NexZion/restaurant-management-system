@@ -204,7 +204,7 @@ export const Table = ({
         filterable ||
         customButtons.length > 0 ||
         (selectable && selectedRows.length > 0)) && (
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-800 dark:bg-[#111318]/80 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 flex-1">
             {/* Search Bar */}
             {searchable && (
@@ -227,7 +227,7 @@ export const Table = ({
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
                   placeholder="Search..."
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-[#212125] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded outline-none focus:border-blue-600 dark:focus:border-white transition-colors"
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#171a21] dark:text-white dark:focus:border-blue-400"
                 />
               </div>
             )}
@@ -237,7 +237,7 @@ export const Table = ({
               <div className="relative">
                 <button
                   onClick={() => setShowBulkMenu(!showBulkMenu)}
-                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   <svg
                     className="w-5 h-5"
@@ -253,7 +253,7 @@ export const Table = ({
                       className="fixed inset-0 z-10"
                       onClick={() => setShowBulkMenu(false)}
                     />
-                    <div className="absolute top-full right-0 mt-1 bg-white dark:bg-[#212125] border border-gray-300 dark:border-gray-600 rounded shadow-lg z-20 min-w-[150px]">
+                    <div className="absolute right-0 top-full z-20 mt-2 min-w-[150px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40">
                       <div className="py-1">
                         {bulkActions.map((action, index) => (
                           <button
@@ -264,7 +264,7 @@ export const Table = ({
                               );
                               setShowBulkMenu(false);
                             }}
-                            className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            className="w-full px-4 py-2 text-left text-sm text-slate-900 transition-colors hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800"
                           >
                             {action.label}
                           </button>
@@ -286,7 +286,7 @@ export const Table = ({
                   aria-label={sortSelectPlaceholder}
                   value={internalSortSelectValue}
                   onChange={(e) => handleSortSelectChange(e.target.value)}
-                  className="appearance-none pl-3 pr-10 py-2 text-sm bg-white dark:bg-[#212125] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded outline-none focus:border-blue-600 dark:focus:border-white transition-colors"
+                  className="appearance-none rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-3 pr-10 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#171a21] dark:text-white dark:focus:border-blue-400"
                 >
                   {sortSelectOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -317,7 +317,7 @@ export const Table = ({
 
             {/* Filter Button */}
             {filterable && (
-              <button className="px-4 py-2 text-sm text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2">
+              <button className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -340,20 +340,20 @@ export const Table = ({
 
       {/* Selected Count */}
       {selectable && selectedRows.length > 0 && (
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/10 dark:text-blue-200">
           {selectedRows.length} item(s) selected
         </div>
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto border border-gray-300 dark:border-gray-600 rounded-lg">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-white"></div>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-[#212125] border-b border-gray-300 dark:border-gray-600">
+            <thead className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-[#171a21]">
               <tr>
                 {selectable && (
                   <th className="w-12 px-4 py-3">
@@ -372,17 +372,17 @@ export const Table = ({
                           })
                         }
                         className={`
-                        w-5 h-5 border-2 rounded flex items-center justify-center transition-all duration-200 cursor-pointer
+                        flex h-5 w-5 cursor-pointer items-center justify-center rounded-md border-2 transition-all duration-200
                         ${
                           isAllSelected
-                            ? "bg-blue-600 dark:bg-white border-blue-600 dark:border-white"
-                            : "border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-white"
+                            ? "border-blue-600 bg-blue-600 dark:border-blue-400 dark:bg-blue-400"
+                            : "border-slate-300 hover:border-blue-500 dark:border-slate-600 dark:hover:border-blue-400"
                         }
                       `}
                       >
                         {isAllSelected && (
                           <svg
-                            className="w-3.5 h-3.5 text-white dark:text-gray-900"
+                            className="h-3.5 w-3.5 text-white"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                           >
@@ -403,7 +403,7 @@ export const Table = ({
                     {columns.map((col) => (
                       <th
                         key={col.key}
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider"
+                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300"
                       >
                         <div className="flex items-center gap-2">
                           <span>{col.label}</span>
@@ -435,7 +435,7 @@ export const Table = ({
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-[#18181B] divide-y divide-gray-200 dark:divide-gray-600">
+            <tbody className="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-[#111318]">
               {loading ? (
                 Array.from({ length: rowsPerPage }).map((_, idx) => (
                   <tr key={idx}>
@@ -480,7 +480,7 @@ export const Table = ({
                     <>
                       <tr
                         key={actualIndex}
-                        className={`${isSelected ? "bg-blue-50 dark:bg-blue-900/20" : "hover:bg-gray-50 dark:hover:bg-[#212125]"} transition-colors`}
+                        className={`${isSelected ? "bg-blue-50 dark:bg-blue-500/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/60"} transition-colors`}
                       >
                         {selectable && (
                           <td className="px-4 py-3">
@@ -499,11 +499,11 @@ export const Table = ({
                                   handleRowSelect(actualIndex, row)
                                 }
                                 className={`
-                                w-5 h-5 border-2 rounded flex items-center justify-center transition-all duration-200 cursor-pointer
+                                flex h-5 w-5 cursor-pointer items-center justify-center rounded-md border-2 transition-all duration-200
                                 ${
                                   isSelected
-                                    ? "bg-blue-600 dark:bg-white border-blue-600 dark:border-white"
-                                    : "border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-white"
+                                    ? "border-blue-600 bg-blue-600 dark:border-blue-400 dark:bg-blue-400"
+                                    : "border-slate-300 hover:border-blue-500 dark:border-slate-600 dark:hover:border-blue-400"
                                 }
                               `}
                               >
@@ -531,7 +531,7 @@ export const Table = ({
                                 handleRowExpand(actualIndex)
                                 onRowExpandClick?.(row, actualIndex)
                               }}
-                              className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+                            className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                             >
                               <svg
                                 className={`w-5 h-5 transition-transform ${isExpanded ? "rotate-90" : ""}`}
@@ -550,7 +550,7 @@ export const Table = ({
                         {columns.map((col) => (
                           <td
                             key={col.key}
-                            className="px-4 py-3 text-sm text-gray-900 dark:text-white"
+                            className="px-4 py-3 text-sm text-slate-900 dark:text-white"
                           >
                             {row[col.key]}
                           </td>
@@ -575,7 +575,7 @@ export const Table = ({
                                   onClick={() =>
                                     action.onClick(row, actualIndex)
                                   }
-                                  className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
                                   title={action.label}
                                 >
                                   {action.icon}
@@ -611,7 +611,7 @@ export const Table = ({
 
       {/* Pagination */}
       {pagination && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white/80 p-3 shadow-sm dark:border-slate-800 dark:bg-[#111318]/80 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-700 dark:text-gray-300">
               Rows per page:
@@ -622,7 +622,7 @@ export const Table = ({
                 onChange={(e) =>
                   handleRowsPerPageChange(Number(e.target.value))
                 }
-                className="px-3 pr-8 py-1 text-sm bg-white dark:bg-[#212125] text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded outline-none focus:border-blue-600 dark:focus:border-white transition-colors appearance-none cursor-pointer"
+                className="cursor-pointer appearance-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 pr-8 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#171a21] dark:text-white dark:focus:border-blue-400"
               >
                 {rowsPerPageOptions.map((option) => (
                   <option key={option} value={option}>
@@ -655,7 +655,7 @@ export const Table = ({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -671,7 +671,7 @@ export const Table = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path
