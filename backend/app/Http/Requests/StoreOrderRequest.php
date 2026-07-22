@@ -18,6 +18,8 @@ class StoreOrderRequest extends FormRequest
 
         'branch_id' => 'nullable|exists:branches,id',
 
+        'order_number' => 'nullable|string|max:50',
+
         'table_id' => 'nullable|exists:restaurant_tables,id',
 
         'customer_id' => 'nullable|exists:customers,id',
@@ -25,6 +27,8 @@ class StoreOrderRequest extends FormRequest
         'waiter_id' => 'nullable|exists:users,id',
 
         'order_type' => 'nullable|in:dining,takeaway,delivery',
+
+        'status' => 'nullable|in:pending,accepted,preparing,ready,served,completed,cancelled',
 
         'is_online' => 'nullable|boolean',
 

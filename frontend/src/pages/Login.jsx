@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   TextField,
   CheckboxField,
@@ -7,16 +7,179 @@ import {
 } from "../components/DataFields";
 import { useTheme } from "../context/ThemeContext";
 import logoImage from "../assets/logo.png";
-import CosmicBackground from "../components/CosmicBackground";
 import api from "../axiosClient";
 import { useNavigate } from "react-router-dom";
 import { isSessionValid, saveAuthSession } from "../utils/authStorage";
+import { Dialog } from "../components/Popups";
+
+const LoginInteractiveBackground = ({ isDark }) => {
+  const canvasRef = useRef(null);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    let frameId;
+    let width = 0;
+    let height = 0;
+    let time = 0;
+
+    const resize = () => {
+      const ratio = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+
+    const onPointerMove = (event) => {
+      mouseRef.current = { x: event.clientX, y: event.clientY };
+    };
+
+    const onPointerLeave = () => {
+      mouseRef.current = { x: -9999, y: -9999 };
+    };
+
+    resize();
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerleave", onPointerLeave);
+
+    const draw = () => {
+      const palette = isDark
+        ? {
+            bg: "#0b0d12",
+            line: "rgba(96, 165, 250, 0.14)",
+            lineActive: "rgba(96, 165, 250, 0.34)",
+            point: "rgba(148, 163, 184, 0.26)",
+            pointActive: "rgba(147, 197, 253, 0.85)",
+            wash: "rgba(23, 26, 33, 0.82)",
+          }
+        : {
+            bg: "#f6f7fb",
+            line: "rgba(37, 99, 235, 0.11)",
+            lineActive: "rgba(37, 99, 235, 0.24)",
+            point: "rgba(100, 116, 139, 0.22)",
+            pointActive: "rgba(37, 99, 235, 0.68)",
+            wash: "rgba(255, 255, 255, 0.62)",
+          };
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = palette.bg;
+      ctx.fillRect(0, 0, width, height);
+
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      gradient.addColorStop(0, palette.wash);
+      gradient.addColorStop(0.45, "rgba(255,255,255,0)");
+      gradient.addColorStop(1, palette.wash);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+
+      const gap = width < 640 ? 42 : 56;
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      for (let y = -gap; y <= height + gap; y += gap) {
+        ctx.beginPath();
+        for (let x = -gap; x <= width + gap; x += gap) {
+          const dx = x - mx;
+          const dy = y - my;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const pull = Math.max(0, 1 - distance / 230);
+          const wave = Math.sin(x * 0.012 + y * 0.007 + time) * 5;
+          const lift = pull * 18;
+          const px =
+            x + Math.cos(time + y * 0.01) * 3 + (dx / Math.max(distance, 1)) * lift;
+          const py = y + wave + (dy / Math.max(distance, 1)) * lift;
+
+          if (x === -gap) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        ctx.strokeStyle = palette.line;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      for (let x = -gap; x <= width + gap; x += gap) {
+        ctx.beginPath();
+        for (let y = -gap; y <= height + gap; y += gap) {
+          const dx = x - mx;
+          const dy = y - my;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const pull = Math.max(0, 1 - distance / 230);
+          const wave = Math.cos(x * 0.008 + y * 0.011 + time) * 4;
+          const lift = pull * 14;
+          const px = x + wave + (dx / Math.max(distance, 1)) * lift;
+          const py =
+            y + Math.sin(time + x * 0.01) * 2 + (dy / Math.max(distance, 1)) * lift;
+
+          if (y === -gap) {
+            ctx.moveTo(px, py);
+          } else {
+            ctx.lineTo(px, py);
+          }
+        }
+        ctx.strokeStyle = palette.line;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      for (let x = -gap; x <= width + gap; x += gap) {
+        for (let y = -gap; y <= height + gap; y += gap) {
+          const dx = x - mx;
+          const dy = y - my;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const active = Math.max(0, 1 - distance / 190);
+          const r = 1.4 + active * 2.6;
+          ctx.beginPath();
+          ctx.arc(x, y + Math.sin(time + x * 0.01) * 3, r, 0, Math.PI * 2);
+          ctx.fillStyle = active > 0 ? palette.pointActive : palette.point;
+          ctx.fill();
+        }
+      }
+
+      if (mx > -100) {
+        ctx.beginPath();
+        ctx.arc(mx, my, 118, 0, Math.PI * 2);
+        ctx.strokeStyle = palette.lineActive;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      time += 0.006;
+      frameId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerleave", onPointerLeave);
+    };
+  }, [isDark]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-0 block h-full w-full"
+    />
+  );
+};
 
 export const Login = () => {
   const navigate = useNavigate();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
   const [toggle2, setToggle2] = useState(isDarkMode);
 
@@ -34,7 +197,6 @@ export const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate login API call
     api
       .post("auth/login", { login, password, rememberMe })
       .then((response) => {
@@ -52,77 +214,83 @@ export const Login = () => {
   };
 
   return (
-    <div className="min-h-screen relative bg-white dark:bg-gray-900 flex items-center justify-center p-6">
-      <CosmicBackground isDark={isDarkMode} />
-      <div className="w-full max-w-[400px] z-20">
-        {/* Main Card */}
-        <div className="bg-white dark:bg-gray-900  rounded-xl shadow-lg shadow-gray-200 dark:shadow-gray-800 overflow-hidden">
-          <div className="px-10 pb-12 pt-10">
-            <ToggleSwitch
-              leftLabel="Light"
-              rightLabel="Dark"
-              checked={toggle2}
-              onChange={(e) => setToggle2(e.target.checked)}
-              leftIcon={
-                <svg
-                  className="w-3 h-3 text-yellow-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              }
-              rightIcon={
-                <svg
-                  className="w-3 h-3 text-gray-800"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                </svg>
-              }
-            />
-            {/* Logo */}
-            <div className="flex justify-center mt-8 mb-6">
-              <div className="flex items-center gap-2">
-                <img
-                  src={logoImage}
-                  alt="Logo"
-                  className="h-14 invert dark:invert-0"
-                />
-              </div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-100 p-6 dark:bg-[#0b0d12]">
+      <LoginInteractiveBackground isDark={isDarkMode} />
+
+      <div className="relative z-20 w-full max-w-[430px]">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white/90 shadow-2xl shadow-slate-200/70 backdrop-blur-xl dark:border-[#252a35] dark:bg-[#111318]/92 dark:shadow-black/40">
+          <div className="border-b border-slate-100 px-7 py-4 dark:border-[#252a35]">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Welcome back
+              </span>
+              <ToggleSwitch
+                checked={toggle2}
+                onChange={(e) => setToggle2(e.target.checked)}
+                size="small"
+                checkedColor="#3b82f6"
+                uncheckedColor="#94a3b8"
+                leftIcon={
+                  <svg
+                    className="h-full w-full text-slate-700"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                }
+                rightIcon={
+                  <svg
+                    className="h-full w-full text-yellow-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                }
+              />
+            </div>
+          </div>
+
+          <div className="px-7 pb-8 pt-8 sm:px-9">
+            <div className="mb-8 flex justify-center">
+              <img
+                src={logoImage}
+                alt="Logo"
+                className="h-14 invert dark:invert-0"
+              />
             </div>
 
-            {/* Header */}
-            <div className="text-center mb-8">
-              <p className="text-gray-400 text-sm">
+            <div className="mb-8 text-center">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+                Sign in
+              </h1>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
                 Please enter your details to sign in
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username */}
               <TextField
                 label="Username / Email"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
+                fullWidth
               />
 
-              {/* Password */}
               <TextField
                 label="Password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                fullWidth
               />
 
-              {/* Options */}
-              <div className="flex items-center justify-between text-sm mx-2">
+              <div className="flex items-center justify-between gap-3 text-sm">
                 <CheckboxField
                   label="Remember me"
                   checked={rememberMe}
@@ -131,25 +299,73 @@ export const Login = () => {
 
                 <a
                   href="#"
-                  className="text-blue-600 dark:text-white hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setShowForgotPassword(true);
+                  }}
+                  className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
                 >
                   Forgot password?
                 </a>
               </div>
 
-              {/* Sign In Button */}
-              <Button type="submit" fullWidth>
+              <Button type="submit" fullWidth width="100%" className="mt-1">
                 Log in
               </Button>
             </form>
           </div>
         </div>
 
-        {/* Subtle footer text */}
-        <p className="text-center text-xs text-gray-400 mt-8">
-          © 2026 NexZion. All rights reserved.
+        <p className="mt-8 text-center text-xs text-slate-500 dark:text-slate-500">
+          (c) 2026 NexZion. All rights reserved.
         </p>
       </div>
+
+      <Dialog
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        title="Forgot password?"
+        size="small"
+        primaryButtonText="Got it"
+        showSecondaryButton={false}
+        onPrimaryButtonClick={() => setShowForgotPassword(false)}
+      >
+        <div className="space-y-4">
+          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+            Please contact the company support team to reset your password or
+            recover access to your account.
+          </p>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#252a35] dark:bg-[#171a21]">
+            <p className="mb-3 text-sm font-semibold text-slate-950 dark:text-white">
+              Contact details
+            </p>
+            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500 dark:text-slate-400">Company</span>
+                <span className="text-right font-medium text-slate-900 dark:text-white">
+                  NexZion
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500 dark:text-slate-400">Email</span>
+                <a
+                  href="mailto:support@nexzion.com"
+                  className="text-right font-medium text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
+                >
+                  support@nexzion.com
+                </a>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-slate-500 dark:text-slate-400">Phone</span>
+                <span className="text-right font-medium text-slate-900 dark:text-white">
+                  Contact your system administrator
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 };

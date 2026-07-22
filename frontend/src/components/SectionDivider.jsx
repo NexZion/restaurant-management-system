@@ -6,9 +6,9 @@ export const VerticalTabs = ({ tabs, defaultTab = 0 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   return (
-    <div className='flex gap-4 h-full'>
+    <div className='flex h-full gap-4'>
       {/* Vertical Tab Buttons */}
-      <div className='flex flex-col gap-2 min-w-62.5 border-r border-gray-600 pr-4'>
+      <div className='flex min-w-62.5 flex-col gap-2 border-r border-slate-200 pr-4 dark:border-slate-800'>
         {tabs.map((tab, index) => (
           <button
             key={index}
@@ -17,8 +17,8 @@ export const VerticalTabs = ({ tabs, defaultTab = 0 }) => {
               px-4 py-3 text-left text-sm font-medium rounded-lg
               transition-all duration-200
               ${activeTab === index
-                ? 'bg-blue-600 dark:bg-[#212125] text-white shadow-md dark:shadow-none dark:border-l-4 dark:border-blue-600'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#212125] dark:hover:bg-opacity-50'
+                ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-100 dark:ring-blue-400/20'
+                : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70'
               }
               ${tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             `}
@@ -91,17 +91,17 @@ export const SectionDivider = ({
   return (
     <div className={`w-full ${className}`}>
       {/* Tab bar */}
-      <div className="flex gap-2 overflow-x-auto border-b border-gray-300 dark:border-gray-600 pb-1 sm:gap-0 sm:overflow-visible sm:pb-0">
+      <div className="flex gap-2 overflow-x-auto pb-1 sm:overflow-visible">
         {tabs.map((tab, idx) => (
           <button
             key={idx}
             type="button"
             onClick={() => setActiveTab(idx)}
-            className={`px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px
+            className={`rounded-t-lg border-b-2 px-4 py-2 text-sm font-semibold transition-all
               whitespace-nowrap shrink-0 sm:whitespace-normal sm:shrink
               ${activeTab === idx
-                ? 'border-blue-600 dark:border-white text-blue-600 dark:text-white'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}
+                ? 'border-blue-600 bg-blue-50/70 text-blue-700 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}
               ${tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               ${tabClassName}`}
             disabled={tab.disabled}
@@ -114,7 +114,7 @@ export const SectionDivider = ({
               {tab.icon && <span>{tab.icon}</span>}
               <span>{tab.label}</span>
               {tab.badge && (
-                <span className={`ml-1.5 px-2 py-0.5 text-xs rounded-full ${activeTab === idx ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}>
+                <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${activeTab === idx ? 'bg-blue-100 text-blue-700 dark:bg-blue-400/20 dark:text-blue-100' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
                   {tab.badge}
                 </span>
               )}

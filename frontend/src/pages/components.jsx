@@ -7,6 +7,8 @@ import { SectionDivider, VerticalTabs } from "../components/SectionDivider"
 import { Stepper } from "../components/Stepper"
 import { AddItem } from "../components/AddItem"
 import { MenuItemCardList } from "../components/MenuItemCardList"
+import { ProfileView } from "../components/ProfileView"
+import { Chip } from "../components/Chip"
 
 const demoMenuItems = [
   {
@@ -55,6 +57,10 @@ export const Components = () => {
   const [selectedOption2, setSelectedOption2] = useState("")
   const [selectedOption3, setSelectedOption3] = useState([])
   const [selectedOption4, setSelectedOption4] = useState([])
+  const [selectedImageOptionSmall, setSelectedImageOptionSmall] = useState("")
+  const [selectedImageOptionMedium, setSelectedImageOptionMedium] = useState("")
+  const [selectedImageOptionLarge, setSelectedImageOptionLarge] = useState("")
+  const [selectedImageOptionXLarge, setSelectedImageOptionXLarge] = useState("")
 
   const [gender, setGender] = useState('')
 
@@ -97,6 +103,7 @@ export const Components = () => {
   const [demoPhone, setDemoPhone] = useState('')
   const [demoPhoneRequired, setDemoPhoneRequired] = useState('')
   const [demoPhoneError, setDemoPhoneError] = useState('')
+  const [clearableChip, setClearableChip] = useState('Pending')
 
   const demoCategoryItems = [
     { id: 1, name: 'Electronics', parent_id: null },
@@ -134,6 +141,24 @@ export const Components = () => {
     { value: '1', label: 'Option 1' },
     { value: '2', label: 'Option 2' },
     { value: '3', label: 'Option 3' }
+  ]
+
+  const imageOptions = [
+    {
+      value: 'burger',
+      label: 'Classic Beef Burger',
+      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      value: 'pizza',
+      label: 'Margherita Pizza',
+      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+      value: 'dessert',
+      label: 'Chocolate Lava Cake',
+      image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?auto=format&fit=crop&w=120&q=80',
+    },
   ]
 
   const columns = [
@@ -230,6 +255,42 @@ export const Components = () => {
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField</h1>
       <SelectField label="Options" value={selectedOption2} options={options} searchable={true} onChange={(e) => setSelectedOption2(e.target.value)} />
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField With Images</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <SelectField
+          label="Small Images"
+          value={selectedImageOptionSmall}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="small"
+          onChange={(e) => setSelectedImageOptionSmall(e.target.value)}
+        />
+        <SelectField
+          label="Medium Images"
+          value={selectedImageOptionMedium}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="medium"
+          onChange={(e) => setSelectedImageOptionMedium(e.target.value)}
+        />
+        <SelectField
+          label="Large Images"
+          value={selectedImageOptionLarge}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="large"
+          onChange={(e) => setSelectedImageOptionLarge(e.target.value)}
+        />
+        <SelectField
+          label="Extra Large Images"
+          value={selectedImageOptionXLarge}
+          options={imageOptions}
+          searchable={true}
+          optionImageSize="xlarge"
+          onChange={(e) => setSelectedImageOptionXLarge(e.target.value)}
+        />
+      </div>
 
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Multiple SelectField</h1>
       <SelectField label="Options" value={selectedOption3} options={options} multiple={true} onChange={(e) => setSelectedOption3(e.target.value)} />
@@ -864,7 +925,7 @@ export const Components = () => {
 
       {/* SectionDivider Horizontal Tabs */}
       <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Horizontal Tabs (SectionDivider)</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6 border border-gray-600" style={{ minHeight: '300px' }}>
+      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6" style={{ minHeight: '300px' }}>
         <SectionDivider
           tabs={[
             {
@@ -1088,6 +1149,70 @@ export const Components = () => {
             <code className="text-xs text-green-600 dark:text-green-400">{demoPhone}</code>
           </div>
         )}
+      </div>
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Status Chip</h1>
+      <div className="flex max-w-2xl flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-[#18181B]">
+        <div className="flex flex-wrap gap-2">
+          <Chip tone="emerald">Active</Chip>
+          <Chip tone="blue">Serving</Chip>
+          <Chip tone="amber">Pending</Chip>
+          <Chip tone="red">Blocked</Chip>
+          <Chip tone="violet">Reserved</Chip>
+          <Chip tone="slate">Inactive</Chip>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Chip status="completed" size="small" />
+          <Chip status="cooking" size="small" />
+          <Chip status="delivery" size="small" />
+          {clearableChip && (
+            <Chip status={clearableChip} onClear={() => setClearableChip('')} />
+          )}
+          {!clearableChip && (
+            <Button size="small" variant="outlined" onClick={() => setClearableChip('Pending')}>
+              Reset Chip
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Profile View</h1>
+      <div className="max-w-2xl">
+        <ProfileView
+          title="Ariana Fernando"
+          subtitle="@ariana.manager"
+          badges={[
+            { value: "active" },
+            { label: "Level", value: "Manager", tone: "default" },
+          ]}
+          highlights={[
+            { label: "Email", value: "ariana@restaurant.test" },
+            { label: "Phone", value: "+94 771234567" },
+            { label: "Branch", value: "Colombo Central" },
+          ]}
+          sections={[
+            {
+              title: "Work Details",
+              items: [
+                { label: "Role", value: "Restaurant Manager" },
+                { label: "Branch", value: "Colombo Central" },
+                { label: "Access Level", value: "Admin" },
+                { label: "Status", value: "Active" },
+              ],
+            },
+            {
+              title: "Personal Details",
+              items: [
+                { label: "Full Name", value: "Ariana Fernando" },
+                { label: "Username", value: "ariana.manager" },
+                { label: "Email", value: "ariana@restaurant.test" },
+                { label: "Phone", value: "+94 771234567" },
+                { label: "Whatsapp", value: "+94 771234567" },
+                { label: "Address", value: "No. 18, Park Street, Colombo", wide: true },
+              ],
+            },
+          ]}
+        />
       </div>
 
     </>

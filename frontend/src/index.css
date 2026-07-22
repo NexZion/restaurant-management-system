@@ -1,6 +1,43 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: light;
+  --app-bg: #f6f7fb;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f8fafc;
+  --app-border: #e2e8f0;
+  --app-text: #111827;
+  --app-muted: #64748b;
+  --app-accent: #2563eb;
+  --app-accent-strong: #1d4ed8;
+  --app-ring: rgba(37, 99, 235, 0.18);
+}
+
+.dark {
+  color-scheme: dark;
+  --app-bg: #0b0d12;
+  --app-surface: #111318;
+  --app-surface-soft: #171a21;
+  --app-border: #252a35;
+  --app-text: #f8fafc;
+  --app-muted: #94a3b8;
+  --app-accent: #60a5fa;
+  --app-accent-strong: #93c5fd;
+  --app-ring: rgba(96, 165, 250, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.18);
+  color: inherit;
+}
 
 /* Sidebar responsive slide */
 .sidebar-panel {
@@ -30,15 +67,60 @@ html, body, #root {
   min-height: -webkit-fill-available;
 }
 
+html {
+  font-size: 16.5px;
+}
+
+body {
+  font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 400;
+  background: var(--app-bg);
+  color: var(--app-text);
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@layer utilities {
+  .font-medium {
+    font-weight: 425;
+  }
+
+  .font-semibold {
+    font-weight: 450;
+  }
+
+  .font-bold {
+    font-weight: 550;
+  }
+
+  .font-extrabold {
+    font-weight: 650;
+  }
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--app-ring);
+  outline-offset: 2px;
+}
+
 /* Custom Scrollbar Styles */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9; /* Light mode: thumb track */
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 /* Dark mode scrollbar */
 .dark * {
-  scrollbar-color: #4b5563 #1f2937; /* Dark mode: thumb track */
+  scrollbar-color: #475569 transparent;
 }
 
 /* Webkit browsers (Chrome, Safari, Edge) */
@@ -48,12 +130,12 @@ html, body, #root {
 }
 
 *::-webkit-scrollbar-track {
-  background: #f1f5f9; /* Light mode track */
+  background: transparent;
   border-radius: 4px;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* Light mode thumb */
+  background: #cbd5e1;
   border-radius: 4px;
   transition: background 0.2s;
 }
@@ -64,11 +146,11 @@ html, body, #root {
 
 /* Dark mode webkit scrollbar */
 .dark *::-webkit-scrollbar-track {
-  background: #1f2937; /* Dark mode track */
+  background: transparent;
 }
 
 .dark *::-webkit-scrollbar-thumb {
-  background: #4b5563; /* Dark mode thumb */
+  background: #475569;
 }
 
 .dark *::-webkit-scrollbar-thumb:hover {

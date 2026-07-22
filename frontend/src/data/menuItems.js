@@ -33,14 +33,23 @@ export const menuItems = [
       { name: 'Returns', path: '/sales-orders/returns' },
     ]
   },
+  // { 
+  //   type: 'group', 
+  //   name: 'Orders',
+  //   icon: 'orders',
+  //   items: [
+  //     { name: 'All Orders', path: '/orders/all' },
+  //     { name: 'Pending', path: '/orders/pending' },
+  //     { name: 'Completed', path: '/orders/completed' },
+  //   ]
+  // },
   { 
     type: 'group', 
     name: 'Orders',
     icon: 'orders',
     items: [
-      { name: 'All Orders', path: '/orders/all' },
-      { name: 'Pending', path: '/orders/pending' },
-      { name: 'Completed', path: '/orders/completed' },
+      { name: 'Orders', path: '/Orders/Orders' },
+      { name: 'Payments', path: '/Orders/Payments' },
     ]
   },
   { type: 'item', name: 'Customers', path: '/customers', icon: 'customers' },

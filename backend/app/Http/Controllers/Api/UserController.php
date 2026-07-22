@@ -28,7 +28,7 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can view users'
@@ -58,7 +58,7 @@ class UserController extends Controller
         }
     
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can create users'
@@ -93,7 +93,7 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can view users'
@@ -129,7 +129,7 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can update users'
@@ -171,7 +171,7 @@ class UserController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level != 10) {
+        if ($user->role->access_level != 100) {
             return response()->json([
                 'success' => false,
                 'message' => 'Only admins can delete users'
