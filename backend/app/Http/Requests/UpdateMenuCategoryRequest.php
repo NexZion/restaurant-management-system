@@ -15,7 +15,6 @@ class UpdateMenuCategoryRequest extends FormRequest
     {
         return [
 
-        
             'name' => 'required|string|max:255',
 
             'description' => 'nullable|string',
@@ -24,7 +23,7 @@ class UpdateMenuCategoryRequest extends FormRequest
 
             'display_order' => 'nullable|integer|min:0',
 
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

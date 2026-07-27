@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
@@ -43,10 +43,11 @@ class StoreUserRequest extends FormRequest
             'dob' => ['nullable', 'date_format:Y-m-d'],
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:active,inactive,blocked'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
     }
 
-public function messages(): array
+    public function messages(): array
     {
         return [
             'username.unique' => 'This username is already taken',
@@ -55,16 +56,17 @@ public function messages(): array
             'branch_id.exists' => 'Selected branch does not exist',
             'pin.digits' => 'PIN must be exactly 4 digits',
             'dob.date_format' => 'Date of birth must be in YYYY-MM-DD format',
-            'status.in' => 'Status must be active, inactive or blocked'
+            'status.in' => 'Status must be active, inactive or blocked',
         ];
     }
+
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(
             response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422)
         );
     }

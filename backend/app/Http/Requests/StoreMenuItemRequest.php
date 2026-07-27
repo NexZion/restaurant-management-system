@@ -15,7 +15,6 @@ class StoreMenuItemRequest extends FormRequest
     {
         return [
 
-        
             'menu_category_id' => 'required|exists:menu_categories,id',
 
             'sku' => 'required|string|max:50|unique:menu_items,sku',
@@ -34,7 +33,7 @@ class StoreMenuItemRequest extends FormRequest
 
             'display_order' => 'nullable|integer|min:0',
 
-            'status' => 'required|in:available,unavailable,out_of_stock'
+            'status' => 'required|in:available,unavailable,out_of_stock',
         ];
     }
 }

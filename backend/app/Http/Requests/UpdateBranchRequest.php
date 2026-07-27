@@ -24,9 +24,9 @@ class UpdateBranchRequest extends FormRequest
         $branchId = $this->route('id');
 
         return [
-            'code' => 'nullable|string|max:50|unique:branches,code,' . $branchId,
+            'code' => 'nullable|string|max:50|unique:branches,code,'.$branchId,
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:branches,slug,' . $branchId,
+            'slug' => 'nullable|string|max:255|unique:branches,slug,'.$branchId,
             'address_line1' => 'required|string|max:255',
             'address_line2' => 'nullable|string|max:255',
             'city' => 'required|string|max:100',
@@ -41,7 +41,7 @@ class UpdateBranchRequest extends FormRequest
             'branch_type' => 'nullable|in:restaurant,hotel,cafe,resort',
             'has_dining' => 'nullable|boolean',
             'has_rooms' => 'nullable|boolean',
-            'has_delivery' => 'nullable|boolean'
+            'has_delivery' => 'nullable|boolean',
         ];
     }
 
@@ -60,7 +60,7 @@ class UpdateBranchRequest extends FormRequest
             'city.required' => 'City is required',
             'phone.required' => 'Phone number is required',
             'latitude.between' => 'Latitude must be between -90 and 90',
-            'longitude.between' => 'Longitude must be between -180 and 180'
+            'longitude.between' => 'Longitude must be between -180 and 180',
         ];
     }
 }

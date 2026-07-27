@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreBranchRequest;
 use App\Http\Requests\UpdateBranchRequest;
 use App\Models\Branch;
@@ -10,21 +11,21 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-public function store(StoreBranchRequest $request)
+    public function store(StoreBranchRequest $request)
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login first'
+                'message' => 'Please login first',
             ], 401);
         }
 
         if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins and managers can create branches'
+                'message' => 'Only admins and managers can create branches',
             ], 403);
         }
 
@@ -33,87 +34,102 @@ public function store(StoreBranchRequest $request)
         return response()->json([
             'success' => true,
             'message' => 'Branch created successfully',
-            'data' => $branch
+            'data' => $branch,
         ], 201);
     }
-    public function index(Request $request)
+
+    public function index(IndexFilterRequest $request)
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login first'
+                'message' => 'Please login first',
             ], 401);
         }
 
         if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins and managers can view branches'
+                'message' => 'Only admins and managers can view branches',
             ], 403);
         }
 
-        $branches = Branch::paginate(
-            $request->input('per_page', 10)
-            );
+        $branches = $this->filterAndPaginate(
+            Branch::query(),
+            $request,
+            [
+                'id', 'code', 'name', 'slug', 'address_line1', 'address_line2', 'city',
+                'state_province', 'postal_code', 'country', 'latitude', 'longitude',
+                'phone', 'email', 'whatsapp', 'branch_type', 'has_dining', 'has_rooms',
+                'has_delivery', 'opening_time', 'closing_time', 'timezone',
+                'manager_name', 'contact_person_phone', 'status', 'is_active',
+                'created_at', 'updated_at',
+            ],
+            [
+                'code', 'name', 'slug', 'address_line1', 'address_line2', 'city',
+                'state_province', 'postal_code', 'country', 'phone', 'email', 'whatsapp',
+                'manager_name', 'contact_person_phone',
+            ],
+        );
 
         return response()->json([
             'success' => true,
-            'data' => $branches
+            'data' => $branches,
         ]);
     }
 
     public function show(Request $request, $id)
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    if (!$user) {
+        if (! $user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login first',
+            ], 401);
+        }
+
+        $branch = Branch::find($id);
+
+        if (! $branch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Branch not found',
+            ], 404);
+        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'Please login first'
-        ], 401);
+            'success' => true,
+            'data' => $branch,
+        ]);
     }
-
-    $branch = Branch::find($id);
-
-    if (!$branch) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Branch not found'
-        ], 404);
-    }
-
-    return response()->json([
-        'success' => true,
-        'data' => $branch
-    ]);
-}
 
     public function update(UpdateBranchRequest $request, $id)
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login first'
+                'message' => 'Please login first',
             ], 401);
         }
 
         if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins and managers can update branches'
+                'message' => 'Only admins and managers can update branches',
             ], 403);
         }
 
         $branch = Branch::find($id);
 
-        if (!$branch) {
+        if (! $branch) {
             return response()->json([
                 'success' => false,
-                'message' => 'Branch not found'
+                'message' => 'Branch not found',
             ], 404);
         }
 
@@ -122,7 +138,7 @@ public function store(StoreBranchRequest $request)
         return response()->json([
             'success' => true,
             'message' => 'Branch updated successfully',
-            'data' => $branch
+            'data' => $branch,
         ]);
     }
 
@@ -130,26 +146,26 @@ public function store(StoreBranchRequest $request)
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login first'
+                'message' => 'Please login first',
             ], 401);
         }
 
         if ($user->role->access_level < 80) {
             return response()->json([
                 'success' => false,
-                'message' => 'Only admins and managers can delete branches'
+                'message' => 'Only admins and managers can delete branches',
             ], 403);
         }
 
         $branch = Branch::find($id);
 
-        if (!$branch) {
+        if (! $branch) {
             return response()->json([
                 'success' => false,
-                'message' => 'Branch not found'
+                'message' => 'Branch not found',
             ], 404);
         }
 
@@ -161,7 +177,7 @@ public function store(StoreBranchRequest $request)
 
         return response()->json([
             'success' => true,
-            'message' => 'Branch deleted successfully'
+            'message' => 'Branch deleted successfully',
         ]);
     }
 }

@@ -21,7 +21,7 @@ class StoreMenuItemImageRequest extends FormRequest
 
             'is_primary' => 'nullable|boolean',
 
-            'display_order' => 'nullable|integer|min:0'
+            'display_order' => 'nullable|integer|min:0',
         ];
     }
 }

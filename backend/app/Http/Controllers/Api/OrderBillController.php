@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\GenerateOrderBillRequest;
 use App\Models\Order;
 use App\Models\OrderBill;
-use Illuminate\Http\Request;
+use App\Services\DocumentSequenceService;
 
 class OrderBillController extends Controller
 {
-    public function generateBill(Request $request, Order $order)
+    public function __construct(private DocumentSequenceService $sequences) {}
+
+    public function generateBill(GenerateOrderBillRequest $request, Order $order)
     {
-        $request->validate([
-            'discount' => 'nullable|numeric|min:0'
-        ]);
+        $validated = $request->validated();
 
         if ($order->bill) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bill already generated'
+                'message' => 'Bill already generated',
             ], 409);
         }
 
@@ -29,7 +30,7 @@ class OrderBillController extends Controller
             $subtotal += $item->quantity * $item->unit_price;
         }
 
-        $discount = $request->discount ?? 0;
+        $discount = $validated['discount'] ?? 0;
 
         $tax = $subtotal * 0.15;
 
@@ -49,6 +50,8 @@ class OrderBillController extends Controller
 
             'order_id' => $order->id,
 
+            'bill_number' => $this->sequences->next($order->branch_id, 'bill', 'BILL-'),
+
             'subtotal' => $subtotal,
 
             'discount' => $discount,
@@ -57,11 +60,15 @@ class OrderBillController extends Controller
 
             'service_charge' => $serviceCharge,
 
-            'grand_total' => $grandTotal
+            'grand_total' => $grandTotal,
+
+            'balance_due' => $grandTotal,
+
+            'generated_by' => $request->user()->id,
+
+            'generated_at' => now(),
 
         ]);
-
-        
 
         return response()->json([
 
@@ -69,7 +76,7 @@ class OrderBillController extends Controller
 
             'message' => 'Bill generated successfully',
 
-            'data' => $bill
+            'data' => $bill,
 
         ]);
     }
@@ -80,7 +87,7 @@ class OrderBillController extends Controller
 
             'success' => true,
 
-            'data' => $order->bill
+            'data' => $order->bill,
 
         ]);
     }
@@ -89,17 +96,17 @@ class OrderBillController extends Controller
     {
         $bill = $order->bill;
 
-        if (!$bill) {
+        if (! $bill) {
             return response()->json([
                 'success' => false,
-                'message' => 'Bill not found.'
+                'message' => 'Bill not found.',
             ], 404);
         }
 
-        if ($bill->bill_status === 'paid') {
+        if ($bill->payments()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Paid bills cannot be deleted.'
+                'message' => 'Bills with payment records cannot be deleted; void the bill instead.',
             ], 409);
         }
 
@@ -107,7 +114,7 @@ class OrderBillController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Bill deleted successfully.'
+            'message' => 'Bill deleted successfully.',
         ]);
     }
 }

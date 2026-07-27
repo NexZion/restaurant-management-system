@@ -38,7 +38,7 @@ class StoreCustomerRequest extends FormRequest
             'id_number' => 'nullable|string|max:50',
             'id_type' => 'nullable|in:nic,passport',
 
-            'status' => 'nullable|in:active,inactive,suspended'
+            'status' => 'nullable|in:active,inactive,suspended',
         ];
     }
 
@@ -60,7 +60,7 @@ class StoreCustomerRequest extends FormRequest
 
             'id_type.in' => 'ID type must be nic or passport',
 
-            'status.in' => 'Status must be active, inactive or suspended'
+            'status.in' => 'Status must be active, inactive or suspended',
         ];
     }
 }

@@ -634,6 +634,7 @@ export const Orders = () => {
 
     const payload = {
       branch_id: branchId,
+      waiter_id: currentUser?.id ?? null,
       customer_id: formData.customerId || null,
       customer_name: formData.customerName || "",
       order_type:
@@ -1012,7 +1013,7 @@ export const Orders = () => {
               content: (
                 <div className="space-y-4">
                   {/* Row 1 */}
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-3">
                     <TextField
                       label="Order Date"
                       type="date"
@@ -1032,6 +1033,11 @@ export const Orders = () => {
                       onChange={(e) =>
                         setFormData({ ...formData, orderType: e.target.value })
                       }
+                    />
+                    <TextField
+                      label="Waiter"
+                      value={getStoredUser()?.name ?? ''}
+                      readOnly
                     />
                   </div>
 
@@ -1618,6 +1624,11 @@ export const Orders = () => {
       >
         {viewOrder && (
           <div className="space-y-6">
+            <div className="flex justify-end mb-4">
+              <Button variant="secondary" onClick={() => window.print()}>
+                Print Order
+              </Button>
+            </div>
             <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>

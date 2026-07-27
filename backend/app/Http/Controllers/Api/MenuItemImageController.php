@@ -3,17 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MenuItemImage;
+use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreMenuItemImageRequest;
 use App\Http\Requests\UpdateMenuItemImageRequest;
+use App\Models\MenuItemImage;
 
 class MenuItemImageController extends Controller
 {
-    public function index()
+    public function index(IndexFilterRequest $request)
     {
         return response()->json([
             'success' => true,
-            'data' => MenuItemImage::with('menuItem')->get()
+            'data' => $this->filterAndPaginate(
+                MenuItemImage::with('menuItem'),
+                $request,
+                [
+                    'id', 'menu_item_id', 'image_path', 'is_primary',
+                    'display_order', 'created_at', 'updated_at',
+                ],
+                ['image_path'],
+            ),
         ]);
     }
 
@@ -25,7 +34,7 @@ class MenuItemImageController extends Controller
                 'menu_item_id',
                 $request->menu_item_id
             )->update([
-                'is_primary' => false
+                'is_primary' => false,
             ]);
         }
 
@@ -34,7 +43,7 @@ class MenuItemImageController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Image created successfully',
-            'data' => $image
+            'data' => $image,
         ], 201);
     }
 
@@ -42,17 +51,17 @@ class MenuItemImageController extends Controller
     {
         $image = MenuItemImage::with('menuItem')->find($id);
 
-        if (!$image) {
+        if (! $image) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Image not found'
+                'message' => 'Image not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $image
+            'data' => $image,
         ]);
     }
 
@@ -60,11 +69,11 @@ class MenuItemImageController extends Controller
     {
         $image = MenuItemImage::find($id);
 
-        if (!$image) {
+        if (! $image) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Image not found'
+                'message' => 'Image not found',
             ], 404);
         }
 
@@ -74,7 +83,7 @@ class MenuItemImageController extends Controller
                 'menu_item_id',
                 $request->menu_item_id
             )->update([
-                'is_primary' => false
+                'is_primary' => false,
             ]);
         }
 
@@ -83,7 +92,7 @@ class MenuItemImageController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Image updated successfully',
-            'data' => $image
+            'data' => $image,
         ]);
     }
 
@@ -91,11 +100,11 @@ class MenuItemImageController extends Controller
     {
         $image = MenuItemImage::find($id);
 
-        if (!$image) {
+        if (! $image) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Image not found'
+                'message' => 'Image not found',
             ], 404);
         }
 
@@ -103,7 +112,7 @@ class MenuItemImageController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Image deleted successfully'
+            'message' => 'Image deleted successfully',
         ]);
     }
 }

@@ -23,7 +23,7 @@ class UpdateMenuRequest extends FormRequest
 
             'display_order' => 'sometimes|integer|min:0',
 
-            'status' => 'sometimes|in:active,inactive'
+            'status' => 'sometimes|in:active,inactive',
         ];
     }
 }

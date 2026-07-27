@@ -41,7 +41,7 @@ return new class extends Migration
 
             $table->string('status')->default('active');
             $table->boolean('is_active')->default(true);
-            
+
             $table->integer('failed_attempts')->default(0);
 
             $table->boolean('is_locked')->default(false);
@@ -52,7 +52,6 @@ return new class extends Migration
 
             $table->timestamps();
         });
-
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MenuItemImage extends Model
@@ -18,7 +18,7 @@ class MenuItemImage extends Model
 
         'is_primary',
 
-        'display_order'
+        'display_order',
     ];
 
     public function menuItem()

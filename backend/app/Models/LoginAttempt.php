@@ -6,9 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class LoginAttempt extends Model
 {
-       protected $fillable = [
+    protected $fillable = [
         'email',
         'status',
-        'ip_address'
+        'ip_address',
     ];
 }

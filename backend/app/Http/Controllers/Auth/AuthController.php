@@ -3,28 +3,22 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AuthLoginRequest;
+use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\PinLoginRequest;
+use App\Models\LoginAttempt;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use App\Models\LoginAttempt;
 
 class AuthController extends Controller
 {
-
     /**
      * User Login
      */
-    public function login(Request $request)
+    public function login(AuthLoginRequest $request)
     {
-        // validate request
-        $request->validate([
-            'login' => 'required',
-            'password' => 'required',
-            'rememberMe' => 'sometimes|boolean'
-        ]);
-
         $rememberMe = $request->boolean('rememberMe');
         $tokenTtl = $rememberMe
             ? (int) config('jwt.remember_ttl', config('jwt.ttl', 60))
@@ -45,11 +39,11 @@ class AuthController extends Controller
         $user = User::where($field, $login)->first();
 
         // check user exists
-        if (!$user) {
+        if (! $user) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -58,19 +52,19 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Account is locked'
+                'message' => 'Account is locked',
             ], 403);
         }
 
         // login credentials
         $credentials = [
             $field => $login,
-            'password' => $request->password
+            'password' => $request->password,
         ];
 
         // attempt login
         try {
-            if (!$token = Auth::attempt($credentials)) {
+            if (! $token = Auth::attempt($credentials)) {
 
                 // increment failed attempts
                 $user->failed_attempts += 1;
@@ -85,13 +79,13 @@ class AuthController extends Controller
                 LoginAttempt::create([
                     'email' => $user->email,
                     'status' => 'failed',
-                    'ip_address' => $request->ip()
+                    'ip_address' => $request->ip(),
                 ]);
 
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid credentials',
-                    'failed_attempts' => $user->failed_attempts
+                    'failed_attempts' => $user->failed_attempts,
                 ], 401);
             }
         } finally {
@@ -105,7 +99,7 @@ class AuthController extends Controller
         LoginAttempt::create([
             'email' => $user->email,
             'status' => 'success',
-            'ip_address' => $request->ip()
+            'ip_address' => $request->ip(),
         ]);
 
         $user->load(['role', 'branch']);
@@ -114,7 +108,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Login Successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -124,14 +118,13 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged Out Successfully'
+            'message' => 'Logged Out Successfully',
         ]);
     }
 
     /**
      * Refresh JWT Token
      */
-
     public function refresh()
     {
         return response()->json([
@@ -140,61 +133,55 @@ class AuthController extends Controller
 
             'message' => 'Token refreshed successfully',
 
-            'token' => Auth::refresh()
+            'token' => Auth::refresh(),
 
         ]);
     }
+
     /**
      * Get Logged User
      */
     public function me()
     {
         /**
-         * @var \App\Models\User|null $user
+         * @var User|null $user
          */
-
         $user = Auth::guard('api')->user();
         if ($user) {
-           $user?->load(['role', 'branch']);
+            $user?->load(['role', 'branch']);
         }
-       
 
         return response()->json([
             'success' => true,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
     /**
      * PIN Login
      */
-    public function pinLogin(Request $request)
+    public function pinLogin(PinLoginRequest $request)
     {
-        // validate request
-        $request->validate([
-            'pin' => 'required'
-        ]);
-
         // find user by pin
         $user = User::where('pin', $request->pin)->first();
 
         // check user exists
-        if (!$user) {
+        if (! $user) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid PIN'
+                'message' => 'Invalid PIN',
             ], 401);
         }
 
         // check role
         $allowedRoles = ['waiter', 'cashier'];
 
-        if (!in_array($user->role->name, $allowedRoles)) {
+        if (! in_array($user->role->name, $allowedRoles)) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'PIN login allowed only for waiter or cashier'
+                'message' => 'PIN login allowed only for waiter or cashier',
             ], 403);
         }
 
@@ -206,33 +193,28 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'PIN Login Successful',
             'token' => $token,
-            'user' => $user
+            'user' => $user,
         ]);
     }
-    public function changePassword(Request $request)
-    {
-        // validate request
-        $request->validate([
-            'old_password' => 'required',
-            'new_password' => 'required|min:6'
-        ]);
 
+    public function changePassword(ChangePasswordRequest $request)
+    {
         // get logged user from JWT token
         $user = JWTAuth::parseToken()->authenticate();
 
         // Check if user exists
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not authenticated'
+                'message' => 'User not authenticated',
             ], 401);
         }
 
         // check old password
-        if (!Hash::check($request->old_password, $user->password)) {
+        if (! Hash::check($request->old_password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Old password incorrect'
+                'message' => 'Old password incorrect',
             ], 401);
         }
 
@@ -242,7 +224,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Password changed successfully'
+            'message' => 'Password changed successfully',
         ]);
     }
 }

@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 
 class User extends Authenticatable implements JWTSubject
 {
-    use SoftDeletes, HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
 
@@ -33,13 +32,13 @@ class User extends Authenticatable implements JWTSubject
         'status',
 
         'failed_attempts',
-        'is_locked'
+        'is_locked',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
-        'pin'
+        'pin',
     ];
 
     /**
@@ -56,6 +55,11 @@ class User extends Authenticatable implements JWTSubject
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->role?->permissions()->where('name', $permission)->exists() ?? false;
     }
 
     public function createdOrders()

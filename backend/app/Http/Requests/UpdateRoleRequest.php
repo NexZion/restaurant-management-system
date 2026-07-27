@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+
 class UpdateRoleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -15,8 +16,10 @@ class UpdateRoleRequest extends FormRequest
         $roleId = $this->route('id');
 
         return [
-            'name' => 'required|string|max:255|unique:roles,name,' . $roleId,
-            'description' => 'nullable|string|max:255'
+            'name' => 'required|string|max:255|unique:roles,name,'.$roleId,
+            'description' => 'nullable|string|max:255',
+            'permission_ids' => ['sometimes', 'array'],
+            'permission_ids.*' => ['integer', 'distinct', 'exists:permissions,id'],
         ];
     }
 
@@ -24,7 +27,7 @@ class UpdateRoleRequest extends FormRequest
     {
         return [
             'name.required' => 'Role name is required',
-            'name.unique' => 'Role already exists'
+            'name.unique' => 'Role already exists',
         ];
     }
 }

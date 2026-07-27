@@ -50,7 +50,6 @@ export const Users = () => {
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [isFormRole, setIsFormRole] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showViewUser, setShowViewUser] = useState(false);
@@ -93,15 +92,10 @@ export const Users = () => {
   useEffect(() => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
-      const formattedRoles = !isFormRole
-        ? [{ value: "0", label: "All Roles" }]
-        : "";
-      formattedRoles.push(
-        ...rolesData.map((role) => ({
+      const formattedRoles = rolesData.map((role) => ({
           value: role.id,
           label: role.name,
-        })),
-      );
+        }));
 
       console.log(formattedRoles);
       setRoles(formattedRoles);
@@ -144,7 +138,17 @@ export const Users = () => {
       const usersData = response.data.data.map((user) => ({
         id: user.id,
         fullname: user.name,
-        profileImage: user.profileImage,
+        profileImage: user.image ? (
+          <img
+            src={storageUrl(user.image)}
+            alt={user.name}
+            className="h-14 w-14 rounded-full border border-slate-200 object-cover dark:border-slate-700"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-base font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+            {user.name?.charAt(0)?.toUpperCase() || "U"}
+          </div>
+        ),
         username: user.username,
         role: user.role ? user.role.name : "N/A",
         branch: user.branch ? user.branch.name : "N/A",
@@ -186,7 +190,7 @@ export const Users = () => {
         branchOption: user.branch_id || "",
         statusOption: user.status || "Active",
         accessLevel: user.accessLevel || "5",
-        uploadedImage: user.profileImage || null,
+        uploadedImage: user.image || null,
       });
 
       setShowAddUser(true);
@@ -213,12 +217,18 @@ export const Users = () => {
   };
 
   const handleRoleChange = (value) => {
-    setFormData({ ...formData, roleOption: value });
+    const roleName =
+      roles
+        .find((role) => String(role.value) === String(value))
+        ?.label?.toLowerCase() || "";
 
-    setFormData({ ...formData, password: "", confirmPassword: "" });
-    if (!pinRoles.includes(selectedRoleName)) {
-      setFormData({ ...formData, pin: "", confirmPin: "" });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      roleOption: value,
+      password: "",
+      confirmPassword: "",
+      ...(!pinRoles.includes(roleName) ? { pin: "", confirmPin: "" } : {}),
+    }));
 
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -253,6 +263,19 @@ export const Users = () => {
     if (!formData.email.trim()) errors.email = "Email is required.";
     if (!formData.phone) errors.phone = "Phone number is required.";
     if (!formData.whatsapp) errors.whatsapp = "Whatsapp number is required.";
+    if (
+      formData.uploadedImage instanceof File &&
+      !["image/jpeg", "image/png", "image/webp"].includes(
+        formData.uploadedImage.type,
+      )
+    ) {
+      errors.image = "Profile image must be a JPG, PNG or WebP file.";
+    } else if (
+      formData.uploadedImage instanceof File &&
+      formData.uploadedImage.size > 2 * 1024 * 1024
+    ) {
+      errors.image = "Profile image must not exceed 2 MB.";
+    }
     if (!formData.roleOption) errors.role = "Role is required.";
     if (!formData.branchOption) errors.branch = "Branch is required.";
 
@@ -328,7 +351,6 @@ export const Users = () => {
   };
 
   const handleCloseAddUser = () => {
-    setIsFormRole(false);
     resetAddUserForm();
     setShowAddUser(false);
     setIsEditMode(false);
@@ -339,35 +361,62 @@ export const Users = () => {
 
     setIsSubmitting(true);
 
-    const user = {
-      name: formData.fullname,
-      username: formData.username,
-      email: formData.email,
-      phone: formData.phone,
-      whatsapp: formData.whatsapp,
-      dob: formData.dob,
-      address: formData.address,
-      role_id: formData.roleOption,
-      branch_id: formData.branchOption,
-      status: formData.statusOption,
-      accessLevel: formData.accessLevel,
-      profileImage: formData.uploadedImage,
-      authType: shouldValidatePin ? "pin" : "password",
-      password: formData.password,
-    };
+    const payload = new FormData();
+    payload.append("name", formData.fullname);
+    payload.append("username", formData.username);
+    payload.append("email", formData.email);
+    payload.append("phone", formData.phone);
+    payload.append("whatsapp", formData.whatsapp);
+    payload.append("dob", formData.dob || "");
+    payload.append("address", formData.address || "");
+    payload.append("role_id", formData.roleOption);
+    payload.append("branch_id", formData.branchOption);
+    payload.append("status", formData.statusOption);
 
-    console.log("Submitted user:", user);
-    if (isEditMode) {
-      console.log("Editing user with ID:", editingUser.id);
-      await api.put(`/users/${editingUser.id}`, user);
-    } else {
-      await api.post("/users", user);
+    if (formData.password) payload.append("password", formData.password);
+    if (formData.pin) payload.append("pin", formData.pin);
+    if (formData.uploadedImage instanceof File) {
+      payload.append("image", formData.uploadedImage);
     }
-    setIsSubmitting(false);
-    setIsEditMode(false);
-    resetAddUserForm();
-    fetchUsers();
-    setShowAddUser(false);
+
+    try {
+      const multipartConfig = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+
+      if (isEditMode) {
+        payload.append("_method", "PUT");
+        await api.post(`/users/${editingUser.id}`, payload, multipartConfig);
+      } else {
+        await api.post("/users", payload, multipartConfig);
+      }
+      setIsEditMode(false);
+      resetAddUserForm();
+      await fetchUsers();
+      setShowAddUser(false);
+    } catch (error) {
+      console.error("Failed to save user:", error);
+      const backendErrors = error.response?.data?.errors;
+
+      if (backendErrors) {
+        const fieldMap = {
+          name: "fullname",
+          role_id: "role",
+          branch_id: "branch",
+        };
+        const nextErrors = {};
+
+        Object.entries(backendErrors).forEach(([field, messages]) => {
+          nextErrors[fieldMap[field] || field] = Array.isArray(messages)
+            ? messages[0]
+            : messages;
+        });
+
+        setFieldErrors((prev) => ({ ...prev, ...nextErrors }));
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDeleteUser = async (row) => {
@@ -440,7 +489,6 @@ export const Users = () => {
         <Button
           variant="primary"
           onClick={() => {
-            setIsFormRole(true);
             setShowAddUser(true);
           }}
           startIcon={
@@ -476,14 +524,18 @@ export const Users = () => {
           onSecondaryButtonClick={handleCloseAddUser}
         >
           <ImageUploadField
-            required
             label="Profile Image"
             value={formData.uploadedImage}
-            onChange={(image) =>
-              setFormData({ ...formData, uploadedImage: image })
+            onChange={(image) => {
+              setFormData({ ...formData, uploadedImage: image });
+              setFieldError("image", "");
+            }}
+            helperText={
+              fieldErrors.image ||
+              "Upload a profile image (JPG, PNG or WebP, max 2 MB)"
             }
-            helperText="Upload a profile image (JPG, PNG)"
-            accept="image/*"
+            error={!!fieldErrors.image}
+            accept="image/jpeg,image/png,image/webp"
             variant="outlined"
             fullWidth
           />
@@ -575,6 +627,7 @@ export const Users = () => {
               label="Select Branch"
               value={formData.branchOption}
               options={branches}
+              searchable={true}
               onChange={(e) => {
                 setFormData({ ...formData, branchOption: e.target.value });
                 setFieldError("branch", "");
@@ -726,7 +779,7 @@ export const Users = () => {
                 <SelectField
                   label="Roles"
                   value={filters.role}
-                  options={roles}
+                  options={[{ value: "0", label: "All Roles" }, ...roles]}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,

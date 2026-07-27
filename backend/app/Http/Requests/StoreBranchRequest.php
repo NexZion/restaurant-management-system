@@ -39,7 +39,7 @@ class StoreBranchRequest extends FormRequest
             'branch_type' => ['nullable', 'in:restaurant,hotel,cafe,resort'],
             'has_dining' => ['nullable', 'boolean'],
             'has_rooms' => ['nullable', 'boolean'],
-            'has_delivery' => ['nullable', 'boolean']
+            'has_delivery' => ['nullable', 'boolean'],
         ];
     }
 
@@ -60,7 +60,7 @@ class StoreBranchRequest extends FormRequest
             'city.required' => 'City is required',
             'phone.required' => 'Phone number is required',
             'latitude.between' => 'Latitude must be between -90 and 90',
-            'longitude.between' => 'Longitude must be between -180 and 180'
+            'longitude.between' => 'Longitude must be between -180 and 180',
         ];
     }
 }

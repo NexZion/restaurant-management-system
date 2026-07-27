@@ -160,6 +160,10 @@ export const ImageUploadField = ({
   const [image, setImage] = useState(value || null);
   const inputRef = useRef(null);
 
+  useEffect(() => {
+    setImage(value || null);
+  }, [value]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -178,7 +182,8 @@ export const ImageUploadField = ({
     if (inputRef.current) inputRef.current.click();
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL + "/storage/";
+  const BASE_URL =
+    (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/storage/";
 
   const avatarUrl = image
     ? typeof image === "string"
