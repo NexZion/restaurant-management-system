@@ -8,6 +8,7 @@ import { storageUrl } from "../utils/storageUrl";
 import { logoutUser } from "../utils/logout";
 import { ToggleSwitch } from "./DataFields";
 import api from "../axiosClient";
+import { canAccess } from "../utils/accessControl";
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -22,6 +23,21 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     [],
   );
   const [user, setUser] = useState(storedUser);
+  const visibleMenuItems = useMemo(
+    () =>
+      menuItems
+        .map((item) =>
+          item.type === "group"
+            ? { ...item, items: item.items.filter((child) => canAccess(child.allowedLevels, user)) }
+            : item,
+        )
+        .filter((item) =>
+          item.type === "group"
+            ? item.items.length > 0
+            : canAccess(item.allowedLevels, user),
+        ),
+    [user],
+  );
   const profileName = user.name || user.username || "User";
   const profileRole = user.role?.name || "Loading role...";
   const photo = user.profileImage || user.profile_photo_path || user.image;
@@ -143,7 +159,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4 sm:gap-6 sm:py-5">
           <div className="flex flex-col gap-1">
-            {menuItems.map((item, index) =>
+            {visibleMenuItems.map((item, index) =>
               item.type === "item" ? (
                 <Link
                   key={index}

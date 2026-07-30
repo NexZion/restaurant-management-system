@@ -97,7 +97,7 @@ class RoleController extends Controller
             ], 403);
         }
 
-        $role = Role::find($id);
+        $role = Role::with('permissions')->find($id);
 
         if (! $role) {
             return response()->json([

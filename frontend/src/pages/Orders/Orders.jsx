@@ -19,6 +19,7 @@ import { Dialog } from "../../components/Popups";
 import MenuItemSearch from "../../components/MenuItemSearch";
 import api from "../../axiosClient";
 import { getStoredUser } from "../../utils/authStorage";
+import { useNavigate } from "react-router-dom";
 
 const formatText = (value) => {
   if (!value) return "N/A";
@@ -73,6 +74,7 @@ const calculateDiscountAmount = (unitPrice, discountType, discountValue) => {
 };
 
 export const Orders = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     id: "",
     date: "",
@@ -925,6 +927,11 @@ export const Orders = () => {
           ]}
           pagination={true}
           actions={[
+            {
+              icon: <span className="text-sm font-semibold text-blue-600">Open</span>,
+              label: "Open Details",
+              onClick: (row) => navigate(`/orders/${row.id}`),
+            },
             {
               icon: (
                 <svg

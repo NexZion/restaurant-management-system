@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/DataFields";
+import { Button } from "../../components/DataFields";
 
 export const NotFound = () => {
   const navigate = useNavigate();

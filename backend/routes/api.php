@@ -116,7 +116,11 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('roles', RoleController::class)->middleware('permission:roles.manage');
     Route::apiResource('users', UserController::class)->middleware('permission:users.manage');
     Route::apiResource('customers', CustomerController::class)->middleware('permission:customers.manage');
-    Route::apiResource('branches', BranchController::class)->middleware('permission:branches.manage');
+    Route::apiResource('branches', BranchController::class)
+        ->only(['index', 'show']);
+    Route::apiResource('branches', BranchController::class)
+        ->only(['store', 'update', 'destroy'])
+        ->middleware('permission:branches.manage');
     Route::apiResource('menu-categories', MenuCategoryController::class)->middleware('permission:menu.manage');
     Route::apiResource('menu-items', MenuItemController::class)->middleware('permission:menu.manage');
     Route::apiResource('menu-item-images', MenuItemImageController::class)->middleware('permission:menu.manage');

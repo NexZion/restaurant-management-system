@@ -1,18 +1,19 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 import {
   Button,
   NumberField,
   SelectField,
   TextField,
   ToggleSwitch,
-} from "../components/DataFields";
-import { MenuItemCardList } from "../components/MenuItemCardList";
-import { Dialog, Drawer } from "../components/Popups";
-import { Table } from "../components/Tables";
-import { useTheme } from "../context/ThemeContext";
-import axiosClient from "../axiosClient";
+} from "../../components/DataFields";
+import { MenuItemCardList } from "../../components/MenuItemCardList";
+import { Dialog, Drawer } from "../../components/Popups";
+import { Table } from "../../components/Tables";
+import { useTheme } from "../../context/ThemeContext";
+import axiosClient from "../../axiosClient";
+import { logoutUser } from "../../utils/logout";
 
 export const POSNewOrder = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -61,6 +62,9 @@ export const POSNewOrder = () => {
 
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const handleLogout = async () => {
+    await logoutUser({ navigate });
+  };
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [customerId, setCustomerId] = useState("walk_in");
@@ -213,6 +217,9 @@ export const POSNewOrder = () => {
               onChange={toggleTheme}
               size="small"
             />
+            <Button variant="outlined" size="small" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
         </header>
 

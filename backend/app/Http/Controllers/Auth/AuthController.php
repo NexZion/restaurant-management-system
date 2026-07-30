@@ -175,13 +175,20 @@ class AuthController extends Controller
         }
 
         // check role
-        $allowedRoles = ['waiter', 'cashier'];
+        $allowedRoles = ['waiter', 'cashier', 'kitchen'];
 
-        if (! in_array($user->role->name, $allowedRoles)) {
+        if (! in_array(strtolower($user->role->name), $allowedRoles, true)) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'PIN login allowed only for waiter or cashier',
+                'message' => 'PIN login is allowed only for waiter, cashier or kitchen users',
+            ], 403);
+        }
+
+        if ($user->is_locked || $user->status !== 'active') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This account is inactive or locked',
             ], 403);
         }
 

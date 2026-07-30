@@ -49,13 +49,6 @@ class BranchController extends Controller
             ], 401);
         }
 
-        if ($user->role->access_level < 80) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Only admins and managers can view branches',
-            ], 403);
-        }
-
         $branches = $this->filterAndPaginate(
             Branch::query(),
             $request,

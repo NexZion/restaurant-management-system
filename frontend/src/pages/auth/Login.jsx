@@ -4,13 +4,14 @@ import {
   CheckboxField,
   Button,
   ToggleSwitch,
-} from "../components/DataFields";
-import { useTheme } from "../context/ThemeContext";
-import logoImage from "../assets/logo.png";
-import api from "../axiosClient";
+} from "../../components/DataFields";
+import { useTheme } from "../../context/ThemeContext";
+import logoImage from "../../assets/logo.png";
+import api from "../../axiosClient";
 import { useNavigate } from "react-router-dom";
-import { isSessionValid, saveAuthSession } from "../utils/authStorage";
-import { Dialog } from "../components/Popups";
+import { getStoredUser, isSessionValid, saveAuthSession } from "../../utils/authStorage";
+import { defaultRouteForLevel, getAccessLevel } from "../../utils/accessControl";
+import { Dialog } from "../../components/Popups";
 
 const LoginInteractiveBackground = ({ isDark }) => {
   const canvasRef = useRef(null);
@@ -174,11 +175,15 @@ const LoginInteractiveBackground = ({ isDark }) => {
   );
 };
 
-export const Login = () => {
+export const Login = ({ initialPinMode = false }) => {
   const navigate = useNavigate();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [pinMode, setPinMode] = useState(initialPinMode);
+  const [pin, setPin] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
   const [toggle2, setToggle2] = useState(isDarkMode);
@@ -191,26 +196,34 @@ export const Login = () => {
 
   useEffect(() => {
     if (isSessionValid()) {
-      navigate("/dashboard", { replace: true });
+      navigate(defaultRouteForLevel(getAccessLevel(getStoredUser())), { replace: true });
     }
   }, [navigate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    api
-      .post("auth/login", { login, password, rememberMe })
-      .then((response) => {
-        console.log("Login successful:", response.data);
-        saveAuthSession({
-          token: response.data.token,
-          user: response.data.user,
-          rememberMe,
-        });
-        navigate("/dashboard", { replace: true });
-      })
-      .catch((error) => {
-        console.error("Login failed:", error);
+    setLoginError("");
+    setSubmitting(true);
+    try {
+      const response = await api.post(
+        pinMode ? "auth/login/pin" : "auth/login",
+        pinMode ? { pin } : { login, password, rememberMe },
+      );
+      saveAuthSession({
+        token: response.data.token,
+        user: response.data.user,
+        rememberMe: pinMode ? false : rememberMe,
       });
+      navigate(defaultRouteForLevel(getAccessLevel(response.data.user)), { replace: true });
+    } catch (error) {
+      setLoginError(
+        Object.values(error?.response?.data?.errors || {}).flat().join(" ") ||
+          error?.response?.data?.message ||
+          "Login failed. Check your credentials and API connection.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -275,22 +288,73 @@ export const Login = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <TextField
-                label="Username / Email"
-                value={login}
-                onChange={(e) => setLogin(e.target.value)}
-                fullWidth
-              />
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1 dark:bg-[#171a21]">
+                {[
+                  [false, "Password"],
+                  [true, "Staff PIN"],
+                ].map(([mode, label]) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => {
+                      setPinMode(mode);
+                      setLoginError("");
+                    }}
+                    className={`rounded-md px-3 py-2 text-sm font-semibold transition ${
+                      pinMode === mode
+                        ? "bg-white text-blue-600 shadow-sm dark:bg-[#252a35] dark:text-blue-300"
+                        : "text-slate-500 dark:text-slate-400"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-              <TextField
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                fullWidth
-              />
+              {pinMode ? (
+                <div className="space-y-4">
+                  <div className="flex justify-center gap-3 py-2" aria-label="PIN value">
+                    {[0, 1, 2, 3].map((index) => (
+                      <span key={index} className={`size-4 rounded-full border-2 ${pin.length > index ? "border-blue-600 bg-blue-600" : "border-slate-300 dark:border-slate-600"}`} />
+                    ))}
+                  </div>
+                  <div className="mx-auto grid max-w-[260px] grid-cols-3 gap-2">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
+                      <button key={number} type="button" onClick={() => setPin((current) => `${current}${number}`.slice(0, 4))} className="rounded-lg border border-slate-200 bg-white py-3 text-lg font-bold hover:border-blue-400 hover:text-blue-600 dark:border-slate-700 dark:bg-[#171a21]">{number}</button>
+                    ))}
+                    <button type="button" onClick={() => setPin("")} className="rounded-lg border border-slate-200 py-3 text-sm font-semibold text-slate-500 dark:border-slate-700">Clear</button>
+                    <button type="button" onClick={() => setPin((current) => `${current}0`.slice(0, 4))} className="rounded-lg border border-slate-200 bg-white py-3 text-lg font-bold dark:border-slate-700 dark:bg-[#171a21]">0</button>
+                    <button type="button" onClick={() => setPin((current) => current.slice(0, -1))} className="rounded-lg border border-slate-200 py-3 text-sm font-semibold text-slate-500 dark:border-slate-700">Delete</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <TextField
+                    label="Username / Email"
+                    value={login}
+                    onChange={(e) => setLogin(e.target.value)}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    fullWidth
+                  />
+                </>
+              )}
 
-              <div className="flex items-center justify-between gap-3 text-sm">
+              {loginError && (
+                <div
+                  role="alert"
+                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"
+                >
+                  {loginError}
+                </div>
+              )}
+
+              {!pinMode && <div className="flex items-center justify-between gap-3 text-sm">
                 <CheckboxField
                   label="Remember me"
                   checked={rememberMe}
@@ -307,10 +371,23 @@ export const Login = () => {
                 >
                   Forgot password?
                 </a>
-              </div>
+              </div>}
 
-              <Button type="submit" fullWidth width="100%" className="mt-1">
-                Log in
+              <Button
+                type="submit"
+                fullWidth
+                width="100%"
+                className="mt-1"
+                disabled={
+                  submitting ||
+                  (pinMode ? pin.length !== 4 : !login || !password)
+                }
+              >
+                {submitting
+                  ? "Signing in…"
+                  : pinMode
+                    ? "Sign in with PIN"
+                    : "Log in"}
               </Button>
             </form>
           </div>

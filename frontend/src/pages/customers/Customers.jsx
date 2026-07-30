@@ -11,18 +11,20 @@ import {
   ImageUploadField,
   CategoryTreeField,
   PhoneField,
-} from "../components/DataFields";
-import { Table } from "../components/Tables";
-import { Accordion } from "../components/Accordion";
-import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
-import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
-import { Stepper } from "../components/Stepper";
-import { AddItem } from "../components/AddItem";
-import { ProfileView } from "../components/ProfileView";
-import { Chip } from "../components/Chip";
-import api from "../axiosClient";
+} from "../../components/DataFields";
+import { Table } from "../../components/Tables";
+import { Accordion } from "../../components/Accordion";
+import { Alert, Dialog, Snackbar, Loading, Drawer } from "../../components/Popups";
+import { SectionDivider, VerticalTabs } from "../../components/SectionDivider";
+import { Stepper } from "../../components/Stepper";
+import { AddItem } from "../../components/AddItem";
+import { ProfileView } from "../../components/ProfileView";
+import { Chip } from "../../components/Chip";
+import api from "../../axiosClient";
+import { useNavigate } from "react-router-dom";
 
 export const Customers = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -639,6 +641,11 @@ export const Customers = () => {
           pagination={true}
           loading={isCustomersLoading}
           actions={[
+            {
+              icon: <span className="text-sm font-semibold text-blue-600">Open</span>,
+              label: "Customer Details",
+              onClick: (row) => navigate(`/customers/${row.id}`),
+            },
             {
               icon: (
                 <svg

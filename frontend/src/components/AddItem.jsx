@@ -582,7 +582,6 @@ export const AddItem = ({
                         value={cellValue}
                         options={resolvedOptions}
                         onChange={e => onCellChange(e.target.value)}
-                        placeholder={placeholder || ''}
                         disabled={!!resolvedDisabled}
                         searchable={resolvedSearchable}
                         allowAdd={resolvedAddable}

@@ -14,104 +14,38 @@ import {
   FiTruck,
   FiUsers,
 } from "react-icons/fi";
+import { useEffect, useMemo, useState } from "react";
+import api from "../../axiosClient";
 
 const stats = [
   {
     label: "Today Revenue",
-    value: "$18,420",
-    trend: "+12.4%",
-    detail: "from 286 completed orders",
+    value: "—", trend: "Loading", detail: "Live reporting data",
     icon: FiDollarSign,
     tone: "blue",
   },
   {
     label: "Open Orders",
-    value: "42",
-    trend: "18 active",
-    detail: "dine-in, delivery and pickup",
+    value: "—", trend: "Loading", detail: "Live reporting data",
     icon: FiShoppingBag,
     tone: "emerald",
   },
   {
     label: "Kitchen Queue",
-    value: "16",
-    trend: "7 urgent",
-    detail: "average prep time 14 min",
+    value: "—", trend: "Loading", detail: "Live reporting data",
     icon: FiClock,
     tone: "amber",
   },
   {
-    label: "Guest Rating",
-    value: "4.8",
-    trend: "+0.3",
-    detail: "based on today's feedback",
+    label: "Reservations",
+    value: "—", trend: "Loading", detail: "Live reporting data",
     icon: FiStar,
     tone: "violet",
   },
 ];
 
-const salesTrend = [
-  { time: "10a", value: 32 },
-  { time: "11a", value: 46 },
-  { time: "12p", value: 78 },
-  { time: "1p", value: 88 },
-  { time: "2p", value: 64 },
-  { time: "3p", value: 42 },
-  { time: "4p", value: 52 },
-  { time: "5p", value: 70 },
-  { time: "6p", value: 96 },
-  { time: "7p", value: 84 },
-];
-
-const tables = [
-  { name: "T01", guests: 4, status: "occupied", amount: "$86" },
-  { name: "T02", guests: 2, status: "reserved", amount: "7:30" },
-  { name: "T03", guests: 0, status: "available", amount: "Ready" },
-  { name: "T04", guests: 6, status: "occupied", amount: "$142" },
-  { name: "T05", guests: 0, status: "cleaning", amount: "4 min" },
-  { name: "T06", guests: 3, status: "occupied", amount: "$64" },
-  { name: "T07", guests: 0, status: "available", amount: "Ready" },
-  { name: "T08", guests: 5, status: "reserved", amount: "8:00" },
-];
-
-const kitchenQueue = [
-  { order: "#1048", item: "Smoked brisket platter", station: "Grill", eta: "6 min", status: "Plating" },
-  { order: "#1049", item: "Truffle mushroom pasta", station: "Saute", eta: "9 min", status: "Cooking" },
-  { order: "#1050", item: "Crispy chicken bao", station: "Hot line", eta: "12 min", status: "Queued" },
-  { order: "#1051", item: "Mango panna cotta", station: "Dessert", eta: "3 min", status: "Ready" },
-];
-
-const channels = [
-  { label: "Dine-in", value: 58, count: 164, color: "bg-blue-500" },
-  { label: "Delivery", value: 28, count: 79, color: "bg-emerald-500" },
-  { label: "Pickup", value: 14, count: 39, color: "bg-amber-500" },
-];
-
-const topItems = [
-  { name: "Signature ramen bowl", sold: 82, revenue: "$2,870", progress: 92 },
-  { name: "Charcoal chicken biryani", sold: 64, revenue: "$2,240", progress: 78 },
-  { name: "Classic beef burger", sold: 58, revenue: "$1,740", progress: 70 },
-  { name: "Iced passion mojito", sold: 51, revenue: "$612", progress: 62 },
-];
-
-const stockAlerts = [
-  { item: "Avocado", level: "12 portions", severity: "Low", icon: FiAlertTriangle },
-  { item: "Ribeye steak", level: "8 cuts", severity: "Critical", icon: FiAlertTriangle },
-  { item: "Sparkling water", level: "18 bottles", severity: "Low", icon: FiAlertTriangle },
-];
-
-const team = [
-  { name: "Front of house", people: 8, coverage: "92%", tone: "emerald" },
-  { name: "Kitchen crew", people: 11, coverage: "88%", tone: "blue" },
-  { name: "Delivery riders", people: 5, coverage: "76%", tone: "amber" },
-];
-
-const recentOrders = [
-  { id: "#1052", customer: "Table 04", type: "Dine-in", total: "$142.00", status: "Serving" },
-  { id: "#1051", customer: "Nadia Perera", type: "Pickup", total: "$38.50", status: "Ready" },
-  { id: "#1050", customer: "Uber Eats", type: "Delivery", total: "$67.20", status: "Cooking" },
-  { id: "#1049", customer: "Table 01", type: "Dine-in", total: "$86.40", status: "Paid" },
-];
+const salesTrend = [];
+const team = [];
 
 const toneClasses = {
   blue: "bg-blue-50 text-blue-600 ring-blue-100 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/20",
@@ -179,6 +113,70 @@ const StatusPill = ({ children }) => (
 );
 
 export const Dashboard = () => {
+  const today = new Date().toISOString().slice(0, 10);
+  const [dateRange, setDateRange] = useState({ date_from: today, date_to: today });
+  const [summary, setSummary] = useState(null);
+  const [liveTables, setLiveTables] = useState([]);
+  const [liveOrders, setLiveOrders] = useState([]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      Promise.all([
+        api.get("/dashboard/summary", { params: { date_from: dateRange.date_from, date_to: dateRange.date_to } }),
+        api.get("/restaurant-tables", { params: { per_page: 20 } }),
+        api.get("/orders", { params: { per_page: 8, sort_by: "created_at", sort_direction: "desc" } }),
+      ]).then(([summaryResponse, tableResponse, orderResponse]) => {
+        setSummary(summaryResponse.data?.data || null);
+        const tableRows = tableResponse.data?.data?.data || tableResponse.data?.data || [];
+        setLiveTables(tableRows.map((table) => ({
+          name: table.table_number,
+          guests: table.current_session?.guest_count || 0,
+          status: table.status,
+          amount: table.status === "available" ? "Ready" : table.section || "In service",
+        })));
+        const orderRows = orderResponse.data?.data?.data || orderResponse.data?.data || [];
+        setLiveOrders(orderRows.map((order) => ({
+          id: order.order_number || `#${order.id}`,
+          customer: order.customer?.first_name || order.table?.table_number || "Walk-in",
+          type: (order.order_type || "dining").replaceAll("_", " "),
+          total: new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(order.bill?.grand_total || 0),
+          status: order.status ? order.status[0].toUpperCase() + order.status.slice(1) : "Pending",
+        })));
+      }).catch(() => {
+        // The designed fallback content remains visible if reporting is unavailable.
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [dateRange.date_from, dateRange.date_to]);
+
+  const displayedStats = useMemo(() => summary ? [
+    { ...stats[0], value: new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(summary.revenue), trend: `${summary.orders?.completed || 0} completed`, detail: `${summary.orders?.total || 0} total orders` },
+    { ...stats[1], value: String(summary.orders?.open || 0), trend: `${summary.orders?.cancelled || 0} cancelled`, detail: "current reporting period" },
+    { ...stats[2], value: String(summary.kitchen_queue || 0), trend: `${summary.tables?.occupied || 0} tables occupied`, detail: "active kitchen tickets" },
+    { ...stats[3], label: "Reservations", value: String(summary.reservations_today || 0), trend: `${summary.tables?.available || 0} tables free`, detail: "today's bookings", icon: FiCalendar },
+  ] : stats.map((stat) => ({ ...stat, value: "—", trend: "Loading", detail: "Waiting for live data" })), [summary]);
+  const displayedTables = liveTables;
+  const displayedOrders = liveOrders;
+  const displayedTopItems = summary?.top_items?.length ? summary.top_items.map((item, index) => ({
+    name: item.menu_item_name_snapshot || `Menu item #${item.menu_item_id}`,
+    sold: Number(item.quantity),
+    revenue: new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR" }).format(item.revenue),
+    progress: Math.max(15, 100 - index * 12),
+  })) : [];
+  const displayedStockAlerts = summary?.low_stock?.length ? summary.low_stock.map((level) => ({
+    item: level.inventory_item?.name || `Inventory item #${level.inventory_item_id}`,
+    level: `${level.quantity_on_hand} ${level.inventory_item?.unit || ""}`,
+    severity: Number(level.quantity_on_hand) <= 0 ? "Critical" : "Low",
+    icon: FiAlertTriangle,
+  })) : [];
+  const displayedChannels = summary?.orders_by_type?.map((item, index) => ({
+    label: String(item.order_type || "Other").replaceAll("_", " "),
+    value: summary.orders?.total ? Math.round((Number(item.total) / summary.orders.total) * 100) : 0,
+    count: Number(item.total),
+    color: ["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-violet-500"][index % 4],
+  })) || [];
+  const displayedKitchenQueue = [];
+
   return (
     <div className="space-y-6 text-slate-900 dark:text-slate-100">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -196,19 +194,21 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-600 dark:border-white/10 dark:bg-white/6 dark:text-slate-200 dark:hover:border-blue-400/40 dark:hover:text-blue-300">
-            <FiCalendar className="size-4" />
-            Today
-          </button>
-          <button className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400">
+          <label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-white/6">
+            <FiCalendar className="size-4 text-blue-500" />
+            <input type="date" value={dateRange.date_from} onChange={(event) => setDateRange((current) => ({ ...current, date_from: event.target.value }))} className="bg-transparent outline-none" aria-label="Report start date" />
+            <span>to</span>
+            <input type="date" value={dateRange.date_to} min={dateRange.date_from} onChange={(event) => setDateRange((current) => ({ ...current, date_to: event.target.value }))} className="bg-transparent outline-none" aria-label="Report end date" />
+          </label>
+          <div className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-blue-600/20">
             <FiCheckCircle className="size-4" />
-            Close Shift
-          </button>
+            {summary?.current_shift ? `Shift #${summary.current_shift.id} Open` : "No Open Shift"}
+          </div>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => {
+        {displayedStats.map((stat) => {
           const Icon = stat.icon;
 
           return (
@@ -262,7 +262,7 @@ export const Dashboard = () => {
         <Panel>
           <SectionHeader icon={FiGrid} title="Dining Room" action="Floor map" />
           <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4 xl:grid-cols-2">
-            {tables.map((table) => (
+            {displayedTables.map((table) => (
               <div key={table.name} className={`rounded-lg border p-3 ${tableStatusClasses[table.status]}`}>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-base font-semibold">{table.name}</span>
@@ -287,7 +287,7 @@ export const Dashboard = () => {
         <Panel className="xl:col-span-2">
           <SectionHeader icon={FiCoffee} title="Kitchen Queue" action="Open KDS" />
           <div className="divide-y divide-slate-200/80 dark:divide-white/10">
-            {kitchenQueue.map((item) => (
+            {displayedKitchenQueue.map((item) => (
               <div key={item.order} className="grid gap-3 px-5 py-4 sm:grid-cols-[90px_minmax(0,1fr)_120px_90px] sm:items-center">
                 <span className="font-semibold text-slate-950 dark:text-white">{item.order}</span>
                 <div className="min-w-0">
@@ -304,7 +304,7 @@ export const Dashboard = () => {
         <Panel>
           <SectionHeader icon={FiTruck} title="Order Channels" />
           <div className="space-y-5 p-5">
-            {channels.map((channel) => (
+            {displayedChannels.map((channel) => (
               <div key={channel.label}>
                 <div className="mb-2 flex items-center justify-between text-sm">
                   <span className="font-semibold text-slate-800 dark:text-slate-200">{channel.label}</span>
@@ -323,7 +323,7 @@ export const Dashboard = () => {
         <Panel>
           <SectionHeader icon={FiShoppingBag} title="Top Menu Items" />
           <div className="space-y-5 p-5">
-            {topItems.map((item) => (
+            {displayedTopItems.map((item) => (
               <div key={item.name}>
                 <div className="mb-2 flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -365,7 +365,7 @@ export const Dashboard = () => {
         <Panel>
           <SectionHeader icon={FiAlertTriangle} title="Stock Alerts" action="Inventory" />
           <div className="space-y-3 p-5">
-            {stockAlerts.map((alert) => {
+              {displayedStockAlerts.map((alert) => {
               const Icon = alert.icon;
 
               return (
@@ -404,7 +404,7 @@ export const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200/80 dark:divide-white/10">
-              {recentOrders.map((order) => (
+              {displayedOrders.map((order) => (
                 <tr key={order.id} className="transition hover:bg-slate-50 dark:hover:bg-white/5">
                   <td className="px-5 py-4 font-semibold text-slate-950 dark:text-white">{order.id}</td>
                   <td className="px-5 py-4 text-slate-600 dark:text-slate-300">{order.customer}</td>

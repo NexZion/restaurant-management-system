@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropUnique('orders_order_number_unique');
+        // MySQL commits DDL statements implicitly. The guards below make this
+        // migration safe to resume when a previous attempt stopped midway.
+        if (! Schema::hasColumn('orders', 'table_session_id')) {
+            Schema::table('orders', function (Blueprint $table) {
+                $table->dropUnique('orders_order_number_unique');
             $table->foreignId('table_session_id')->nullable()->after('table_id')->constrained()->nullOnDelete();
             $table->foreignId('reservation_id')->nullable()->after('table_session_id')->constrained()->nullOnDelete();
             $table->foreignId('cashier_id')->nullable()->after('waiter_id')->constrained('users')->nullOnDelete();
@@ -32,9 +35,11 @@ return new class extends Migration
             $table->unique(['branch_id', 'order_number']);
             $table->index(['branch_id', 'status', 'created_at']);
             $table->index('customer_id');
-        });
+            });
+        }
 
-        Schema::table('order_items', function (Blueprint $table) {
+        if (! Schema::hasColumn('order_items', 'parent_order_item_id')) {
+            Schema::table('order_items', function (Blueprint $table) {
             $table->foreignId('parent_order_item_id')->nullable()->after('order_id')->constrained('order_items')->nullOnDelete();
             $table->unsignedBigInteger('menu_item_variant_id')->nullable()->after('menu_item_id')->index();
             $table->string('menu_item_name_snapshot')->nullable()->after('menu_item_variant_id');
@@ -56,9 +61,11 @@ return new class extends Migration
             $table->dateTime('ready_at')->nullable();
             $table->dateTime('served_at')->nullable();
             $table->dateTime('cancelled_at')->nullable();
-        });
+            });
+        }
 
-        Schema::table('order_bills', function (Blueprint $table) {
+        if (! Schema::hasColumn('order_bills', 'bill_number')) {
+            Schema::table('order_bills', function (Blueprint $table) {
             $table->string('bill_number')->nullable()->after('order_id');
             $table->decimal('rounding_amount', 10, 2)->default(0)->after('service_charge');
             $table->decimal('paid_amount', 10, 2)->default(0)->after('grand_total');
@@ -71,10 +78,25 @@ return new class extends Migration
 
             $table->unique('order_id');
             $table->unique('bill_number');
-        });
+            });
+        }
 
-        Schema::table('payments', function (Blueprint $table) {
-            $table->dropUnique('payments_order_bill_id_unique');
+        // The original unique index is also the supporting index for the
+        // order_bill_id foreign key. Add its non-unique replacement before
+        // removing uniqueness or MySQL raises error 1553.
+        if (! Schema::hasIndex('payments', 'payments_order_bill_id_index')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->index('order_bill_id', 'payments_order_bill_id_index');
+            });
+        }
+        if (Schema::hasIndex('payments', 'payments_order_bill_id_unique')) {
+            Schema::table('payments', function (Blueprint $table) {
+                $table->dropUnique('payments_order_bill_id_unique');
+            });
+        }
+
+        if (! Schema::hasColumn('payments', 'payment_method_id')) {
+            Schema::table('payments', function (Blueprint $table) {
             $table->foreignId('payment_method_id')->nullable()->after('order_bill_id')->constrained()->nullOnDelete();
             $table->string('payment_number')->nullable()->after('payment_method_id');
             $table->decimal('change_amount', 10, 2)->default(0)->after('amount_received');
@@ -86,9 +108,9 @@ return new class extends Migration
             $table->dateTime('voided_at')->nullable()->after('voided_by');
             $table->text('void_reason')->nullable()->after('voided_at');
 
-            $table->index('order_bill_id');
             $table->unique('payment_number');
-        });
+            });
+        }
     }
 
     /**

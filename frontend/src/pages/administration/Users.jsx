@@ -11,17 +11,17 @@ import {
   ImageUploadField,
   CategoryTreeField,
   PhoneField,
-} from "../components/DataFields";
-import { Table } from "../components/Tables";
-import { Accordion } from "../components/Accordion";
-import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
-import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
-import { Stepper } from "../components/Stepper";
-import { AddItem } from "../components/AddItem";
-import { ProfileView } from "../components/ProfileView";
-import { Chip } from "../components/Chip";
-import api from "../axiosClient";
-import { storageUrl } from "../utils/storageUrl";
+} from "../../components/DataFields";
+import { Table } from "../../components/Tables";
+import { Accordion } from "../../components/Accordion";
+import { Alert, Dialog, Snackbar, Loading, Drawer } from "../../components/Popups";
+import { SectionDivider, VerticalTabs } from "../../components/SectionDivider";
+import { Stepper } from "../../components/Stepper";
+import { AddItem } from "../../components/AddItem";
+import { ProfileView } from "../../components/ProfileView";
+import { Chip } from "../../components/Chip";
+import api from "../../axiosClient";
+import { storageUrl } from "../../utils/storageUrl";
 
 export const Users = () => {
   const [formData, setFormData] = useState({

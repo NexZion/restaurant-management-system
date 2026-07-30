@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logo.png'
-import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../components/DataFields'
-import { MenuItemCardList } from '../components/MenuItemCardList'
-import { useTheme } from '../context/ThemeContext'
+import logo from '../../assets/logo.png'
+import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../../components/DataFields'
+import { MenuItemCardList } from '../../components/MenuItemCardList'
+import { useTheme } from '../../context/ThemeContext'
  
 const menuItems = [
   { id: 1, code: 'M-001', name: 'Classic Beef Burger', category: 'Burgers', description: 'Beef, cheddar and house sauce', price: 1450, available: true },

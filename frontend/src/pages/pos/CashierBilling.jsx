@@ -1,79 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logo.png'
-import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../components/DataFields'
-import { Dialog } from '../components/Popups'
-import { useTheme } from '../context/ThemeContext'
+import logo from '../../assets/logo.png'
+import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../../components/DataFields'
+import { Dialog } from '../../components/Popups'
+import { useTheme } from '../../context/ThemeContext'
+import api from '../../axiosClient'
+import { logoutUser } from '../../utils/logout'
 
-const servedOrders = [
-  {
-    id: 1,
-    orderNo: 'ORD-001',
-    customer: 'Jack Smith',
-    type: 'Dine in',
-    servedAt: '10:35 AM',
-    items: [
-      { name: 'Classic Beef Burger', quantity: 2, price: 1450 },
-      { name: 'Lemonade', quantity: 2, price: 550 },
-    ],
-  },
-  {
-    id: 2,
-    orderNo: 'ORD-002',
-    customer: 'Walk-in customer',
-    type: 'Takeaway',
-    servedAt: '10:42 AM',
-    items: [
-      { name: 'Chicken Fried Rice', quantity: 1, price: 1100 },
-      { name: 'Iced Coffee', quantity: 1, price: 650 },
-    ],
-  },
-  {
-    id: 3,
-    orderNo: 'ORD-003',
-    customer: 'Nimali Perera',
-    type: 'Dine in',
-    servedAt: '10:50 AM',
-    items: [
-      { name: 'Pepperoni Pizza', quantity: 1, price: 2200 },
-      { name: 'Mango Smoothie', quantity: 2, price: 750 },
-    ],
-  },
-  {
-    id: 4,
-    orderNo: 'ORD-004',
-    customer: 'Ahmed Khan',
-    type: 'Delivery',
-    servedAt: '11:05 AM',
-    items: [
-      { name: 'Margherita Pizza', quantity: 2, price: 1800 },
-      { name: 'Chocolate Lava Cake', quantity: 1, price: 850 },
-    ],
-  },
-  {
-    id: 5,
-    orderNo: 'ORD-005',
-    customer: 'Walk-in customer',
-    type: 'Dine in',
-    servedAt: '11:12 AM',
-    items: [
-      { name: 'Seafood Fried Rice', quantity: 3, price: 1550 },
-    ],
-  },
-  {
-    id: 6,
-    orderNo: 'ORD-006',
-    customer: 'Jack Smith',
-    type: 'Takeaway',
-    servedAt: '11:18 AM',
-    items: [
-      { name: 'Chicken Burger', quantity: 2, price: 1250 },
-      { name: 'Lemonade', quantity: 1, price: 550 },
-    ],
-  },
-]
-
-const paymentMethods = [
+const fallbackPaymentMethods = [
   { value: 'cash', label: 'Cash' },
   { value: 'card', label: 'Card' },
   { value: 'wallet', label: 'Wallet' },
@@ -117,7 +51,9 @@ export const CashierBilling = () => {
   const [search, setSearch] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [amountReceived, setAmountReceived] = useState('')
-  const [selectedOrderId, setSelectedOrderId] = useState(servedOrders[0]?.id ?? null)
+  const [servedOrders, setServedOrders] = useState([])
+  const [paymentMethods, setPaymentMethods] = useState(fallbackPaymentMethods)
+  const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [billedOrderIds, setBilledOrderIds] = useState([])
   const [billOrder, setBillOrder] = useState(null)
   const [billSettings, setBillSettings] = useState({
@@ -126,7 +62,35 @@ export const CashierBilling = () => {
     serviceChargePercent: DEFAULT_SERVICE_CHARGE_PERCENT,
   })
 
-  const payableOrders = useMemo(() => servedOrders.filter((order) => !billedOrderIds.includes(order.id)), [billedOrderIds])
+  useEffect(() => {
+    Promise.all([
+      api.get('/orders', { params: { per_page: 100, 'filters[status]': 'served' } }),
+      api.get('/payment-methods', { params: { per_page: 100, 'filters[is_active]': 1 } }),
+    ]).then(([ordersResponse, methodsResponse]) => {
+      const orderRows = ordersResponse.data?.data?.data || ordersResponse.data?.data || []
+      const mapped = orderRows.map((order) => ({
+        id: order.id,
+        billId: order.bill?.id,
+        orderNo: order.order_number || `Order #${order.id}`,
+        customer: order.customer?.name || [order.customer?.first_name, order.customer?.last_name].filter(Boolean).join(' ') || 'Walk-in customer',
+        type: (order.order_type || 'dine_in').replaceAll('_', ' '),
+        servedAt: order.served_at ? new Date(order.served_at).toLocaleTimeString() : 'Ready',
+        items: (order.items || []).map((item) => ({
+          name: item.menu_item?.name || item.item_name || `Item #${item.menu_item_id}`,
+          quantity: Number(item.quantity),
+          price: Number(item.unit_price),
+        })),
+      }))
+      setServedOrders(mapped)
+      setSelectedOrderId(mapped[0]?.id ?? null)
+      const methodRows = methodsResponse.data?.data?.data || methodsResponse.data?.data || []
+      if (methodRows.length) setPaymentMethods(methodRows.map((method) => ({ value: method.code || method.name.toLowerCase(), label: method.name })))
+    }).catch(() => {
+      setServedOrders([])
+    })
+  }, [])
+
+  const payableOrders = useMemo(() => servedOrders.filter((order) => !billedOrderIds.includes(order.id)), [billedOrderIds, servedOrders])
 
   const filteredOrders = useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -158,17 +122,36 @@ export const CashierBilling = () => {
     setBillOrder(selectedOrder)
   }
 
-  const createBill = () => {
+  const createBill = async () => {
     if (!billOrder) return
 
-    setBilledOrderIds((current) => [...current, billOrder.id])
-    setSelectedOrderId((currentId) => (currentId === billOrder.id ? null : currentId))
-    setAmountReceived('')
-    setBillOrder(null)
+    try {
+      let billId = billOrder.billId
+      if (!billId) {
+        const billResponse = await api.post(`/orders/${billOrder.id}/bill`)
+        billId = billResponse.data?.data?.id
+      }
+      const total = getBillDetails(billOrder, billSettings).total
+      await api.post(`/bills/${billId}/pay`, {
+        payment_method: paymentMethod,
+        amount_paid: total,
+        amount_received: paymentMethod === 'cash' ? Number(amountReceived) : total,
+      })
+      setBilledOrderIds((current) => [...current, billOrder.id])
+      setSelectedOrderId((currentId) => (currentId === billOrder.id ? null : currentId))
+      setAmountReceived('')
+      setBillOrder(null)
+    } catch (error) {
+      window.alert(error?.response?.data?.message || 'Payment could not be completed.')
+    }
   }
 
   const printBill = () => {
     window.print()
+  }
+
+  const handleLogout = async () => {
+    await logoutUser({ navigate })
   }
 
   return (
@@ -177,14 +160,15 @@ export const CashierBilling = () => {
         <header className="flex min-h-16 flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
           <div className="flex items-center gap-6">
             <img src={logo} alt="Restaurant" className="h-9 w-auto max-w-36 object-contain invert dark:invert-0" />
-            <Button variant="ghost" size="small" onClick={() => navigate('/dashboard')}>Dashboard</Button>
-            <Button variant="ghost" size="small" onClick={() => navigate('/pos/new-order')}>New Order</Button>
           </div>
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-green-100 px-3 py-1.5 text-sm font-semibold text-green-700 dark:bg-green-500/15 dark:text-green-300">
               Served bills: {payableOrders.length}
             </span>
             <ToggleSwitch checked={isDarkMode} onChange={toggleTheme} size="small" />
+            <Button variant="outlined" size="small" onClick={handleLogout}>
+              Logout
+            </Button>
           </div>
         </header>
 

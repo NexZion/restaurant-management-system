@@ -5,8 +5,9 @@ import {
   getAuthExpiry,
   isSessionValid,
 } from "../utils/authStorage";
+import { canAccess } from "../utils/accessControl";
 
-export const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = ({ children, allowedLevels = [] }) => {
   const navigate = useNavigate();
   const [sessionValid, setSessionValid] = useState(() => isSessionValid());
 
@@ -37,6 +38,10 @@ export const ProtectedRoute = ({ children }) => {
 
   if (!sessionValid) {
     return <Navigate to="/" replace />;
+  }
+
+  if (!canAccess(allowedLevels)) {
+    return <Navigate to="/forbidden" replace />;
   }
 
   return children;
