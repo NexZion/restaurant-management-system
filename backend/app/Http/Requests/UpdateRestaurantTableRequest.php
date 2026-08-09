@@ -17,7 +17,7 @@ class UpdateRestaurantTableRequest extends FormRequest
 
         return [
 
-            'table_number' => 'required|string|max:50|unique:restaurant_tables,table_number,' . $id,
+            'table_number' => 'required|string|max:50|unique:restaurant_tables,table_number,'.$id,
 
             'capacity' => 'required|integer|min:1',
 
@@ -25,11 +25,16 @@ class UpdateRestaurantTableRequest extends FormRequest
 
             'section' => 'nullable|string|max:255',
 
-            'status' => 'required|in:available,occupied,reserved,cleaning,out_of_service',
+            'section_id' => 'nullable|integer|min:1',
 
-            'is_active' => 'required|boolean'
+            'floor_id' => 'nullable|integer|min:1',
+
+            'status' => 'required|in:available,occupied,reserved,billing,cleaning,unavailable,out_of_service',
+
+            'is_active' => 'required|boolean',
         ];
     }
+
     public function messages(): array
     {
         return [
@@ -42,7 +47,7 @@ class UpdateRestaurantTableRequest extends FormRequest
             'status.required' => 'Status is required',
             'status.in' => 'Status must be one of: available, occupied, reserved, cleaning, out_of_service',
             'is_active.required' => 'Is active is required',
-            'is_active.boolean' => 'Is active must be true or false'
+            'is_active.boolean' => 'Is active must be true or false',
         ];
     }
 }

@@ -52,7 +52,7 @@ export const MenuItems = () => {
 
   const fetchMenuItems = async () => {
     try {
-      const response = await api.get("/menuItems");
+      const response = await api.get("/menu-items");
       console.log("Fetched menuItems:", response);
       const menuData = response.data.data.map((menuItems) => ({
         id: menuItems.id,
@@ -62,7 +62,7 @@ export const MenuItems = () => {
         short_description: menuItems.short_description,
         price: menuItems.base_price,
         sku: menuItems.sku,
-        preperationTime: menuItems.preperation_time,
+        preperationTime: menuItems.preparation_time,
         display_order: menuItems.display_order,
         statusOption: menuItems.status
           ? menuItems.status.charAt(0).toUpperCase() + menuItems.status.slice(1)
@@ -95,7 +95,7 @@ export const MenuItems = () => {
   const handleEditMenuItems = async (row) => {
     try {
       console.log("Editing menu with ID:", row.id);
-      const response = await api.get(`/menuItems/${row.id}`);
+      const response = await api.get(`/menu-items/${row.id}`);
       const menuItem = response.data.data;
 
       setEditingMenuItems(menuItem);
@@ -109,7 +109,7 @@ export const MenuItems = () => {
         short_description: menuItem.short_description,
         price: menuItem.base_price,
         sku: menuItem.sku,
-        preperationTime: menuItem.preperation_time,
+        preperationTime: menuItem.preparation_time,
         display_order: menuItem.display_order,
         statusOption: menuItem.status || "active",
       });
@@ -184,7 +184,7 @@ export const MenuItems = () => {
       short_description: formData.short_description,
       price: formData.price,
       sku: formData.sku,
-      preperationTime: formData.preperationTime,
+      preparation_time: formData.preperationTime,
       display_order: formData.display_order,
       status: formData.statusOption,
     };
@@ -192,9 +192,9 @@ export const MenuItems = () => {
     console.log("Submitted menu items:", menuItem);
     if (isEditMode) {
       console.log("Editing menu items with ID:", editingMenuItems.id);
-      api.put(`/menuItems/${editingMenuItems.id}`, menuItem);
+      api.put(`/menu-items/${editingMenuItems.id}`, menuItem);
     } else {
-      api.post("/menuItems", menuItem);
+      api.post("/menu-items", menuItem);
     }
 
     setIsSubmitting(false);
@@ -206,7 +206,7 @@ export const MenuItems = () => {
 
   const handleDeleteMenuItems = async (row) => {
     try {
-      await api.delete(`/menuItems/${row.id}`);
+      await api.delete(`/menu-items/${row.id}`);
 
       //      const user = response.data.data;
 
@@ -221,7 +221,7 @@ export const MenuItems = () => {
 
   const handleViewMenuItems = async (row) => {
     try {
-      const response = await api.get(`/menuItems/${row.id}`);
+      const response = await api.get(`/menu-items/${row.id}`);
 
       setViewMenuItems(response.data.data);
       setShowViewMenuItems(true);
@@ -464,7 +464,7 @@ export const MenuItems = () => {
                 <DetailItem label="SKU" value={viewMenuItems.sku} />
                 <DetailItem
                   label="Preparation Time"
-                  value={viewMenuItems.preperation_time}
+                  value={viewMenuItems.preparation_time}
                 />
                 <DetailItem
                   label="Display Order"

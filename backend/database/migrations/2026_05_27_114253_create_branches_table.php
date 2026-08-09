@@ -40,7 +40,7 @@ return new class extends Migration
                 'restaurant',
                 'hotel',
                 'cafe',
-                'resort'
+                'resort',
             ])->default('restaurant');
 
             $table->boolean('has_dining')->default(true);

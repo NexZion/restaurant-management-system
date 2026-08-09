@@ -19,7 +19,7 @@ class StoreOrderItemRequest extends FormRequest
 
             'quantity' => 'required|integer|min:1',
 
-            'notes' => 'nullable|string|max:500'
+            'notes' => 'nullable|string|max:500',
         ];
     }
 }

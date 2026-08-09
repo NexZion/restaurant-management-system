@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MenuItem extends Model
@@ -30,7 +30,7 @@ class MenuItem extends Model
 
         'display_order',
 
-        'status'
+        'status',
     ];
 
     public function menuCategory()
@@ -45,6 +45,7 @@ class MenuItem extends Model
     {
         return $this->hasMany(MenuItemImage::class);
     }
+
     public function menus()
     {
         return $this->belongsToMany(
@@ -57,5 +58,21 @@ class MenuItem extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(MenuItemVariant::class);
+    }
+
+    public function modifierGroups()
+    {
+        return $this->belongsToMany(ModifierGroup::class, 'menu_item_modifier_groups')
+            ->withPivot('sort_order')->withTimestamps();
+    }
+
+    public function branchAvailability()
+    {
+        return $this->hasMany(BranchMenuItem::class);
     }
 }

@@ -23,7 +23,7 @@ class StoreMenuRequest extends FormRequest
 
             'display_order' => 'nullable|integer|min:0',
 
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive',
         ];
     }
 }

@@ -3,22 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Menu;
+use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreMenuRequest;
 use App\Http\Requests\UpdateMenuRequest;
+use App\Models\Menu;
 
 class MenuController extends Controller
 {
-    public function index()
+    public function index(IndexFilterRequest $request)
     {
-        $menus = Menu::with('branch')
-            ->latest()
-            ->get();
+        $menus = $this->filterAndPaginate(
+            Menu::with('branch'),
+            $request,
+            [
+                'id', 'branch_id', 'name', 'description', 'display_order',
+                'status', 'created_at', 'updated_at',
+            ],
+            ['name', 'description'],
+        );
 
         return response()->json([
             'success' => true,
-            'data' => $menus
+            'data' => $menus,
         ]);
     }
 
@@ -29,7 +35,7 @@ class MenuController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu created successfully',
-            'data' => $menu
+            'data' => $menu,
         ], 201);
     }
 
@@ -38,19 +44,20 @@ class MenuController extends Controller
         $menu = Menu::with('menuItems')
             ->find($id);
 
-        if (!$menu) {
+        if (! $menu) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu not found'
+                'message' => 'Menu not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $menu
+            'data' => $menu,
         ]);
     }
+
     public function update(
         UpdateMenuRequest $request,
         $id
@@ -58,11 +65,11 @@ class MenuController extends Controller
 
         $menu = Menu::find($id);
 
-        if (!$menu) {
+        if (! $menu) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu not found'
+                'message' => 'Menu not found',
             ], 404);
         }
 
@@ -73,18 +80,19 @@ class MenuController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu updated successfully',
-            'data' => $menu
+            'data' => $menu,
         ]);
     }
+
     public function destroy($id)
     {
         $menu = Menu::find($id);
 
-        if (!$menu) {
+        if (! $menu) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu not found'
+                'message' => 'Menu not found',
             ], 404);
         }
 
@@ -92,7 +100,7 @@ class MenuController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Menu deleted successfully'
+            'message' => 'Menu deleted successfully',
         ]);
     }
 }

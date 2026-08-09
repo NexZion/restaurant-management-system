@@ -3,18 +3,26 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MenuCategory;
-use Illuminate\Http\Request;
+use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreMenuCategoryRequest;
 use App\Http\Requests\UpdateMenuCategoryRequest;
+use App\Models\MenuCategory;
 
 class MenuCategoryController extends Controller
 {
-    public function index()
+    public function index(IndexFilterRequest $request)
     {
         return response()->json([
             'success' => true,
-            'data' => MenuCategory::all()
+            'data' => $this->filterAndPaginate(
+                MenuCategory::query(),
+                $request,
+                [
+                    'id', 'name', 'description', 'image', 'display_order',
+                    'status', 'created_at', 'updated_at',
+                ],
+                ['name', 'description', 'image'],
+            ),
         ]);
     }
 
@@ -25,7 +33,7 @@ class MenuCategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu category created successfully',
-            'data' => $category
+            'data' => $category,
         ], 201);
     }
 
@@ -33,17 +41,17 @@ class MenuCategoryController extends Controller
     {
         $category = MenuCategory::find($id);
 
-        if (!$category) {
+        if (! $category) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu category not found'
+                'message' => 'Menu category not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $category
+            'data' => $category,
         ]);
     }
 
@@ -51,11 +59,11 @@ class MenuCategoryController extends Controller
     {
         $category = MenuCategory::find($id);
 
-        if (!$category) {
+        if (! $category) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu category not found'
+                'message' => 'Menu category not found',
             ], 404);
         }
 
@@ -64,7 +72,7 @@ class MenuCategoryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu category updated successfully',
-            'data' => $category
+            'data' => $category,
         ]);
     }
 
@@ -72,11 +80,11 @@ class MenuCategoryController extends Controller
     {
         $category = MenuCategory::find($id);
 
-        if (!$category) {
+        if (! $category) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu category not found'
+                'message' => 'Menu category not found',
             ], 404);
         }
 
@@ -84,7 +92,7 @@ class MenuCategoryController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Menu category deleted successfully'
+            'message' => 'Menu category deleted successfully',
         ]);
     }
 }

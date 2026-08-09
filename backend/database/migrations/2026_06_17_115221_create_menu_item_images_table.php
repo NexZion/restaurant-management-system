@@ -13,16 +13,16 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('menu_item_id')
-                  ->constrained()
-                  ->cascadeOnDelete();
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->string('image_path');
 
             $table->boolean('is_primary')
-                  ->default(false);
+                ->default(false);
 
             $table->integer('display_order')
-                  ->default(0);
+                ->default(0);
 
             $table->softDeletes();
 

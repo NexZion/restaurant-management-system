@@ -40,7 +40,7 @@ return new class extends Migration
             $table->enum('order_type', [
                 'dining',
                 'takeaway',
-                'delivery'
+                'delivery',
             ]);
 
             $table->string('status')->default('pending');

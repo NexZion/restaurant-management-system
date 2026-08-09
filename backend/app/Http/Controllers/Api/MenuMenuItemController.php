@@ -3,61 +3,72 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AttachMenuItemRequest;
+use App\Http\Requests\IndexFilterRequest;
+use App\Http\Requests\UpdateMenuItemOrderRequest;
 use App\Models\Menu;
 use App\Models\MenuItem;
-use Illuminate\Http\Request;
 
 class MenuMenuItemController extends Controller
 {
-
-    public function index(Menu $menu)
+    public function index(IndexFilterRequest $request, Menu $menu)
     {
+        $items = $this->filterAndPaginate(
+            $menu->menuItems()->with(['menuCategory', 'images']),
+            $request,
+            [
+                'id', 'menu_category_id', 'sku', 'name', 'slug', 'short_description',
+                'long_description', 'base_price', 'preparation_time', 'display_order',
+                'status', 'created_at', 'updated_at',
+            ],
+            ['sku', 'name', 'slug', 'short_description', 'long_description'],
+        );
+
         return response()->json([
             'success' => true,
             'menu' => $menu->name,
-            'items' => $menu->menuItems
+            'items' => $items,
         ]);
     }
-    public function attach(Request $request, Menu $menu)
-    {
-        $request->validate([
-            'menu_item_id' => 'required|integer'
-        ]);
 
-        $menuItem = MenuItem::find($request->menu_item_id);
+    public function attach(AttachMenuItemRequest $request, Menu $menu)
+    {
+        $validated = $request->validated();
+
+        $menuItem = MenuItem::find($validated['menu_item_id']);
 
         // Item does not exist OR soft deleted
-        if (!$menuItem || $menuItem->deleted_at !== null) {
+        if (! $menuItem || $menuItem->deleted_at !== null) {
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item not found'
+                'message' => 'Menu item not found',
             ], 404);
         }
 
         // Already attached
         $exists = $menu->menuItems()
-            ->where('menu_item_id', $request->menu_item_id)
+            ->where('menu_item_id', $validated['menu_item_id'])
             ->exists();
 
         if ($exists) {
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item already exists in this menu'
+                'message' => 'Menu item already exists in this menu',
             ], 409);
         }
 
         $menu->menuItems()->attach(
-            $request->menu_item_id,
+            $validated['menu_item_id'],
             [
-                'display_order' => $request->display_order ?? 0,
+                'display_order' => $validated['display_order'] ?? 0,
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Menu item attached successfully'
+            'message' => 'Menu item attached successfully',
         ]);
     }
 
@@ -66,10 +77,10 @@ class MenuMenuItemController extends Controller
         $menuItem = MenuItem::find($itemId);
 
         // Menu item doesn't exist
-        if (!$menuItem) {
+        if (! $menuItem) {
             return response()->json([
                 'success' => false,
-                'message' => 'No such menu item found'
+                'message' => 'No such menu item found',
             ], 404);
         }
 
@@ -78,10 +89,10 @@ class MenuMenuItemController extends Controller
             ->where('menu_item_id', $itemId)
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             return response()->json([
                 'success' => false,
-                'message' => 'This menu item is not attached to this menu'
+                'message' => 'This menu item is not attached to this menu',
             ], 404);
         }
 
@@ -89,23 +100,21 @@ class MenuMenuItemController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Menu item removed successfully'
+            'message' => 'Menu item removed successfully',
         ]);
     }
 
-    public function updateOrder(Request $request, Menu $menu, $itemId)
+    public function updateOrder(UpdateMenuItemOrderRequest $request, Menu $menu, $itemId)
     {
-        $request->validate([
-            'display_order' => 'required|integer|min:0'
-        ]);
+        $validated = $request->validated();
 
         $menuItem = MenuItem::find($itemId);
 
         // Menu item not found
-        if (!$menuItem || $menuItem->deleted_at !== null) {
+        if (! $menuItem || $menuItem->deleted_at !== null) {
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item not found'
+                'message' => 'Menu item not found',
             ], 404);
         }
 
@@ -114,24 +123,24 @@ class MenuMenuItemController extends Controller
             ->where('menu_item_id', $itemId)
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             return response()->json([
                 'success' => false,
-                'message' => 'This menu item is not attached to this menu'
+                'message' => 'This menu item is not attached to this menu',
             ], 404);
         }
 
         $menu->menuItems()->updateExistingPivot(
             $itemId,
             [
-                'display_order' => $request->display_order,
-                'updated_at' => now()
+                'display_order' => $validated['display_order'],
+                'updated_at' => now(),
             ]
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'Display order updated successfully'
+            'message' => 'Display order updated successfully',
         ]);
     }
 }

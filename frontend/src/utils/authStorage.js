@@ -27,7 +27,7 @@ export const getTokenExpiry = (token) => {
   return payload?.exp ? payload.exp * 1000 : null;
 };
 
-export const saveAuthSession = ({ token, user, rememberMe }) => {
+export const saveAuthSession = ({ token, user }) => {
   const tokenExpiry = getTokenExpiry(token);
   const sessionUser = user || getStoredUser();
   const roleId = sessionUser?.role_id || sessionUser?.role?.id;

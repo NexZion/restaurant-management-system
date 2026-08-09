@@ -5,8 +5,6 @@ use App\Models\Customer;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\OrderBill;
-use App\Models\OrderItem;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,18 +36,18 @@ test('it persists the full order with items and bill in a transaction', function
             [
                 'menu_item_id' => $menuItem->id,
                 'quantity' => 2,
-                'unit_price' => 1500,
+                'unit_price' => 1,
                 'discount' => 200,
                 'total_price' => 2800,
                 'notes' => 'No sauce',
             ],
         ],
         'bill' => [
-            'subtotal' => 3000,
+            'subtotal' => 1,
             'discount' => 200,
             'tax' => 420,
             'service_charge' => 300,
-            'grand_total' => 3520,
+            'grand_total' => 1,
             'bill_status' => 'unpaid',
         ],
     ]);
@@ -68,17 +66,28 @@ test('it persists the full order with items and bill in a transaction', function
         'menu_item_id' => $menuItem->id,
         'quantity' => 2,
         'unit_price' => '1500.00',
+        'menu_item_name_snapshot' => $menuItem->name,
         'total_price' => '2800.00',
         'notes' => 'No sauce',
     ]);
 
     $this->assertDatabaseHas('order_bills', [
         'order_id' => $order->id,
-        'subtotal' => '3000.00',
+        'subtotal' => '2800.00',
         'discount' => '200.00',
         'tax' => '420.00',
         'service_charge' => '300.00',
-        'grand_total' => '3520.00',
+        'grand_total' => '3320.00',
+        'balance_due' => '3320.00',
         'bill_status' => 'unpaid',
     ]);
+
+    $this->actingAs($user, 'api')
+        ->getJson('/api/orders?filters[status]=pending&per_page=1&sort_by=id&sort_direction=asc')
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('data.current_page', 1)
+        ->assertJsonPath('data.per_page', 1)
+        ->assertJsonPath('data.total', 1)
+        ->assertJsonPath('data.data.0.id', $order->id);
 });

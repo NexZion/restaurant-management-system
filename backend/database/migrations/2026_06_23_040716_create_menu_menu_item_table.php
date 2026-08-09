@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->unique([
                 'menu_id',
-                'menu_item_id'
+                'menu_item_id',
             ]);
         });
     }

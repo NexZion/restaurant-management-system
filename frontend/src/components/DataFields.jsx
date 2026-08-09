@@ -30,6 +30,8 @@ export const TextField = ({
 
   const isPasswordField = type === "password";
   const inputType = isPasswordField && showPassword ? "text" : type;
+  const shouldFloatLabel =
+    floatLabel || ["date", "time", "datetime-local", "month", "week"].includes(type);
 
   return (
     <div
@@ -40,7 +42,7 @@ export const TextField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${shouldFloatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
             `}
           >
@@ -160,6 +162,10 @@ export const ImageUploadField = ({
   const [image, setImage] = useState(value || null);
   const inputRef = useRef(null);
 
+  useEffect(() => {
+    setImage(value || null);
+  }, [value]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -178,7 +184,8 @@ export const ImageUploadField = ({
     if (inputRef.current) inputRef.current.click();
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL + "/storage/";
+  const BASE_URL =
+    (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/storage/";
 
   const avatarUrl = image
     ? typeof image === "string"
@@ -658,7 +665,6 @@ export const SelectField = ({
   onAdd = () => {},
   fullWidth = false,
   variant = "outlined",
-  placeholder = "",
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
   optionImageSize = "medium", // small, medium, large, xlarge
@@ -889,9 +895,7 @@ export const SelectField = ({
                     {renderOptionImage(selectedOption, selectedImageSizeClass)}
                     <span className="truncate">{selectedOption.label}</span>
                   </>
-                ) : (
-                  placeholder
-                )}
+                ) : null}
               </span>
             )}
           </div>

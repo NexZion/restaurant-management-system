@@ -427,7 +427,15 @@ export const Table = ({
                     ))}
 
                     {actions && (
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th
+                        className={`w-28 min-w-28 whitespace-nowrap px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-700 dark:text-gray-300 ${
+                          actionsAlign === "right"
+                            ? "text-right"
+                            : actionsAlign === "center"
+                              ? "text-center"
+                              : "text-left"
+                        }`}
+                      >
                         Actions
                       </th>
                     )}
@@ -556,7 +564,7 @@ export const Table = ({
                           </td>
                         ))}
                         {actions && (
-                          <td className="px-4 py-3 text-right">
+                          <td className="w-28 min-w-28 whitespace-nowrap px-4 py-3">
                             <div
                               className={`flex items-center gap-2 ${
                                 actionsAlign === "right"

@@ -3,22 +3,30 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\MenuItem;
-use Illuminate\Http\Request;
+use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreMenuItemRequest;
 use App\Http\Requests\UpdateMenuItemRequest;
+use App\Http\Resources\MenuItemListResource;
+use App\Models\MenuItem;
 
 class MenuItemController extends Controller
 {
-    public function index()
+    public function index(IndexFilterRequest $request)
     {
+        $menuItems = $this->filterAndPaginate(
+            MenuItem::with(['menuCategory', 'images']),
+            $request,
+            [
+                'id', 'menu_category_id', 'sku', 'name', 'slug', 'short_description',
+                'long_description', 'base_price', 'preparation_time', 'display_order',
+                'status', 'created_at', 'updated_at',
+            ],
+            ['sku', 'name', 'slug', 'short_description', 'long_description'],
+        );
+
         return response()->json([
             'success' => true,
-            'data' => MenuItem::with([
-                'menuCategory',
-                'images'
-
-            ])->get()
+            'data' => MenuItemListResource::collection($menuItems),
         ]);
     }
 
@@ -29,7 +37,7 @@ class MenuItemController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu item created successfully',
-            'data' => $item
+            'data' => $item,
         ], 201);
     }
 
@@ -37,21 +45,21 @@ class MenuItemController extends Controller
     {
         $item = MenuItem::with([
             'menuCategory',
-            'images'
+            'images',
 
         ])->find($id);
 
-        if (!$item) {
+        if (! $item) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item not found'
+                'message' => 'Menu item not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $item
+            'data' => $item,
         ]);
     }
 
@@ -59,11 +67,11 @@ class MenuItemController extends Controller
     {
         $item = MenuItem::find($id);
 
-        if (!$item) {
+        if (! $item) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item not found'
+                'message' => 'Menu item not found',
             ], 404);
         }
 
@@ -72,7 +80,7 @@ class MenuItemController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Menu item updated successfully',
-            'data' => $item
+            'data' => $item,
         ]);
     }
 
@@ -80,14 +88,14 @@ class MenuItemController extends Controller
     {
         $item = MenuItem::find($id);
 
-        if (!$item) {
+        if (! $item) {
 
             return response()->json([
                 'success' => false,
-                'message' => 'Menu item not found'
+                'message' => 'Menu item not found',
             ], 404);
         }
-        
+
         $item->status = 'unavailable';
         $item->save();
 
@@ -95,7 +103,7 @@ class MenuItemController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Menu item deleted successfully'
+            'message' => 'Menu item deleted successfully',
         ]);
     }
 }

@@ -17,14 +17,14 @@ class UpdateCustomerRequest extends FormRequest
 
         return [
 
-            'customer_code' => 'nullable|string|max:50|unique:customers,customer_code,' . $customerId,
+            'customer_code' => 'nullable|string|max:50|unique:customers,customer_code,'.$customerId,
 
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
 
-            'email' => 'nullable|email|unique:customers,email,' . $customerId,
+            'email' => 'nullable|email|unique:customers,email,'.$customerId,
 
-            'phone' => 'required|string|max:20|unique:customers,phone,' . $customerId,
+            'phone' => 'required|string|max:20|unique:customers,phone,'.$customerId,
 
             'whatsapp' => 'nullable|string|max:20',
 
@@ -42,7 +42,7 @@ class UpdateCustomerRequest extends FormRequest
             'id_number' => 'nullable|string|max:50',
             'id_type' => 'nullable|in:nic,passport',
 
-            'status' => 'nullable|in:active,inactive,suspended'
+            'status' => 'nullable|in:active,inactive,suspended',
         ];
     }
 
@@ -65,7 +65,7 @@ class UpdateCustomerRequest extends FormRequest
 
             'id_type.in' => 'ID type must be nic or passport',
 
-            'status.in' => 'Status must be active, inactive or suspended'
+            'status.in' => 'Status must be active, inactive or suspended',
         ];
     }
 }

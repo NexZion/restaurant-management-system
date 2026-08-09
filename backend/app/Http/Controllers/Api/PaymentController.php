@@ -3,195 +3,137 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexFilterRequest;
+use App\Http\Requests\StorePaymentRequest;
+use App\Http\Requests\UpdatePaymentRequest;
+use App\Http\Requests\VoidPaymentRequest;
 use App\Models\OrderBill;
 use App\Models\Payment;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\DocumentSequenceService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    public function pay(Request $request, OrderBill $bill)
+    public function __construct(private DocumentSequenceService $sequences) {}
+
+    public function pay(StorePaymentRequest $request, OrderBill $bill): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validated();
 
-            'payment_method' => 'required|in:cash,card,online',
+        $payment = DB::transaction(function () use ($bill, $validated, $request): Payment {
+            $lockedBill = OrderBill::query()->lockForUpdate()->findOrFail($bill->id);
+            $successfulTotal = (float) $lockedBill->payments()
+                ->where('payment_status', 'successful')
+                ->sum('amount_paid');
+            $remaining = max(0, (float) $lockedBill->grand_total - $successfulTotal);
+            $amountPaid = (float) $validated['amount_paid'];
 
-            'amount_received' => 'required|numeric|min:0',
+            abort_if($lockedBill->bill_status === 'voided', 409, 'Voided bills cannot accept payments.');
+            abort_if($remaining <= 0, 409, 'Bill is already fully paid.');
+            abort_if($amountPaid > $remaining, 422, 'Payment exceeds the outstanding balance.');
 
-            'transaction_reference' => 'nullable|string|max:255'
+            $amountReceived = (float) ($validated['amount_received'] ?? $amountPaid);
+            $payment = $lockedBill->payments()->create(array_merge($validated, [
+                'payment_number' => $this->sequences->next($lockedBill->order->branch_id, 'payment', 'PAY-'),
+                'payment_method' => $validated['payment_method'] ?? 'configured',
+                'amount_paid' => $amountPaid,
+                'amount_received' => $amountReceived,
+                'change_amount' => max(0, $amountReceived - $amountPaid),
+                'balance_amount' => 0,
+                'payment_status' => 'successful',
+                'paid_at' => now(),
+                'created_by' => $request->user()->id,
+            ]));
 
-        ]);
+            $newPaidTotal = $successfulTotal + $amountPaid;
+            $balanceDue = max(0, (float) $lockedBill->grand_total - $newPaidTotal);
+            $billStatus = $balanceDue > 0 ? 'partial' : 'paid';
 
-        // Bill already paid
-        if ($bill->bill_status == 'paid') {
+            $lockedBill->update([
+                'paid_amount' => $newPaidTotal,
+                'balance_due' => $balanceDue,
+                'bill_status' => $billStatus,
+            ]);
+            $lockedBill->order()->update([
+                'payment_status' => $balanceDue > 0 ? 'partially_paid' : 'paid',
+                'cashier_id' => $request->user()->id,
+            ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Bill already paid.'
-            ], 409);
-        }
-
-        // Payment already exists
-        if ($bill->payment) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment already exists.'
-            ], 409);
-        }
-
-        $amountPaid = $bill->grand_total;
-
-        if ($request->amount_received < $amountPaid) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient payment amount.'
-            ], 400);
-        }
-
-        $balance =
-
-            $request->amount_received
-
-            -
-
-            $amountPaid;
-
-        $payment = Payment::create([
-
-            'order_bill_id' => $bill->id,
-
-            'payment_method' => $request->payment_method,
-
-            'amount_paid' => $amountPaid,
-
-            'amount_received' => $request->amount_received,
-
-            'balance_amount' => $balance,
-
-            'payment_status' => 'paid',
-
-            'transaction_reference'
-            => $request->transaction_reference,
-
-            'created_by'
-            => $request->user()->id
-        ]);
-
-        $bill->update([
-            'bill_status' => 'paid'
-        ]);
-
-        $bill->order->update([
-            'status' => 'completed'
-        ]);
+            return $payment;
+        });
 
         return response()->json([
-
             'success' => true,
-
             'message' => 'Payment successful.',
-
-            'data' => $payment
-
-        ]);
+            'data' => $payment->load('method'),
+        ], 201);
     }
 
-    public function show(OrderBill $bill)
+    public function show(IndexFilterRequest $request, OrderBill $bill): JsonResponse
     {
-        if (!$bill->payment) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found.'
-            ], 404);
-        }
+        $payments = $this->filterAndPaginate(
+            $bill->payments()->with(['method', 'refunds']),
+            $request,
+            [
+                'id', 'order_bill_id', 'payment_method_id', 'payment_number',
+                'payment_method', 'amount_paid', 'amount_received', 'change_amount',
+                'balance_amount', 'payment_status', 'transaction_reference',
+                'gateway_transaction_id', 'card_last_four', 'paid_at', 'notes',
+                'created_by', 'voided_by', 'voided_at', 'void_reason',
+                'created_at', 'updated_at',
+            ],
+            [
+                'payment_number', 'payment_method', 'payment_status',
+                'transaction_reference', 'gateway_transaction_id',
+                'card_last_four', 'notes', 'void_reason',
+            ],
+        );
 
         return response()->json([
             'success' => true,
-            'data' => $bill->payment
+            'data' => $payments,
         ]);
     }
-    public function update(Request $request, OrderBill $bill)
+
+    public function update(UpdatePaymentRequest $request, OrderBill $bill, Payment $payment): JsonResponse
     {
-        if (!$bill->payment) {
+        abort_unless($payment->order_bill_id === $bill->id, 404);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found.'
-            ], 404);
-        }
+        $validated = $request->validated();
 
-        $request->validate([
+        abort_if($payment->payment_status === 'successful', 409, 'Successful payments cannot be edited; void or refund them.');
+        $payment->update($validated);
 
-            'payment_method' => 'required|in:cash,card,online',
-
-            'amount_received' => 'required|numeric|min:0',
-
-            'transaction_reference' => 'nullable|string|max:255',
-
-            'notes' => 'nullable|string'
-
-        ]);
-
-        $payment = $bill->payment;
-
-        if ($request->amount_received < $payment->amount_paid) {
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Insufficient payment amount.'
-            ], 400);
-        }
-
-        $balance =
-
-            $request->amount_received
-
-            -
-
-            $payment->amount_paid;
-
-        $payment->update([
-
-            'payment_method' => $request->payment_method,
-
-            'amount_received' => $request->amount_received,
-
-            'balance_amount' => $balance,
-
-            'transaction_reference' => $request->transaction_reference,
-
-            'notes' => $request->notes
-
-        ]);
-
-        return response()->json([
-
-            'success' => true,
-
-            'message' => 'Payment updated successfully.',
-
-            'data' => $payment
-
-        ]);
+        return response()->json(['success' => true, 'data' => $payment]);
     }
-    public function destroy(OrderBill $bill)
+
+    public function destroy(VoidPaymentRequest $request, OrderBill $bill, Payment $payment): JsonResponse
     {
-        if (!$bill->payment) {
+        abort_unless($payment->order_bill_id === $bill->id, 404);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Payment not found.'
-            ], 404);
-        }
+        $validated = $request->validated();
 
-        $bill->payment->delete();
+        DB::transaction(function () use ($bill, $payment, $validated, $request): void {
+            $payment->update([
+                'payment_status' => 'voided',
+                'voided_by' => $request->user()->id,
+                'voided_at' => now(),
+                'void_reason' => $validated['void_reason'],
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment deleted successfully.'
-        ]);
+            $paidAmount = (float) $bill->payments()->where('payment_status', 'successful')->sum('amount_paid');
+            $balanceDue = max(0, (float) $bill->grand_total - $paidAmount);
+            $bill->update([
+                'paid_amount' => $paidAmount,
+                'balance_due' => $balanceDue,
+                'bill_status' => $paidAmount > 0 ? 'partial' : 'unpaid',
+            ]);
+            $bill->order()->update([
+                'payment_status' => $paidAmount > 0 ? 'partially_paid' : 'unpaid',
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Payment voided successfully.']);
     }
 }
