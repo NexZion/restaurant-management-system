@@ -14,7 +14,13 @@ import {
 } from "../../components/DataFields";
 import { Table } from "../../components/Tables";
 import { Accordion } from "../../components/Accordion";
-import { Alert, Dialog, Snackbar, Loading, Drawer } from "../../components/Popups";
+import {
+  Alert,
+  Dialog,
+  Snackbar,
+  Loading,
+  Drawer,
+} from "../../components/Popups";
 import { SectionDivider, VerticalTabs } from "../../components/SectionDivider";
 import { Stepper } from "../../components/Stepper";
 import { AddItem } from "../../components/AddItem";
@@ -89,13 +95,33 @@ export const Users = () => {
   const shouldShowPin = roleSelected && pinRoles.includes(selectedRoleName);
   const shouldValidatePin = pinRoles.includes(selectedRoleName);
 
+  const getResponseItems = (payload) => {
+    const data = payload?.data ?? payload;
+
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    if (data && typeof data === "object") {
+      if (Array.isArray(data.data)) {
+        return data.data;
+      }
+
+      if (Array.isArray(data.items)) {
+        return data.items;
+      }
+    }
+
+    return [];
+  };
+
   useEffect(() => {
     api.get("/roles").then((response) => {
-      const rolesData = response.data.data;
+      const rolesData = getResponseItems(response.data);
       const formattedRoles = rolesData.map((role) => ({
-          value: role.id,
-          label: role.name,
-        }));
+        value: role.id,
+        label: role.name,
+      }));
 
       console.log(formattedRoles);
       setRoles(formattedRoles);
@@ -104,8 +130,7 @@ export const Users = () => {
 
   useEffect(() => {
     api.get("/branches").then((response) => {
-      const branchesData = response.data.data.data;
-      console.log(branchesData);
+      const branchesData = getResponseItems(response.data);
       const formattedBranches = branchesData.map((branch) => ({
         value: branch.id,
         label: branch.name,
@@ -129,13 +154,15 @@ export const Users = () => {
     try {
       const response = await api.get("/users", {
         // params: {
-        //   role: filters.role,
-        //   branch: filters.branch,
-        //   status: filters.status,
+        //   filters: {
+        //     role_id: filters.role,
+        //     branch_id: filters.branch,
+        //     status: filters.status,
+        //   },
         // },
       });
 
-      const usersData = response.data.data.map((user) => ({
+      const usersData = getResponseItems(response.data).map((user) => ({
         id: user.id,
         fullname: user.name,
         profileImage: user.image ? (
@@ -452,10 +479,10 @@ export const Users = () => {
     return Number.isNaN(date.getTime())
       ? value
       : date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
   };
 
   const getUserImageSrc = (user) => {
@@ -905,14 +932,17 @@ export const Users = () => {
         {viewUser && (
           <ProfileView
             title={viewUser.name}
-            subtitle={viewUser.username ? `@${viewUser.username}` : "No username"}
+            subtitle={
+              viewUser.username ? `@${viewUser.username}` : "No username"
+            }
             avatar={getUserImageSrc(viewUser)}
             avatarAlt={viewUser.name || "User"}
             badges={[
               { value: viewUser.status },
               {
                 label: "Level",
-                value: viewUser.accessLevel || viewUser.role?.access_level || "N/A",
+                value:
+                  viewUser.accessLevel || viewUser.role?.access_level || "N/A",
                 tone: "default",
               },
             ]}
