@@ -61,6 +61,15 @@ export const Users = () => {
   const [showViewUser, setShowViewUser] = useState(false);
   const [viewUser, setViewUser] = useState(null);
 
+  const [pagination, setPagination] = useState({
+    page: 1,
+    perPage: 10,
+    total: 0,
+    lastPage: 1,
+  });
+
+  const [search, setSearch] = useState("");
+
   const status = [
     { value: "active", label: "Active" },
     { value: "inactive", label: "Inactive" },
@@ -147,19 +156,44 @@ export const Users = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [filters]);
+  }, [filters, search, pagination.page]);
 
   const fetchUsers = async () => {
     setIsUsersLoading(true);
     try {
       const response = await api.get("/users", {
-        // params: {
-        //   filters: {
-        //     role_id: filters.role,
-        //     branch_id: filters.branch,
-        //     status: filters.status,
-        //   },
-        // },
+        params: {
+          page: pagination.page,
+          per_page: pagination.perPage,
+
+          role_id: filters.role || null,
+          branch_id: filters.branch || null,
+          status: filters.status || null,
+
+          search: search || null,
+        },
+      });
+
+      const usersResponse = response.data.data;
+
+      setUsers(
+        usersResponse.data.map((user) => ({
+          id: user.id,
+          fullname: user.name,
+          username: user.username,
+          role: user.role?.name,
+          branch: user.branch?.name,
+          phone: user.phone,
+          email: user.email,
+          status: user.status,
+        })),
+      );
+
+      setPagination({
+        page: usersResponse.current_page,
+        perPage: usersResponse.per_page,
+        total: usersResponse.total,
+        lastPage: usersResponse.last_page,
       });
 
       const usersData = getResponseItems(response.data).map((user) => ({
@@ -806,35 +840,50 @@ export const Users = () => {
                 <SelectField
                   label="Roles"
                   value={filters.role}
-                  options={[{ value: "0", label: "All Roles" }, ...roles]}
-                  onChange={(e) =>
+                  options={[{ value: " ", label: "All Roles" }, ...roles]}
+                  onChange={(e) => {
                     setFilters((prev) => ({
                       ...prev,
                       role: e.target.value,
-                    }))
-                  }
+                    }));
+
+                    setPagination((prev) => ({
+                      ...prev,
+                      page: 1,
+                    }));
+                  }}
                 />
                 <SelectField
                   label="Branch"
                   value={filters.branch}
-                  options={branches}
-                  onChange={(e) =>
+                  options={[{ value: " ", label: "All Branches" }, ...branches]}
+                  onChange={(e) => {
                     setFilters((prev) => ({
                       ...prev,
                       branch: e.target.value,
-                    }))
-                  }
+                    }));
+
+                    setPagination((prev) => ({
+                      ...prev,
+                      page: 1,
+                    }));
+                  }}
                 />
                 <SelectField
                   label="Status"
                   value={filters.status}
-                  options={status}
-                  onChange={(e) =>
+                  options={[{ value: " ", label: "All Statuses" }, ...status]}
+                  onChange={(e) => {
                     setFilters((prev) => ({
                       ...prev,
                       status: e.target.value,
-                    }))
-                  }
+                    }));
+
+                    setPagination((prev) => ({
+                      ...prev,
+                      page: 1,
+                    }));
+                  }}
                 />
               </div>
             ),
@@ -854,6 +903,9 @@ export const Users = () => {
           searchable={true}
           filterable={false}
           pagination={true}
+          currentPage={pagination.page}
+          totalPages={pagination.lastPage}
+          onPageChange={(page) => setPagination((prev) => ({ ...prev, page }))}
           loading={isUsersLoading}
           actions={[
             {

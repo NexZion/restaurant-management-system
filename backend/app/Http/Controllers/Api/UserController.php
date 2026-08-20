@@ -34,21 +34,39 @@ class UserController extends Controller
             ], 403);
         }
 
-        $users = $this->filterAndPaginate(
-            User::with(['role', 'branch']),
-            $request,
-            [
-                'id', 'name', 'username', 'email', 'phone', 'whatsapp', 'role_id',
-                'branch_id', 'image', 'dob', 'address', 'status', 'is_active',
-                'failed_attempts', 'is_locked', 'created_at', 'updated_at',
-            ],
-            ['name', 'username', 'email', 'phone', 'whatsapp', 'address', 'status'],
-        );
+        $query = User::with(['role', 'branch']);
+
+if ($request->filled('role_id')) {
+    $query->where('role_id', $request->role_id);
+}
+
+if ($request->filled('branch_id')) {
+    $query->where('branch_id', $request->branch_id);
+}
+
+if ($request->filled('status')) {
+    $query->where('status', $request->status);
+}
+
+if ($request->filled('search')) {
+    $search = $request->search;
+
+    $query->where(function ($q) use ($search) {
+        $q->where('name', 'like', "%{$search}%")
+          ->orWhere('username', 'like', "%{$search}%")
+          ->orWhere('email', 'like', "%{$search}%")
+          ->orWhere('phone', 'like', "%{$search}%");
+    });
+}
+
+$users = $query->paginate(
+    $request->per_page ?? 10
+);
 
         return response()->json([
-            'success' => true,
-            'data' => $users,
-        ]);
+    'success' => true,
+    'data' => $users,
+]);
     }
 
     /**
