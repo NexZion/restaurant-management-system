@@ -7,15 +7,13 @@ use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreKitchenTicketRequest;
 use App\Http\Requests\UpdateKitchenTicketRequest;
 use App\Models\KitchenTicket;
-use App\Services\DocumentSequenceService;
+use App\Models\DocumentSequence;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class KitchenTicketController extends Controller
 {
-    public function __construct(private DocumentSequenceService $sequences) {}
-
     public function index(IndexFilterRequest $request): JsonResponse
     {
         $tickets = $this->filterAndPaginate(
@@ -31,7 +29,7 @@ class KitchenTicketController extends Controller
     public function store(StoreKitchenTicketRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $validated['ticket_number'] ??= $this->sequences->next($validated['branch_id'], 'kitchen_ticket', 'KIT-');
+        $validated['ticket_number'] ??= DocumentSequence::nextNumber($validated['branch_id'], 'kitchen_ticket', 'KIT-');
         $ticket = DB::transaction(function () use ($validated): KitchenTicket {
             $ticket = KitchenTicket::create(array_merge(Arr::except($validated, 'items'), ['generated_at' => $validated['generated_at'] ?? now()]));
             $ticket->items()->createMany($validated['items']);

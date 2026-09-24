@@ -3,15 +3,13 @@
 namespace App\Actions\Billing;
 
 use App\Models\OrderBill;
-use App\Services\DocumentSequenceService;
+use App\Models\DocumentSequence;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class SplitBill
 {
-    public function __construct(private DocumentSequenceService $sequences) {}
-
     public function execute(OrderBill $bill, array $splits, int $actorId): Collection
     {
         return DB::transaction(function () use ($bill, $splits, $actorId) {
@@ -56,7 +54,7 @@ class SplitBill
                 $total = round($splitSubtotal - $discount + $tax + $serviceCharge + $rounding, 2);
                 $child = OrderBill::query()->create([
                     'order_id' => $bill->order_id, 'parent_bill_id' => $bill->id,
-                    'bill_number' => $this->sequences->next($bill->order->branch_id, 'bill', 'BILL-'),
+                    'bill_number' => DocumentSequence::nextNumber($bill->order->branch_id, 'bill', 'BILL-'),
                     'split_number' => $index + 1, 'subtotal' => $splitSubtotal,
                     'discount' => $discount, 'tax' => $tax, 'service_charge' => $serviceCharge,
                     'rounding_amount' => $rounding, 'grand_total' => $total,

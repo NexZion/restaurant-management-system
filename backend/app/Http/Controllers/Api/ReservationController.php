@@ -7,13 +7,11 @@ use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
 use App\Models\Reservation;
-use App\Services\DocumentSequenceService;
+use App\Models\DocumentSequence;
 use Illuminate\Http\JsonResponse;
 
 class ReservationController extends Controller
 {
-    public function __construct(private DocumentSequenceService $sequences) {}
-
     public function index(IndexFilterRequest $request): JsonResponse
     {
         $reservations = $this->filterAndPaginate(
@@ -29,7 +27,7 @@ class ReservationController extends Controller
     public function store(StoreReservationRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['reservation_number'] ??= $this->sequences->next($data['branch_id'], 'reservation', 'RES-');
+        $data['reservation_number'] ??= DocumentSequence::nextNumber($data['branch_id'], 'reservation', 'RES-');
         $reservation = Reservation::create($data);
 
         return response()->json(['success' => true, 'data' => $reservation->load(['customer', 'creator'])], 201);

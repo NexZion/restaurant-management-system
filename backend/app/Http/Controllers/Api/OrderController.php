@@ -7,20 +7,14 @@ use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\MenuItem;
+use App\Models\DocumentSequence;
 use App\Models\Order;
-use App\Services\DocumentSequenceService;
-use App\Services\OrderInventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function __construct(
-        private DocumentSequenceService $sequences,
-        private OrderInventoryService $orderInventory,
-    ) {}
-
     private const RELATIONSHIPS = [
         'branch',
         'table',
@@ -72,7 +66,7 @@ class OrderController extends Controller
 
             $orderPayload = Arr::except($validated, ['items', 'bill']);
             $order = Order::create(array_merge($orderPayload, [
-                'order_number' => $orderPayload['order_number'] ?? $this->sequences->next($orderPayload['branch_id'], 'order', 'ORD-'),
+                'order_number' => $orderPayload['order_number'] ?? DocumentSequence::nextNumber($orderPayload['branch_id'], 'order', 'ORD-'),
                 'created_by' => $request->user()->id,
             ]));
 
@@ -120,7 +114,7 @@ class OrderController extends Controller
             $grandTotal = max(0, round($subtotal - $billDiscount + $billTax + $serviceCharge + $roundingAmount, 2));
 
             $order->bill()->create([
-                'bill_number' => $this->sequences->next($order->branch_id, 'bill', 'BILL-'),
+                'bill_number' => DocumentSequence::nextNumber($order->branch_id, 'bill', 'BILL-'),
                 'subtotal' => $subtotal,
                 'discount' => $billDiscount,
                 'tax' => $billTax,
@@ -178,9 +172,6 @@ class OrderController extends Controller
         }
 
         DB::transaction(function () use ($order, $payload, $previousStatus, $request): void {
-            if (($payload['status'] ?? null) === 'completed' && $previousStatus !== 'completed') {
-                $this->orderInventory->consume($order, $request->user()->id);
-            }
             $order->update($payload);
 
             if ($order->status !== $previousStatus) {

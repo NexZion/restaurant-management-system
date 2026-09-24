@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GenerateOrderBillRequest;
 use App\Models\Order;
 use App\Models\OrderBill;
-use App\Services\DocumentSequenceService;
+use App\Models\DocumentSequence;
 
 class OrderBillController extends Controller
 {
-    public function __construct(private DocumentSequenceService $sequences) {}
-
     public function generateBill(GenerateOrderBillRequest $request, Order $order)
     {
         $validated = $request->validated();
@@ -50,7 +48,7 @@ class OrderBillController extends Controller
 
             'order_id' => $order->id,
 
-            'bill_number' => $this->sequences->next($order->branch_id, 'bill', 'BILL-'),
+            'bill_number' => DocumentSequence::nextNumber($order->branch_id, 'bill', 'BILL-'),
 
             'subtotal' => $subtotal,
 
