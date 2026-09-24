@@ -9,14 +9,12 @@ use App\Http\Requests\UpdatePaymentRequest;
 use App\Http\Requests\VoidPaymentRequest;
 use App\Models\OrderBill;
 use App\Models\Payment;
-use App\Services\DocumentSequenceService;
+use App\Models\DocumentSequence;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    public function __construct(private DocumentSequenceService $sequences) {}
-
     public function pay(StorePaymentRequest $request, OrderBill $bill): JsonResponse
     {
         $validated = $request->validated();
@@ -35,7 +33,7 @@ class PaymentController extends Controller
 
             $amountReceived = (float) ($validated['amount_received'] ?? $amountPaid);
             $payment = $lockedBill->payments()->create(array_merge($validated, [
-                'payment_number' => $this->sequences->next($lockedBill->order->branch_id, 'payment', 'PAY-'),
+                'payment_number' => DocumentSequence::nextNumber($lockedBill->order->branch_id, 'payment', 'PAY-'),
                 'payment_method' => $validated['payment_method'] ?? 'configured',
                 'amount_paid' => $amountPaid,
                 'amount_received' => $amountReceived,

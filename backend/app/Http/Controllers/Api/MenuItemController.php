@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreMenuItemRequest;
 use App\Http\Requests\UpdateMenuItemRequest;
-use App\Http\Resources\MenuItemListResource;
 use App\Models\MenuItem;
 
 class MenuItemController extends Controller
@@ -26,7 +25,7 @@ class MenuItemController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => MenuItemListResource::collection($menuItems),
+            'data' => $menuItems,
         ]);
     }
 

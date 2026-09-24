@@ -7,21 +7,12 @@ use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
-use App\Services\CustomerService;
+use Illuminate\Support\Str;
 
 class CustomerController extends Controller
 {
     public function index(IndexFilterRequest $request)
     {
-        $user = $request->user();
-
-        if (! $user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please login first',
-            ], 401);
-        }
-
         $customers = $this->filterAndPaginate(
             Customer::query(),
             $request,
@@ -43,18 +34,23 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-        $customer = app(CustomerService::class)->create($request->validated());
+        $data = $request->validated();
+        $data['uuid'] = (string) Str::uuid();
+        $data['customer_number'] = 'CUS-'.str_pad((string) (Customer::withTrashed()->max('id') + 1), 6, '0', STR_PAD_LEFT);
+        $data['display_name'] ??= trim($data['first_name'].' '.($data['last_name'] ?? ''));
+
+        $customer = Customer::create($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Customer created successfully',
-            'data' => $customer,
+            'data' => $customer->load(['addresses', 'tags']),
         ], 201);
     }
 
     public function show($id)
     {
-        $customer = Customer::find($id);
+        $customer = Customer::with(['addresses', 'tags'])->find($id);
 
         if (! $customer) {
 
@@ -87,7 +83,7 @@ class CustomerController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Customer updated successfully',
-            'data' => $customer,
+            'data' => $customer->fresh(['addresses', 'tags']),
         ]);
     }
 
