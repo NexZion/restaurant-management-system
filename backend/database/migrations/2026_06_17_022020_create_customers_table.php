@@ -12,39 +12,21 @@ return new class extends Migration
 
             $table->id();
 
-            $table->string('customer_code');
-
+            $table->uuid('uuid')->unique();
+            $table->string('customer_number');
             $table->string('first_name');
             $table->string('last_name')->nullable();
-
-            $table->string('email')->nullable();
+            $table->string('display_name')->nullable();
             $table->string('phone')->unique();
-            $table->string('whatsapp')->nullable();
-
-            $table->string('address_line1')->nullable();
-            $table->string('address_line2')->nullable();
-            $table->string('city')->nullable();
-            $table->string('district')->nullable();
-            $table->string('postal_code')->nullable();
-            $table->string('state')->nullable();
-
+            $table->string('secondary_phone')->nullable();
+            $table->string('email')->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('gender', 20)->nullable();
             $table->string('customer_type', 50)->default('regular');
-
-            $table->integer('loyalty_points')->default(0);
-
-            $table->decimal('total_spend', 12, 2)->default(0);
-
-            $table->integer('receipt_count')->default(0);
-
-            $table->timestamp('last_visited_at')->nullable();
-
-            $table->string('id_number')->nullable();
-
-            $table->string('id_type', 50)->nullable();
-
             $table->string('status')->default('active');
-
-            $table->boolean('is_active')->default(true);
+            $table->foreignId('preferred_branch_id')->nullable()->constrained('branches')->nullOnDelete();
+            $table->string('profile_photo')->nullable();
+            $table->text('notes')->nullable();
 
             $table->softDeletes();
 

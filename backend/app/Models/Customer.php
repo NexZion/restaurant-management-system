@@ -4,55 +4,38 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
 
-        'customer_code',
-
+        'uuid',
+        'customer_number',
         'first_name',
         'last_name',
-
-        'email',
+        'display_name',
         'phone',
-        'whatsapp',
-
-        'address_line1',
-        'address_line2',
-        'city',
-        'district',
-        'postal_code',
-        'state',
-
+        'secondary_phone',
+        'email',
+        'date_of_birth',
+        'gender',
         'customer_type',
-
-        'loyalty_points',
-        'total_spend',
-        'receipt_count',
-        'last_visited_at',
-
-        'id_number',
-        'id_type',
-
         'status',
-        'is_active',
+        'preferred_branch_id',
+        'profile_photo',
+        'notes',
     ];
 
-    public static function generateCustomerCode(): string
+    protected function casts(): array
     {
-        $nextNumber = (int) static::withTrashed()->max('id') + 1;
-
-        do {
-            $code = 'CUS-'.str_pad((string) $nextNumber, 6, '0', STR_PAD_LEFT);
-            $nextNumber++;
-        } while (static::withTrashed()->where('customer_code', $code)->exists());
-
-        return $code;
+        return ['date_of_birth' => 'date'];
     }
 
     public function orders()
@@ -64,4 +47,12 @@ class Customer extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function preferredBranch(): BelongsTo { return $this->belongsTo(Branch::class, 'preferred_branch_id'); }
+    public function addresses(): HasMany { return $this->hasMany(CustomerAddress::class); }
+    public function preference(): HasOne { return $this->hasOne(CustomerPreference::class); }
+    public function communicationPreference(): HasOne { return $this->hasOne(CustomerCommunicationPreference::class); }
+    public function notes(): HasMany { return $this->hasMany(CustomerNote::class); }
+    public function tags(): BelongsToMany { return $this->belongsToMany(CustomerTag::class, 'customer_customer_tag'); }
+    public function loyaltyProfile(): HasOne { return $this->hasOne(CustomerLoyaltyProfile::class); }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\IndexFilterRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 use App\Models\Customer;
+use App\Services\CustomerService;
 
 class CustomerController extends Controller
 {
@@ -25,16 +26,12 @@ class CustomerController extends Controller
             Customer::query(),
             $request,
             [
-                'id', 'customer_code', 'first_name', 'last_name', 'email', 'phone',
-                'whatsapp', 'address_line1', 'address_line2', 'city', 'district',
-                'postal_code', 'state', 'customer_type', 'loyalty_points', 'total_spend',
-                'receipt_count', 'last_visited_at', 'id_number', 'id_type', 'status',
-                'is_active', 'created_at', 'updated_at',
+                'id', 'uuid', 'customer_number', 'first_name', 'last_name', 'display_name',
+                'email', 'phone', 'secondary_phone', 'customer_type', 'status',
+                'preferred_branch_id', 'created_at', 'updated_at',
             ],
             [
-                'customer_code', 'first_name', 'last_name', 'email', 'phone', 'whatsapp',
-                'address_line1', 'address_line2', 'city', 'district', 'postal_code',
-                'state', 'id_number', 'id_type',
+                'customer_number', 'first_name', 'last_name', 'display_name', 'email', 'phone', 'secondary_phone',
             ],
         );
 
@@ -46,10 +43,7 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-        $data = $request->validated();
-        $data['customer_code'] = Customer::generateCustomerCode();
-
-        $customer = Customer::create($data);
+        $customer = app(CustomerService::class)->create($request->validated());
 
         return response()->json([
             'success' => true,
@@ -109,10 +103,7 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $customer->update([
-            'is_active' => false,
-            'status' => 'inactive',
-        ]);
+        $customer->update(['status' => 'inactive']);
 
         $customer->delete();
 

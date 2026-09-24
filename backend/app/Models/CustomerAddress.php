@@ -4,10 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerAddress extends Model
 {
-    protected $fillable = ['customer_id', 'label', 'contact_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country', 'latitude', 'longitude', 'delivery_instructions', 'is_default'];
+    use SoftDeletes;
+
+    protected $fillable = ['uuid', 'customer_id', 'address_type', 'label', 'recipient_name', 'phone', 'address_line_1', 'address_line_2', 'city', 'district', 'province', 'postal_code', 'country', 'latitude', 'longitude', 'delivery_instructions', 'is_default'];
 
     protected function casts(): array
     {
