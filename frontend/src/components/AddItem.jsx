@@ -53,7 +53,7 @@ import { storageUrl } from '../utils/storageUrl'
 
 // ─── Default empty-state icon ─────────────────────────────────────────────────
 const DefaultEmptyIcon = () => (
-    <svg className="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-10 h-10 text-gray-300 dark:text-[#62666D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
     </svg>
@@ -114,10 +114,10 @@ export const ImageGridField = ({
     }
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
             {/* Top bar */}
             <div className="flex items-center justify-between">
-                {label && <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>}
+                {label && <span className="text-sm font-semibold text-slate-800 dark:text-[#D0D6E0]">{label}</span>}
                 <Button
                     type="button"
                     variant="outlined"
@@ -149,12 +149,12 @@ export const ImageGridField = ({
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onClick={() => fileInputRef.current?.click()}
-                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-[#1F2226] dark:bg-[#121314]/30 dark:hover:border-[#828FFF] dark:hover:bg-[#1A1C20]"
                 >
-                    <svg className="w-10 h-10 text-gray-300 dark:text-gray-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-10 h-10 text-gray-300 dark:text-[#62666D] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 select-none">Drop images here or click to upload</p>
+                    <p className="text-sm text-gray-400 dark:text-[#62666D] select-none">Drop images here or click to upload</p>
                 </div>
             ) : (
                 <div>
@@ -162,7 +162,7 @@ export const ImageGridField = ({
                     <div
                         onDrop={handleDrop}
                         onDragOver={(e) => e.preventDefault()}
-                        className="grid gap-3"
+                        className="grid gap-2.5"
                         style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }}
                     >
                         {value.map((item, index) => {
@@ -186,7 +186,7 @@ export const ImageGridField = ({
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
-                            className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-slate-700 dark:bg-slate-900/40 dark:hover:border-blue-500"
+                            className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#8A8F98] dark:hover:border-[#828FFF] dark:hover:text-[#828FFF]"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -197,8 +197,8 @@ export const ImageGridField = ({
                     </div>
 
                     {/* Footer count */}
-                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-slate-800">
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-[#1F2226]">
+                        <span className="text-xs text-gray-400 dark:text-[#62666D]">
                             {value.length} image{value.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -279,11 +279,11 @@ export const ImageGrid = ({
         : { gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))' }
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
             {/* Header */}
             <div className="flex items-center justify-between">
                 {label && (
-                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-[#D0D6E0]">{label}</span>
                 )}
                 <Button
                     type="button"
@@ -315,19 +315,19 @@ export const ImageGrid = ({
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                     onClick={() => fileInputRef.current?.click()}
-                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-[#1F2226] dark:bg-[#121314]/30 dark:hover:border-[#828FFF] dark:hover:bg-[#1A1C20]"
                 >
-                    <svg className="w-10 h-10 text-gray-300 dark:text-gray-600 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-10 h-10 text-gray-300 dark:text-[#62666D] group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 select-none">Drop images here or click to upload</p>
+                    <p className="text-sm text-gray-400 dark:text-[#62666D] select-none">Drop images here or click to upload</p>
                 </div>
             ) : (
                 <div
                     onDrop={handleDrop}
                     onDragOver={(e) => e.preventDefault()}
                 >
-                    <div className="grid gap-3" style={gridStyle}>
+                    <div className="grid gap-2.5" style={gridStyle}>
                         {value.map((item, index) => (
                             <div key={index} className="flex flex-col gap-1.5">
                                 {/* Rectangular image upload cell */}
@@ -339,13 +339,13 @@ export const ImageGrid = ({
                                 />
                                 {/* Display order input below the image */}
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 shrink-0">Order</span>
+                                    <span className="text-[10px] text-gray-400 dark:text-[#62666D] shrink-0">Order</span>
                                     <input
                                         type="number"
                                         value={item.display_order ?? ''}
                                         min={1}
                                         onChange={(e) => updateOrder(index, e.target.value)}
-                                        className="w-full border border-gray-200 dark:border-gray-700 rounded px-2 py-0.5 text-xs text-center bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:border-blue-400 dark:focus:border-blue-500 transition-colors"
+                                        className="w-full border border-slate-200 dark:border-[#1F2226] rounded px-2 py-0.5 text-xs text-center bg-white dark:bg-[#121314] text-gray-900 dark:text-[#F7F8F8] outline-none focus:border-blue-400 dark:focus:border-[#5E6AD2] transition-colors"
                                     />
                                 </div>
                             </div>
@@ -357,7 +357,7 @@ export const ImageGrid = ({
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-slate-700 dark:bg-slate-900/40 dark:hover:border-blue-500 dark:hover:text-blue-400"
+                                    className="flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 text-slate-400 transition-colors hover:border-blue-400 hover:text-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#8A8F98] dark:hover:border-[#828FFF] dark:hover:text-[#828FFF]"
                                     style={{ aspectRatio: '4/3' }}
                                 >
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -371,8 +371,8 @@ export const ImageGrid = ({
                     </div>
 
                     {/* Footer */}
-                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-slate-800">
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <div className="mt-3 border-t border-slate-100 pt-2 dark:border-[#1F2226]">
+                        <span className="text-xs text-gray-400 dark:text-[#62666D]">
                             {value.length} image{value.length !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -388,7 +388,7 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
     const [orderEditing, setOrderEditing] = useState(false)
 
     return (
-        <div className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
             {/* Thumbnail */}
             {url ? (
                 <img
@@ -407,7 +407,7 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
 
             {/* New badge */}
             {isNew && (
-                <span className="absolute top-1 left-1 text-[10px] font-semibold bg-blue-500 text-white px-1.5 py-0.5 rounded-full leading-none">
+                <span className="absolute top-1 left-1 text-[10px] font-semibold bg-blue-500 text-white px-1.5 py-0.5 rounded-full leading-none dark:bg-[#5E6AD2] dark:text-white">
                     NEW
                 </span>
             )}
@@ -425,14 +425,14 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
             {/* Order edit popover */}
             {orderEditing && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 flex flex-col gap-2 w-28 shadow-xl">
-                        <span className="text-xs text-gray-600 dark:text-gray-300 text-center">Display order</span>
+                    <div className="bg-white dark:bg-[#121314] rounded-lg p-2.5 flex flex-col gap-2 w-28 shadow-lg">
+                        <span className="text-xs text-gray-600 dark:text-[#D0D6E0] text-center">Display order</span>
                         <input
                             type="number"
                             defaultValue={displayOrder ?? 0}
                             min={0}
                             autoFocus
-                            className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-center bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    className="w-full border border-slate-200 dark:border-[#1F2226] rounded px-2 py-1 text-sm text-center bg-white dark:bg-[#161719] text-gray-900 dark:text-[#F7F8F8] dark:focus:border-[#5E6AD2]"
                             onBlur={(e) => { onOrderChange(e.target.value); setOrderEditing(false) }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') { onOrderChange(e.target.value); setOrderEditing(false) }
@@ -449,7 +449,7 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
                     type="button"
                     title="Replace image"
                     onClick={() => replaceRef.current?.click()}
-                    className="p-1.5 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition-colors shadow"
+                    className="p-1.5 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-blue-600 transition-colors shadow dark:bg-[#121314] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20] dark:hover:text-[#F7F8F8]"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -459,7 +459,7 @@ const ImageGridCell = ({ url, isNew, displayOrder, onReplace, onRemove, onOrderC
                     type="button"
                     title="Remove image"
                     onClick={onRemove}
-                    className="p-1.5 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-red-600 transition-colors shadow"
+                    className="p-1.5 rounded-full bg-white/90 hover:bg-white text-gray-700 hover:text-red-600 transition-colors shadow dark:bg-[#121314] dark:text-[#D0D6E0] dark:hover:bg-red-950/40 dark:hover:text-red-400"
                 >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -622,7 +622,7 @@ export const AddItem = ({
                 return (
                     <div className="flex flex-col gap-1 pt-1">
                         {label && (
-                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</span>
+                            <span className="text-xs font-medium text-gray-500 dark:text-[#8A8F98]">{label}</span>
                         )}
                         <ToggleSwitch
                             checked={!!cellValue}
@@ -673,11 +673,11 @@ export const AddItem = ({
     }
 
     return (
-        <div className={`flex flex-col gap-3 ${className}`}>
+        <div className={`flex flex-col gap-2.5 ${className}`}>
 
-            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col items-start gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                 {label
-            ? <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
+            ? <span className="text-sm font-semibold text-slate-800 dark:text-[#D0D6E0]">{label}</span>
                     : <span />
                 }
                 <Button
@@ -698,24 +698,24 @@ export const AddItem = ({
             {value.length === 0 ? (
                 <div
                     onClick={addRow}
-                    className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-slate-700 dark:bg-slate-900/30 dark:hover:border-blue-500 dark:hover:bg-blue-500/10"
+                    className="group flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 py-10 transition-colors hover:border-blue-300 hover:bg-blue-50/60 dark:border-[#1F2226] dark:bg-[#121314]/30 dark:hover:border-[#828FFF] dark:hover:bg-[#1A1C20]"
                 >
                     <div className="group-hover:scale-110 transition-transform duration-200">
                         {emptyIcon || <DefaultEmptyIcon />}
                     </div>
-                    <p className="text-sm text-gray-400 dark:text-gray-500 select-none">{emptyMessage}</p>
+                    <p className="text-sm text-gray-400 dark:text-[#62666D] select-none">{emptyMessage}</p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3.5">
                     {value.map((row, rowIndex) => (
                         <div
                             key={rowIndex}
                             style={isMobile ? {} : rowStyle}
-                            className={`group ${isMobile ? 'flex flex-col gap-3 items-stretch' : ''}`}
+                            className={`group ${isMobile ? 'flex flex-col gap-2.5 items-stretch' : ''}`}
                         >
                             <div
                                 style={isMobile ? {} : { display: 'contents' }}
-                                className={isMobile ? 'flex flex-col gap-3 flex-1 min-w-0 w-full' : ''}
+                                className={isMobile ? 'flex flex-col gap-2.5 flex-1 min-w-0 w-full' : ''}
                             >
                                 {fields.map(field => (
                                     <div key={field.key} className={isMobile ? 'w-full' : ''}>
@@ -746,8 +746,8 @@ export const AddItem = ({
                         </div>
                     ))}
 
-                    <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-slate-800">
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-2 dark:border-[#1F2226]">
+                        <span className="text-xs text-gray-400 dark:text-[#62666D]">
                             {value.length} row{value.length !== 1 ? 's' : ''}
                         </span>
                     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export const Alert = ({
   type = 'info', // 'success', 'error', 'warning', 'info'
@@ -96,8 +97,8 @@ export const Alert = ({
     },
     info: {
       light: 'bg-blue-50 border-blue-500 text-blue-900',
-      dark: 'dark:bg-[#1a232e] dark:border-blue-500 dark:text-blue-200',
-      icon: 'text-blue-600 dark:text-blue-400'
+      dark: 'dark:bg-[#121314] dark:border-[#1F2226] dark:text-[#D0D6E0]',
+      icon: 'text-blue-600 dark:text-[#D0D6E0]'
     }
   }
 
@@ -117,8 +118,8 @@ export const Alert = ({
     >
       <div 
         className={`
-          min-w-[320px] max-w-md px-4 py-3 rounded-xl border shadow-2xl backdrop-blur
-          flex items-start gap-3
+          min-w-[320px] max-w-md px-3.5 py-2.5 rounded-xl border shadow-xl backdrop-blur
+          flex items-start gap-2.5
           ${styles.light} ${styles.dark}
         `}
       >
@@ -137,8 +138,8 @@ export const Alert = ({
           <button
             onClick={handleClose}
             className={`
-              flex-shrink-0 p-1 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors
-              ${styles.icon}
+              flex-shrink-0 p-1 rounded hover:bg-black/10 dark:hover:bg-[#1A1C20] transition-colors
+              ${styles.icon} dark:bg-transparent dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]
             `}
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -250,22 +251,22 @@ export const Dialog = ({
 
   if (!mounted) return null
 
-  return (
+  return createPortal((
     <>
       {/* Backdrop */}
       <div
         className={`
-          fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm transition-opacity duration-300 dark:bg-[#0b0d12]/75
+          fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm transition-opacity duration-300 dark:bg-[#090A0B]/75
           ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}
         onClick={handleClose}
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 pointer-events-none">
         <div
           className={`
-            ${sizeClasses[size]} w-full rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-950/20 dark:border-[#252a35] dark:bg-[#111318] dark:shadow-black/50
+            ${sizeClasses[size]} w-full rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/20 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/50
             flex flex-col max-h-[90vh] pointer-events-auto
             transition-all duration-300 ease-out
             ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
@@ -274,14 +275,14 @@ export const Dialog = ({
         >
           {/* Header */}
           {showHeader && (
-            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-[#252a35]">
-              <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
+            <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-[#252a35]">
+              <h2 className="text-lg font-semibold text-slate-950 dark:text-[#F7F8F8]">
                 {title}
               </h2>
               {showCloseButton && (
                 <button
                   onClick={handleClose}
-                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="rounded-lg bg-transparent p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-[#8A8F98] dark:hover:bg-[#1A1C20] dark:hover:text-white"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -292,17 +293,17 @@ export const Dialog = ({
           )}
 
           {/* Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 text-slate-900 dark:text-white">
+          <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 py-4.5 text-slate-900 dark:text-[#F7F8F8] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {children}
 
             {/* Footer */}
             {showFooter && (
-              <div className="-mx-6 -mb-5 mt-5 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/70 px-6 py-4 dark:border-[#252a35] dark:bg-[#171a21]">
+              <div className="-mx-6 -mb-5 mt-5 flex items-center justify-end gap-2.5 border-t border-slate-100 bg-slate-50/70 px-5 py-3.5 dark:border-[#252a35] dark:bg-[#121314]">
               {showSecondaryButton && (
                 <button
                   onClick={handleSecondaryButtonClick}
                   disabled={secondaryButtonDisabled}
-                  className="inline-flex min-h-10 min-w-28 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#252a35] dark:bg-[#111318] dark:text-white dark:hover:bg-[#1f2430]"
+                  className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#1F2226] dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 >
                   {secondaryButtonText}
                 </button>)
@@ -311,7 +312,7 @@ export const Dialog = ({
                 <button
                   onClick={handlePrimaryButtonClick}
                   disabled={primaryButtonDisabled}
-                  className="inline-flex min-h-10 min-w-28 items-center justify-center rounded-lg border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 dark:border-blue-400 dark:bg-blue-500 dark:hover:bg-blue-400"
+                  className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2] dark:text-white dark:hover:bg-[#7170FF] dark:disabled:bg-[#5E6AD2]/50"
                 >
                   {primaryButtonText}
                 </button>)
@@ -322,7 +323,7 @@ export const Dialog = ({
         </div>
       </div>
     </>
-  )
+  ), document.body)
 }
 
 // Snackbar Component
@@ -409,9 +410,9 @@ export const Snackbar = ({
     >
       <div 
         className="
-          min-w-[320px] max-w-md px-4 py-3 rounded-xl shadow-2xl
-          flex items-center gap-3
-          bg-slate-900 text-white dark:bg-slate-800
+          min-w-[320px] max-w-md px-3.5 py-2.5 rounded-xl shadow-xl
+          flex items-center gap-2.5
+          bg-slate-900 text-white dark:bg-[#161719]
         "
       >
         {/* Message */}
@@ -423,7 +424,7 @@ export const Snackbar = ({
         {action && (
           <button
             onClick={action.onClick}
-            className="px-3 py-1 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded transition-colors"
+            className="px-2.5 py-1 text-xs font-medium text-white bg-white/20 hover:bg-white/30 rounded transition-colors dark:bg-black/15 dark:text-[#F7F8F8] dark:hover:bg-black/25"
           >
             {action.label}
           </button>
@@ -433,7 +434,7 @@ export const Snackbar = ({
         {showCloseButton && (
           <button
             onClick={handleClose}
-            className="flex-shrink-0 p-1 rounded hover:bg-white/20 transition-colors"
+            className="flex-shrink-0 bg-transparent p-1 rounded hover:bg-white/20 transition-colors dark:bg-transparent dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -455,19 +456,19 @@ export const Loading = ({
   const sizeClasses = {
     small: 'w-6 h-6 border-2',
     medium: 'w-12 h-12 border-3',
-    large: 'w-16 h-16 border-4'
+    large: 'w-16 h-14 border-4'
   }
 
   const spinner = (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-2.5">
       <div className={`
         ${sizeClasses[size]}
-        border-gray-300 dark:border-gray-600
-        border-t-blue-600 dark:border-t-blue-500
+        border-slate-200 dark:border-[#1F2226]
+        border-t-blue-600 dark:border-t-white
         rounded-full animate-spin
       `} />
       {text && (
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <p className="text-sm font-medium text-gray-700 dark:text-[#D0D6E0]">
           {text}
         </p>
       )}
@@ -478,7 +479,7 @@ export const Loading = ({
     return (
       <div className={`
         fixed inset-0 z-50 flex items-center justify-center
-        ${overlay ? 'bg-slate-950/55 backdrop-blur-sm' : 'bg-white dark:bg-[#111318]'}
+        ${overlay ? 'bg-slate-950/55 backdrop-blur-sm' : 'bg-white dark:bg-[#121314]'}
       `}>
         {spinner}
       </div>
@@ -550,7 +551,7 @@ export const Drawer = ({
 
       {/* Drawer */}
       <div
-        className="fixed bottom-0 right-0 top-0 z-50 flex flex-col border-l border-slate-200 bg-white shadow-2xl shadow-slate-950/20 dark:border-slate-800 dark:bg-[#111318] dark:shadow-black/50"
+        className="fixed bottom-0 right-0 top-0 z-50 flex flex-col border-l border-slate-200 bg-white shadow-xl shadow-slate-950/20 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/50"
         style={{
           width: isFullScreen ? '100%' : '50%',
           transform: visible ? 'translateX(0)' : 'translateX(100%)',
@@ -559,15 +560,15 @@ export const Drawer = ({
       >
         {/* Header */}
         {showHeader && (
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
-            <h2 className="text-lg font-semibold text-slate-950 dark:text-white">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-[#1F2226]">
+            <h2 className="text-lg font-semibold text-slate-950 dark:text-[#F7F8F8]">
               {title}
             </h2>
             <div className="flex items-center gap-2">
               {/* Fullscreen Toggle Button */}
               <button
                 onClick={toggleFullScreen}
-                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                className="rounded-lg bg-transparent p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-[#8A8F98] dark:hover:bg-[#1A1C20] dark:hover:text-white"
                 title={isFullScreen ? 'Half Screen' : 'Fullscreen'}
               >
                 {isFullScreen ? (
@@ -585,7 +586,7 @@ export const Drawer = ({
               {showCloseButton && (
                 <button
                   onClick={handleClose}
-                  className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="rounded-lg bg-transparent p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-[#8A8F98] dark:hover:bg-[#1A1C20] dark:hover:text-white"
                   title="Close"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -598,7 +599,7 @@ export const Drawer = ({
         )}
 
         {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 text-slate-900 dark:text-white">
+        <div className="flex-1 overflow-y-auto px-5 py-4.5 text-slate-900 dark:text-[#F7F8F8] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {children}
         </div>
       </div>

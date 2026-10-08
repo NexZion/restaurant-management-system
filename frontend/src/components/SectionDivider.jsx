@@ -6,30 +6,30 @@ export const VerticalTabs = ({ tabs, defaultTab = 0 }) => {
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   return (
-    <div className='flex h-full gap-4'>
+    <div className='flex h-full gap-3.5'>
       {/* Vertical Tab Buttons */}
-      <div className='flex min-w-62.5 flex-col gap-2 border-r border-slate-200 pr-4 dark:border-slate-800'>
+      <div className='flex min-w-62.5 flex-col gap-2 border-r border-slate-200 pr-4 dark:border-[#1F2226]'>
         {tabs.map((tab, index) => (
           <button
             key={index}
             onClick={() => setActiveTab(index)}
             className={`
-              px-4 py-3 text-left text-sm font-medium rounded-lg
+              px-3.5 py-2.5 text-left text-sm font-medium rounded-lg
               transition-all duration-200
               ${activeTab === index
-                ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-100 dark:ring-blue-400/20'
-                : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/70'
+                ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-[#5E6AD2]/15 dark:text-[#828FFF] dark:ring-[#5E6AD2]/30'
+                : 'text-slate-700 hover:bg-slate-100 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20] dark:hover:text-[#F7F8F8]'
               }
               ${tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             `}
             disabled={tab.disabled}
           >
-            <div className='flex items-center gap-3'>
+            <div className='flex items-center gap-2.5'>
               {tab.icon && <span className='text-lg'>{tab.icon}</span>}
               <div className='flex-1'>
                 <div className='font-semibold'>{tab.label}</div>
                 {tab.description && (
-                  <div className={`text-xs mt-0.5 ${activeTab === index ? 'text-blue-100 dark:text-gray-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                  <div className={`text-xs mt-0.5 ${activeTab === index ? 'text-blue-100 dark:text-[#F7F8F8]' : 'text-gray-500 dark:text-[#8A8F98]'}`}>
                     {tab.description}
                   </div>
                 )}
@@ -38,8 +38,8 @@ export const VerticalTabs = ({ tabs, defaultTab = 0 }) => {
                 <span className={`
                   px-2 py-0.5 text-xs rounded-full
                   ${activeTab === index 
-                    ? 'bg-white text-blue-600 dark:bg-blue-600 dark:text-white' 
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    ? 'bg-white text-blue-600 dark:bg-[#121314] dark:text-[#F7F8F8]'
+                    : 'bg-gray-200 dark:bg-[#121314] text-gray-700 dark:text-slate-700'
                   }
                 `}>
                   {tab.badge}
@@ -97,11 +97,11 @@ export const SectionDivider = ({
             key={idx}
             type="button"
             onClick={() => setActiveTab(idx)}
-            className={`rounded-t-lg border-b-2 px-4 py-2 text-sm font-semibold transition-all
+            className={`rounded-t-lg border-b-2 px-3.5 py-2 text-sm font-semibold transition-all
               whitespace-nowrap shrink-0 sm:whitespace-normal sm:shrink
               ${activeTab === idx
-                ? 'border-blue-600 bg-blue-50/70 text-blue-700 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-100'
-                : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'}
+                ? 'border-blue-600 bg-blue-50/70 text-blue-700 dark:border-[#5E6AD2] dark:bg-[#5E6AD2]/10 dark:text-[#828FFF]'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:border-transparent dark:bg-transparent dark:text-[#8A8F98] dark:hover:bg-[#1A1C20] dark:hover:text-[#F7F8F8]'}
               ${tab.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
               ${tabClassName}`}
             disabled={tab.disabled}
@@ -114,7 +114,7 @@ export const SectionDivider = ({
               {tab.icon && <span>{tab.icon}</span>}
               <span>{tab.label}</span>
               {tab.badge && (
-                <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${activeTab === idx ? 'bg-blue-100 text-blue-700 dark:bg-blue-400/20 dark:text-blue-100' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                <span className={`ml-1.5 rounded-full px-2 py-0.5 text-xs ${activeTab === idx ? 'bg-blue-100 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]' : 'bg-slate-100 text-slate-700 dark:bg-[#161719] dark:text-[#D0D6E0]'}`}>
                   {tab.badge}
                 </span>
               )}

@@ -13,6 +13,7 @@ import {
   PhoneField,
 } from "../components/DataFields";
 import { Table } from "../components/Tables";
+import { ActionMenu } from "../components/ActionMenu";
 import { Accordion } from "../components/Accordion";
 import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
@@ -141,20 +142,44 @@ export const Users = () => {
         // },
       });
 
-      const usersData = response.data.data.map((user) => ({
-        id: user.id,
-        fullname: user.name,
-        profileImage: user.profileImage,
-        username: user.username,
-        role: user.role ? user.role.name : "N/A",
-        branch: user.branch ? user.branch.name : "N/A",
-        phone: user.phone,
-        email: user.email,
-        status: user.status
-          ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
-          : "N/A",
-        statusChip: <Chip status={user.status || "N/A"} size="small" />,
-      }));
+      const usersData = response.data.data.map((user) => {
+        const imageUrl = getUserImageSrc(user);
+        const name = user.name || user.username || "User";
+        const initials = name
+          .trim()
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0]?.toUpperCase())
+          .join("");
+
+        return {
+          id: user.id,
+          fullname: user.name,
+          profileImage: (
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-600 dark:border-[#1F2226] dark:bg-[#161719] dark:text-[#D0D6E0]">
+              {imageUrl ? (
+                <img
+                  src={imageUrl}
+                  alt={`${name} profile`}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                initials
+              )}
+            </div>
+          ),
+          username: user.username,
+          role: user.role ? user.role.name : "N/A",
+          branch: user.branch ? user.branch.name : "N/A",
+          phone: user.phone,
+          email: user.email,
+          status: user.status
+            ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
+            : "N/A",
+          statusChip: <Chip status={user.status || "N/A"} size="small" />,
+        };
+      });
 
       setUsers(usersData);
     } catch (error) {
@@ -184,9 +209,9 @@ export const Users = () => {
         address: user.address || "",
         roleOption: user.role_id || "",
         branchOption: user.branch_id || "",
-        statusOption: user.status || "Active",
+        statusOption: (user.status || "active").toLowerCase(),
         accessLevel: user.accessLevel || "5",
-        uploadedImage: user.profileImage || null,
+        uploadedImage: user.image || user.profileImage || null,
       });
 
       setShowAddUser(true);
@@ -197,6 +222,7 @@ export const Users = () => {
 
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
 
   const setFieldError = (field, message) => {
     setFieldErrors((prev) => {
@@ -338,36 +364,68 @@ export const Users = () => {
     if (!validateSubmit()) return;
 
     setIsSubmitting(true);
+    try {
+      const userData = new FormData();
+      const fields = {
+        name: formData.fullname,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        whatsapp: formData.whatsapp,
+        dob: formData.dob,
+        address: formData.address,
+        role_id: formData.roleOption,
+        branch_id: formData.branchOption,
+        status: formData.statusOption.toLowerCase(),
+      };
 
-    const user = {
-      name: formData.fullname,
-      username: formData.username,
-      email: formData.email,
-      phone: formData.phone,
-      whatsapp: formData.whatsapp,
-      dob: formData.dob,
-      address: formData.address,
-      role_id: formData.roleOption,
-      branch_id: formData.branchOption,
-      status: formData.statusOption,
-      accessLevel: formData.accessLevel,
-      profileImage: formData.uploadedImage,
-      authType: shouldValidatePin ? "pin" : "password",
-      password: formData.password,
-    };
+      Object.entries(fields).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) userData.append(key, value);
+      });
 
-    console.log("Submitted user:", user);
-    if (isEditMode) {
-      console.log("Editing user with ID:", editingUser.id);
-      await api.put(`/users/${editingUser.id}`, user);
-    } else {
-      await api.post("/users", user);
+      if (!isEditMode || formData.password) {
+        userData.append("password", formData.password);
+      }
+      if (formData.pin) userData.append("pin", formData.pin);
+
+      if (formData.uploadedImage instanceof File) {
+        userData.append("image", formData.uploadedImage);
+      } else if (isEditMode && !formData.uploadedImage && editingUser?.image) {
+        userData.append("remove_image", "1");
+      }
+
+      const uploadConfig = {
+        headers: { "Content-Type": "multipart/form-data" },
+      };
+
+      if (isEditMode) {
+        userData.append("_method", "PUT");
+        await api.post(`/users/${editingUser.id}`, userData, uploadConfig);
+      } else {
+        await api.post("/users", userData, uploadConfig);
+      }
+
+      setIsEditMode(false);
+      resetAddUserForm();
+      setShowAddUser(false);
+      fetchUsers();
+    } catch (error) {
+      const validationErrors = error.response?.data?.errors;
+      if (validationErrors) {
+        setFieldErrors((current) => ({
+          ...current,
+          ...Object.fromEntries(
+            Object.entries(validationErrors).map(([field, messages]) => [
+              field === "image" ? "image" : field,
+              Array.isArray(messages) ? messages[0] : messages,
+            ]),
+          ),
+        }));
+      }
+      console.error("Failed to save user:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
-    setIsEditMode(false);
-    resetAddUserForm();
-    fetchUsers();
-    setShowAddUser(false);
   };
 
   const handleDeleteUser = async (row) => {
@@ -433,7 +491,7 @@ export const Users = () => {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
+        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-[#F7F8F8]">
           Users
         </h1>
 
@@ -465,7 +523,7 @@ export const Users = () => {
           isOpen={showAddUser}
           onClose={handleCloseAddUser}
           title={isEditMode ? "Edit User" : "Add User"}
-          size="large"
+          size="medium"
           primaryButtonText={
             isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
           }
@@ -475,63 +533,66 @@ export const Users = () => {
           onPrimaryButtonClick={handleSubmitUser}
           onSecondaryButtonClick={handleCloseAddUser}
         >
-          <ImageUploadField
-            required
-            label="Profile Image"
-            value={formData.uploadedImage}
-            onChange={(image) =>
-              setFormData({ ...formData, uploadedImage: image })
-            }
-            helperText="Upload a profile image (JPG, PNG)"
-            accept="image/*"
-            variant="outlined"
-            fullWidth
-          />
-          <div className="grid grid-cols-[5fr_1fr] gap-4 mb-4 pt-4">
-            <TextField
+          <div className="grid grid-cols-1 items-start gap-4 pb-4 sm:grid-cols-[120px_minmax(0,1fr)]">
+            <ImageUploadField
               required
-              label="Full Name"
-              value={formData.fullname}
-              onChange={(e) => {
-                setFormData({ ...formData, fullname: e.target.value });
-                setFieldError("fullname", "");
-              }}
-              helperText={fieldErrors.fullname || ""}
-              error={!!fieldErrors.fullname}
+              label="Profile Image"
+              value={formData.uploadedImage}
+              onChange={(image) =>
+                setFormData({ ...formData, uploadedImage: image })
+              }
+              helperText={fieldErrors.image || "Upload a profile image"}
+              error={!!fieldErrors.image}
+              accept="image/jpeg,image/png,image/webp"
+              variant="outlined"
+              fullWidth
             />
-            <SelectField
-              label="Access Level"
-              value={formData.accessLevel}
-              options={accessLevels}
-              onChange={(e) => {
-                setFormData({ ...formData, accessLevel: e.target.value });
-              }}
-            />
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField
+                required
+                label="Full Name"
+                value={formData.fullname}
+                onChange={(e) => {
+                  setFormData({ ...formData, fullname: e.target.value });
+                  setFieldError("fullname", "");
+                }}
+                helperText={fieldErrors.fullname || ""}
+                error={!!fieldErrors.fullname}
+                className="sm:col-span-2"
+              />
+              <TextField
+                required
+                label="Username"
+                value={formData.username}
+                onChange={(e) => handleUsernameChange(e.target.value)}
+                helperText={fieldErrors.username || ""}
+                error={!!fieldErrors.username}
+              />
+              <SelectField
+                label="Access Level"
+                value={formData.accessLevel}
+                options={accessLevels}
+                onChange={(e) => {
+                  setFormData({ ...formData, accessLevel: e.target.value });
+                }}
+              />
+              <TextField
+                required
+                label="Email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => {
+                  setFormData({ ...formData, email: e.target.value });
+                  setFieldError("email", "");
+                }}
+                helperText={fieldErrors.email || ""}
+                error={!!fieldErrors.email}
+                className="sm:col-span-2"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 w-full pb-4">
-            <TextField
-              required
-              fullWidth={true}
-              label="Username"
-              value={formData.username}
-              onChange={(e) => handleUsernameChange(e.target.value)}
-              helperText={fieldErrors.username || ""}
-              error={!!fieldErrors.username}
-            />
-            <TextField
-              required
-              fullWidth={true}
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => {
-                setFormData({ ...formData, email: e.target.value });
-                setFieldError("email", "");
-              }}
-              helperText={fieldErrors.email || ""}
-              error={!!fieldErrors.email}
-            />
             <PhoneField
               required
               label="Phone Number"
@@ -775,69 +836,25 @@ export const Users = () => {
           filterable={false}
           pagination={true}
           loading={isUsersLoading}
-          actions={[
+          onRowClick={handleViewUser}
+          actionsAlign="right"
+          showActionsHeader={false}
+          actions={(row) => [
             {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
+              label: "User actions",
+              render: () => (
+                <ActionMenu
+                  label={`Actions for ${row.fullname || row.username || "user"}`}
+                  items={[
+                    { label: "Edit user", onClick: () => handleEditUser(row) },
+                    {
+                      label: "Delete user",
+                      variant: "danger",
+                      onClick: () => handleDeleteUser(row),
+                    },
+                  ]}
+                />
               ),
-              label: "Edit",
-              onClick: handleEditUser,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              ),
-              label: "Delete",
-              onClick: handleDeleteUser,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              ),
-              label: "View",
-              onClick: handleViewUser,
             },
           ]}
         />

@@ -14,13 +14,13 @@ export const Accordion = ({
 
   // Default icons
   const defaultOpenIcon = (
-    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600 dark:text-[#8A8F98]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
     </svg>
   )
 
   const defaultCloseIcon = (
-    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600 dark:text-[#8A8F98]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   )
@@ -43,22 +43,22 @@ export const Accordion = ({
 
   const variantStyles = {
     outlined: {
-      container: 'overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
-      item: 'border-b border-slate-100 last:border-b-0 dark:border-slate-800',
-      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
-      content: 'bg-white dark:bg-[#111318]'
+      container: 'overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]',
+      item: 'border-b border-slate-100 last:border-b-0 dark:border-[#1F2226]',
+      header: 'hover:bg-slate-50 dark:bg-transparent dark:hover:bg-[#1A1C20]/60',
+      content: 'bg-white dark:bg-[#121314]'
     },
     filled: {
       container: '',
-      item: 'mb-2 last:mb-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
-      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
-      content: 'bg-white dark:bg-[#111318]'
+      item: 'mb-2 last:mb-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]',
+      header: 'hover:bg-slate-50 dark:bg-transparent dark:hover:bg-[#1A1C20]/60',
+      content: 'bg-white dark:bg-[#121314]'
     },
     standard: {
       container: '',
-      item: 'mb-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]',
-      header: 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
-      content: 'bg-white dark:bg-[#111318]'
+      item: 'mb-4 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]',
+      header: 'hover:bg-slate-50 dark:bg-transparent dark:hover:bg-[#1A1C20]/60',
+      content: 'bg-white dark:bg-[#121314]'
     }
   }
 
@@ -68,7 +68,7 @@ export const Accordion = ({
     <div className="flex flex-col gap-2">
       {/* Group Title */}
       {groupTitle && (
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F7F8F8] mb-2">
           {groupTitle}
         </h3>
       )}
@@ -87,7 +87,7 @@ export const Accordion = ({
                 onClick={() => handleToggle(index)}
                 disabled={item.disabled}
                 className={`
-                  w-full px-4 py-3 flex items-center justify-between gap-3 text-left transition-colors
+                  w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left transition-colors
                   ${styles.header}
                   ${item.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
@@ -100,7 +100,7 @@ export const Accordion = ({
                 )}
 
                 {/* Title */}
-                <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-white">
+                <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-[#F7F8F8]">
                   {item.title}
                 </div>
 
@@ -119,7 +119,7 @@ export const Accordion = ({
                   ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
                 `}
               >
-                <div className={`${styles.content} px-3 py-4 text-sm text-slate-700 dark:text-slate-300 sm:px-6 sm:py-6`}>
+                <div className={`${styles.content} px-2.5 py-3.5 text-sm text-slate-700 dark:text-[#D0D6E0] sm:px-5 sm:py-5`}>
                   {item.content}
                 </div>
               </div>
@@ -143,13 +143,13 @@ export const AccordionItem = ({
   closeIcon
 }) => {
   const defaultOpenIcon = (
-    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600 dark:text-[#8A8F98]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
     </svg>
   )
 
   const defaultCloseIcon = (
-    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 text-gray-600 dark:text-[#8A8F98]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   )
@@ -157,14 +157,14 @@ export const AccordionItem = ({
   const icon = isExpanded ? (openIcon || defaultOpenIcon) : (closeIcon || defaultCloseIcon)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-[#111318]">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
       <button
         type='button'
         onClick={onToggle}
         disabled={disabled}
         className={`
-          w-full px-4 py-3 flex items-center justify-between gap-3 text-left transition-colors
-          hover:bg-slate-50 dark:hover:bg-slate-800/60
+          w-full px-3.5 py-2.5 flex items-center justify-between gap-2.5 text-left transition-colors
+          hover:bg-slate-50 dark:bg-transparent dark:hover:bg-[#1A1C20]/60
           ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         `}
       >
@@ -174,7 +174,7 @@ export const AccordionItem = ({
           </div>
         )}
 
-        <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-white">
+        <div className="flex-1 text-sm font-semibold text-slate-950 dark:text-[#F7F8F8]">
           {title}
         </div>
 
@@ -191,7 +191,7 @@ export const AccordionItem = ({
           ${isExpanded ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}
         `}
       >
-        <div className="bg-white px-4 py-3 text-sm text-slate-700 dark:bg-[#111318] dark:text-slate-300">
+        <div className="bg-white px-3.5 py-2.5 text-sm text-slate-700 dark:bg-[#121314] dark:text-[#D0D6E0]">
           {content}
         </div>
       </div>

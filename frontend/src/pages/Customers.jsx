@@ -300,10 +300,15 @@ export const Customers = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-          Customers
-        </h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
+            Customers
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
+            Keep customer profiles and contact details up to date.
+          </p>
+        </div>
 
         <Button
           variant="primary"
@@ -348,7 +353,7 @@ export const Customers = () => {
               {
                 title: "Basic Information",
                 content: (
-                  <div className="grid grid-cols-2 gap-4 w-full pb-4">
+                  <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
                     <SelectField
                       label="Customer Type"
                       value={formData.customer_type}
@@ -381,7 +386,7 @@ export const Customers = () => {
               {
                 title: "Personal Information",
                 content: (
-                  <div className="grid grid-cols-2 gap-4 w-full pb-4">
+                  <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
                     <TextField
                       required
                       label="First Name"
@@ -525,7 +530,7 @@ export const Customers = () => {
                       resize="vertical"
                       maxLength={50}
                     />
-                    <div className="grid grid-cols-2 gap-4 w-full pb-4">
+                    <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
                       <TextField
                         label="City"
                         value={formData.city}
@@ -591,7 +596,7 @@ export const Customers = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="flex  gap-4 w-full">
+              <div className="flex  gap-3.5 w-full">
                 <SelectField
                   label="district"
                   value={formData.district}
