@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useMemo, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+import { storageUrl } from "../utils/storageUrl";
 
 export const TextField = ({
   label,
@@ -23,8 +24,8 @@ export const TextField = ({
   const [showPassword, setShowPassword] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/10" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2] focus:ring-2 focus:ring-blue-500/10 dark:focus:ring-[#5E6AD2]/20"} rounded-lg`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/10" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2] focus:ring-2 focus:ring-blue-500/10 dark:focus:ring-[#5E6AD2]/20"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg`,
     standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
@@ -40,8 +41,8 @@ export const TextField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
+              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
             {label}
@@ -54,7 +55,7 @@ export const TextField = ({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-transparent p-1 text-gray-500 transition-colors hover:text-gray-700 dark:bg-transparent dark:text-[#8A8F98] dark:hover:bg-[#1A1C20]"
             tabIndex={-1}
           >
             {showPassword ? (
@@ -109,15 +110,15 @@ export const TextField = ({
           onBlur={() => setIsFocused(false)}
           className={`
             w-full text-sm
-            ${label ? "py-4" : "py-3"}
-            ${isPasswordField && showPasswordToggle ? "px-3 pr-10" : "px-3"}
-            bg-white dark:bg-[#111318]
-            text-slate-950 dark:text-white
-            placeholder:text-slate-400 dark:placeholder:text-slate-500
+            ${label ? "py-3" : "py-2"}
+            ${isPasswordField && showPasswordToggle ? "px-2.5 pr-10" : "px-2.5"}
+            bg-white dark:bg-[#121314]
+            text-slate-950 dark:text-[#F7F8F8]
+            placeholder:text-slate-400 dark:placeholder:text-[#62666D]
             outline-none
-            transition-all duration-200
+            transition-all duration-150
             ${variantStyles[variant]}
-            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+            ${disabled ? "opacity-55 cursor-not-allowed" : "hover:border-slate-300 dark:hover:border-white/8"}
           `}
         />
       </div>
@@ -125,7 +126,7 @@ export const TextField = ({
       {/* Helper Text / Error Message */}
       {helperText && (
         <span
-          className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -178,15 +179,20 @@ export const ImageUploadField = ({
     if (inputRef.current) inputRef.current.click();
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL + "/storage/";
-
-  const avatarUrl = image
-    ? typeof image === "string"
-      ? image.startsWith("http")
+  const avatarUrl = useMemo(() => {
+    if (!image) return null;
+    if (typeof image === "string") {
+      return /^(https?:|blob:|data:)/i.test(image)
         ? image
-        : BASE_URL + image
-      : URL.createObjectURL(image)
-    : null;
+        : storageUrl(image);
+    }
+    return URL.createObjectURL(image);
+  }, [image]);
+
+  useEffect(() => {
+    if (!avatarUrl || typeof image === "string") return undefined;
+    return () => URL.revokeObjectURL(avatarUrl);
+  }, [avatarUrl, image]);
 
   return (
     <div
@@ -194,7 +200,7 @@ export const ImageUploadField = ({
     >
       {label && (
         <label
-          className={`text-sm font-medium mb-1 ${error ? "text-red-500" : "text-gray-900 dark:text-white"}`}
+          className={`text-sm font-medium mb-1 ${error ? "text-red-500" : "text-gray-900 dark:text-[#F7F8F8]"}`}
         >
           {label}
           {required && " *"}
@@ -205,7 +211,7 @@ export const ImageUploadField = ({
         style={{ width: avatarSize, height: avatarSize }}
       >
         <div
-          className={`flex items-center justify-center overflow-hidden rounded-full border-2 shadow-sm ${error ? "border-red-500" : "border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900"}`}
+          className={`flex items-center justify-center overflow-hidden rounded-full border-2 shadow-sm ${error ? "border-red-500" : "border-slate-300 bg-slate-50 dark:border-[#1F2226] dark:bg-[#121314]"}`}
           style={{ width: avatarSize, height: avatarSize }}
         >
           {avatarUrl ? (
@@ -222,7 +228,7 @@ export const ImageUploadField = ({
           <button
             type="button"
             onClick={handleUploadClick}
-            className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-full bg-slate-950/55 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100"
+            className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center rounded-full bg-slate-950/55 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 dark:bg-[#121314]/80 dark:text-[#F7F8F8]"
             tabIndex={-1}
             style={{ width: avatarSize, height: avatarSize }}
           >
@@ -248,7 +254,7 @@ export const ImageUploadField = ({
           <button
             type="button"
             onClick={handleRemove}
-            className="absolute -right-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-xs text-white shadow-lg transition-colors hover:bg-red-600 dark:border-slate-900"
+            className="absolute -right-2 -top-2 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-red-500 text-xs text-white shadow-lg transition-colors hover:bg-red-600 dark:border-[#1F2226] dark:bg-red-600 dark:text-[#F7F8F8] dark:hover:bg-red-500"
             tabIndex={-1}
             title="Remove image"
           >
@@ -267,7 +273,7 @@ export const ImageUploadField = ({
       </div>
       {helperText && (
         <span
-          className={`text-xs text-center ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs text-center ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -320,7 +326,7 @@ export const ImageGridUploadField = ({
     <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
       {label && (
         <label
-          className={`text-xs font-medium ${error ? "text-red-500" : "text-gray-600 dark:text-gray-400"}`}
+          className={`text-xs font-medium ${error ? "text-red-500" : "text-gray-600 dark:text-[#8A8F98]"}`}
         >
           {label}
           {required && " *"}
@@ -328,8 +334,8 @@ export const ImageGridUploadField = ({
       )}
 
       <div
-        className={`group relative overflow-hidden rounded-lg border-2 bg-slate-50 shadow-sm dark:bg-slate-900
-          ${error ? "border-red-500" : "border-slate-200 dark:border-slate-700"}
+        className={`group relative overflow-hidden rounded-lg border-2 bg-slate-50 shadow-sm dark:bg-[#121314]
+          ${error ? "border-red-500" : "border-slate-200 dark:border-[#1F2226]"}
           ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
         `}
         style={{ aspectRatio }}
@@ -345,7 +351,7 @@ export const ImageGridUploadField = ({
             }}
           />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-slate-300 dark:text-slate-600">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 text-slate-300 dark:text-[#62666D]">
             <svg
               className="w-8 h-8"
               fill="none"
@@ -414,7 +420,7 @@ export const ImageGridUploadField = ({
 
       {helperText && (
         <span
-          className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -443,8 +449,8 @@ export const NumberField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
@@ -552,8 +558,8 @@ export const NumberField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
+              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
             {label}
@@ -562,15 +568,15 @@ export const NumberField = ({
         )}
 
         {/* Custom Increment/Decrement Buttons */}
-        <div className="absolute bottom-0 right-0 top-0 flex flex-col overflow-hidden border-l border-slate-200 dark:border-slate-700">
+        <div className="absolute bottom-0 right-0 top-0 flex flex-col overflow-hidden border-l border-slate-200 dark:border-[#1F2226]">
           <button
             type="button"
             onClick={handleIncrement}
             disabled={disabled}
-            className="flex-1 px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800"
+            className="flex-1 bg-transparent px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
           >
             <svg
-              className="w-3 h-3 text-gray-600 dark:text-gray-400"
+              className="w-3 h-3 text-gray-600 dark:text-[#8A8F98]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -583,15 +589,15 @@ export const NumberField = ({
               />
             </svg>
           </button>
-          <div className="h-px bg-slate-200 dark:bg-slate-700" />
+          <div className="h-px bg-slate-200 dark:bg-[#1A1C20]" />
           <button
             type="button"
             onClick={handleDecrement}
             disabled={disabled}
-            className="flex-1 px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-slate-800"
+            className="flex-1 bg-transparent px-2 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
           >
             <svg
-              className="w-3 h-3 text-gray-600 dark:text-gray-400"
+              className="w-3 h-3 text-gray-600 dark:text-[#8A8F98]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -620,10 +626,10 @@ export const NumberField = ({
           onBlur={handleBlur}
           className={`
             w-full pr-10 pl-3 text-sm
-            ${label ? "py-4" : "py-3"}
-            bg-white dark:bg-[#111318]
-            text-slate-950 dark:text-white
-            placeholder:text-slate-400 dark:placeholder:text-slate-500
+            ${label ? "py-3" : "py-2"}
+            bg-white dark:bg-[#121314]
+            text-slate-950 dark:text-[#F7F8F8]
+            placeholder:text-slate-400 dark:placeholder:text-[#62666D]
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -636,7 +642,7 @@ export const NumberField = ({
       {/* Helper Text / Error Message */}
       {helperText && (
         <span
-          className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -675,8 +681,8 @@ export const SelectField = ({
   const selectSearchRef = useRef(null);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-blue-400" : "border-slate-300 dark:border-slate-700"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-blue-400" : "border-slate-200 dark:border-slate-700"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-200 dark:border-[#1F2226]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : isOpen ? "border-b-blue-500" : "border-b-slate-300 dark:border-b-slate-700"}`,
   };
 
@@ -684,7 +690,7 @@ export const SelectField = ({
     small: "w-6 h-6",
     medium: "w-9 h-9",
     large: "w-12 h-12",
-    xlarge: "w-16 h-16",
+    xlarge: "w-16 h-14",
   };
   const selectedImageSizes = {
     small: "w-5 h-5",
@@ -693,16 +699,16 @@ export const SelectField = ({
     xlarge: "w-12 h-12",
   };
   const selectImageHeights = {
-    small: "min-h-14",
-    medium: "min-h-16",
-    large: "min-h-20",
-    xlarge: "min-h-24",
+    small: "min-h-11",
+    medium: "min-h-13",
+    large: "min-h-16",
+    xlarge: "min-h-18",
   };
   const optionRowPadding = {
-    small: "py-2",
-    medium: "py-3",
-    large: "py-3",
-    xlarge: "py-4",
+    small: "py-1.5",
+    medium: "py-2",
+    large: "py-2",
+    xlarge: "py-3",
   };
   const imageSizeClass = optionImageSizes[optionImageSize] || optionImageSizes.medium;
   const selectedImageSizeClass =
@@ -724,7 +730,7 @@ export const SelectField = ({
       <img
         src={image}
         alt={option?.imageAlt || option?.label || ""}
-        className={`${sizeClass} rounded object-cover flex-shrink-0 bg-gray-100 dark:bg-gray-800`}
+        className={`${sizeClass} rounded object-cover flex-shrink-0 bg-slate-50 dark:bg-[#161719]`}
         loading="lazy"
       />
     );
@@ -824,8 +830,8 @@ export const SelectField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${hasValue || isOpen ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isOpen ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
+              ${hasValue || isOpen ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isOpen ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
             {label}
@@ -842,9 +848,9 @@ export const SelectField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-3 text-sm text-left flex items-center justify-between gap-2
-            ${hasOptionImages ? `${selectImageHeightClass} py-2` : label ? "min-h-14 py-2" : "py-3"}
-            bg-white dark:bg-[#111318]
+            w-full px-2.5 text-sm text-left flex items-center justify-between gap-2
+            ${hasOptionImages ? `${selectImageHeightClass} py-1.5` : label ? "min-h-12 py-1.5" : "py-2"}
+            bg-white text-slate-950 dark:bg-[#121314] dark:text-[#F7F8F8]
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -856,7 +862,7 @@ export const SelectField = ({
               selectedOptions.map((opt) => (
                 <div
                   key={opt.value}
-                  className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:border-blue-400/20 dark:bg-blue-500/15 dark:text-blue-100"
+                  className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:border-[#5E6AD2]/5 dark:bg-[#121314] dark:text-[#D0D6E0]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {renderOptionImage(opt, "w-5 h-5")}
@@ -864,7 +870,7 @@ export const SelectField = ({
                   <button
                     type="button"
                     onClick={(e) => handleRemoveChip(opt.value, e)}
-                    className="rounded-full p-0.5 transition-colors hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                    className="rounded-full bg-transparent p-0.5 transition-colors hover:bg-blue-100 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                   >
                     <svg
                       className="w-3 h-3"
@@ -882,7 +888,7 @@ export const SelectField = ({
               ))
             ) : (
               <span
-                className={`inline-flex min-w-0 items-center gap-2 ${hasValue ? "text-slate-950 dark:text-white" : "text-slate-400 dark:text-slate-500"}`}
+                className={`inline-flex min-w-0 items-center gap-2 ${hasValue ? "text-slate-950 dark:text-[#F7F8F8]" : "text-slate-400 dark:text-[#F7F8F8]0"}`}
               >
                 {!multiple && selectedOption ? (
                   <>
@@ -896,7 +902,7 @@ export const SelectField = ({
             )}
           </div>
           <svg
-            className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 dark:text-slate-400 ${isOpen ? "rotate-180" : ""}`}
+            className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-200 dark:text-[#8A8F98] ${isOpen ? "rotate-180" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -926,7 +932,7 @@ export const SelectField = ({
 
               {/* Options List */}
               <div
-                className="fixed z-9999 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40"
+                className="fixed z-9999 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/40"
                 style={{
                   left: `${dropdownPosition.left}px`,
                   top: `${dropdownPosition.top}px`,
@@ -937,7 +943,7 @@ export const SelectField = ({
               >
                 {/* Search Input (only if searchable) */}
                 {searchable && (
-                  <div className="sticky top-0 flex items-center gap-2 border-b border-slate-100 bg-white p-2 dark:border-slate-800 dark:bg-[#171a21]">
+                  <div className="sticky top-0 flex items-center gap-2 border-b border-slate-100 bg-white p-2 dark:border-[#1F2226] dark:bg-[#121314]">
                     {/* Expands */}
                     <div className="relative flex-1 min-w-0">
                       <svg
@@ -960,7 +966,7 @@ export const SelectField = ({
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search..."
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
+                        className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#F7F8F8] dark:focus:border-[#5E6AD2]"
                         onClick={(e) => e.stopPropagation()}
                       />
                     </div>
@@ -987,8 +993,8 @@ export const SelectField = ({
                 {/* Options Container */}
                 <div>
                   {filteredOptions.length === 0 ? (
-                    <div className="px-4 py-3">
-                      <div className="text-sm text-gray-400 dark:text-gray-500">
+                    <div className="px-3.5 py-2.5">
+                      <div className="text-sm text-gray-400 dark:text-[#62666D]">
                         {searchQuery
                           ? "No results found"
                           : "No options available"}
@@ -1000,11 +1006,11 @@ export const SelectField = ({
                         key={option.value}
                         onClick={() => handleSelect(option.value)}
                         className={`
-                        flex cursor-pointer items-center gap-3 px-4 ${getOptionImage(option) ? optionRowPaddingClass : "py-3"} text-sm transition-colors duration-150
+                        flex cursor-pointer items-center gap-2.5 px-3.5 ${getOptionImage(option) ? optionRowPaddingClass : "py-2.5"} text-sm transition-colors duration-150
                         ${
                           isSelected(option.value)
-                            ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100"
-                            : "text-slate-900 hover:bg-slate-50 dark:text-white dark:hover:bg-slate-800"
+                            ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]"
+                            : "text-slate-900 hover:bg-slate-50 dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]"
                         }
                       `}
                       >
@@ -1014,13 +1020,13 @@ export const SelectField = ({
                             className={`w-4 h-4 border-2 rounded flex items-center justify-center flex-shrink-0 transition-colors
                           ${
                             isSelected(option.value)
-                              ? "bg-blue-600 border-blue-600 dark:bg-blue-400 dark:border-blue-400"
-                              : "border-slate-300 dark:border-slate-600"
+                              ? "bg-blue-600 border-blue-600 dark:bg-[#5E6AD2] dark:border-[#5E6AD2]"
+                              : "border-slate-300 dark:border-[#1F2226]"
                           }`}
                           >
                             {isSelected(option.value) && (
                               <svg
-                                className="w-3 h-3 text-white dark:text-gray-900"
+                                className="w-3 h-3 text-white dark:text-white"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                               >
@@ -1048,7 +1054,7 @@ export const SelectField = ({
       {/* Helper Text / Error Message */}
       {helperText && (
         <span
-          className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -1095,17 +1101,17 @@ export const CheckboxField = ({
               flex h-5 w-5 items-center justify-center rounded-md border-2 shadow-sm transition-all duration-200
               ${
                 checked
-                  ? "border-blue-600 bg-blue-600 dark:border-blue-400 dark:bg-blue-400"
+                  ? "border-blue-600 bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2]"
                   : error
                     ? "border-red-500"
-                    : "border-slate-300 bg-white hover:border-blue-500 dark:border-slate-600 dark:bg-[#111318] dark:hover:border-blue-400"
+                    : "border-slate-300 bg-white hover:border-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:hover:border-[#828FFF]"
               }
               ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}
           >
             {checked && (
               <svg
-                className="h-3.5 w-3.5 text-white"
+                className="h-3.5 w-3.5 text-white dark:text-white"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -1123,7 +1129,7 @@ export const CheckboxField = ({
             onClick={handleClick}
             className={`
               ml-3 text-sm select-none
-              ${error ? "text-red-500" : "text-slate-900 dark:text-white"}
+              ${error ? "text-red-500" : "text-slate-900 dark:text-[#F7F8F8]"}
               ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}
           >
@@ -1136,7 +1142,7 @@ export const CheckboxField = ({
       {/* Helper Text / Error Message */}
       {helperText && (
         <span
-          className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -1162,7 +1168,7 @@ export const RadioField = ({
       {/* Group Title */}
       {label && (
         <label
-          className={`text-sm font-medium ${error ? "text-red-500" : "text-gray-900 dark:text-white"}`}
+          className={`text-sm font-medium ${error ? "text-red-500" : "text-gray-900 dark:text-[#F7F8F8]"}`}
         >
           {label}
           {required && " *"}
@@ -1171,7 +1177,7 @@ export const RadioField = ({
 
       {/* Radio Options */}
       <div
-        className={`flex ${row ? "flex-row flex-wrap gap-4" : "flex-col gap-2"}`}
+        className={`flex ${row ? "flex-row flex-wrap gap-3.5" : "flex-col gap-2"}`}
       >
         {options.map((option) => {
           const radioId = `radio-${name}-${option.value}`;
@@ -1202,19 +1208,19 @@ export const RadioField = ({
                         }
                   }
                   className={`
-                    flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all duration-200 dark:bg-[#111318]
+                    flex h-5 w-5 items-center justify-center rounded-full border-2 bg-white shadow-sm transition-all duration-200 dark:bg-[#121314]
                     ${
                       isSelected
-                        ? "border-blue-600 dark:border-blue-400"
+                        ? "border-blue-600 dark:border-[#5E6AD2]"
                         : error
                           ? "border-red-500"
-                          : "border-slate-300 hover:border-blue-500 dark:border-slate-600 dark:hover:border-blue-400"
+                          : "border-slate-300 hover:border-blue-500 dark:border-[#1F2226] dark:hover:border-[#828FFF]"
                     }
                     ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                   `}
                 >
                   {isSelected && (
-                    <div className="h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                    <div className="h-2.5 w-2.5 rounded-full bg-blue-600 dark:bg-[#5E6AD2]"></div>
                   )}
                 </div>
               </div>
@@ -1230,7 +1236,7 @@ export const RadioField = ({
                   }
                   className={`
                     ml-3 text-sm select-none
-                    ${error ? "text-red-500" : "text-slate-900 dark:text-white"}
+                    ${error ? "text-red-500" : "text-slate-900 dark:text-[#F7F8F8]"}
                     ${isDisabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
                   `}
                 >
@@ -1245,7 +1251,7 @@ export const RadioField = ({
       {/* Helper Text / Error Message */}
       {helperText && (
         <span
-          className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -1273,55 +1279,55 @@ export const Button = ({
 }) => {
   const cssSize = (value) => typeof value === "number" ? `${value}px` : value;
   const sizeStyles = {
-    small: "px-3 py-1.5 text-xs",
-    medium: "px-4 py-2 text-sm",
-    large: "px-6 py-3 text-base",
+    small: "px-2 py-1 text-xs",
+    medium: "px-3.5 py-1.5 text-xs",
+    large: "px-3.5 py-2 text-sm",
     icon: "p-0 text-sm",
   };
 
   const variantStyles = {
     primary: `
-      bg-blue-600 dark:bg-blue-500
+      bg-blue-600 dark:bg-[#5E6AD2]
       text-white dark:text-white
-      border border-blue-600 dark:border-blue-400
+      border border-blue-600 dark:border-[#5E6AD2]
       shadow-sm shadow-blue-600/20
-      hover:bg-blue-700 dark:hover:bg-blue-400
-      hover:border-blue-700 dark:hover:border-blue-300
+      hover:bg-blue-700 dark:hover:bg-[#7170FF]
+      hover:border-blue-700 dark:hover:border-[#7170FF]
       hover:shadow-md hover:shadow-blue-600/20
-      active:bg-blue-800 dark:active:bg-blue-500
-      disabled:bg-blue-300 dark:disabled:bg-blue-900/60
-      disabled:border-blue-300 dark:disabled:border-blue-900/60
-      disabled:text-white dark:disabled:text-blue-200
+      active:bg-blue-800 dark:active:bg-[#7170FF]
+      disabled:bg-blue-300 dark:disabled:bg-[#5E6AD2]/50
+      disabled:border-blue-300 dark:disabled:border-[#5E6AD2]/50
+      disabled:text-white dark:disabled:text-[#D0D6E0]
     `,
     secondary: `
-      bg-white dark:bg-slate-800
-      text-slate-700 dark:text-slate-100
-      border border-slate-200 dark:border-slate-700
+      bg-white dark:bg-[#161719]
+      text-slate-700 dark:text-[#D0D6E0]
+      border border-slate-200 dark:border-[#1F2226]
       shadow-sm
-      hover:bg-slate-50 dark:hover:bg-slate-700
-      hover:border-slate-300 dark:hover:border-slate-600
-      active:bg-slate-100 dark:active:bg-slate-800
-      disabled:bg-slate-100 dark:disabled:bg-slate-900
-      disabled:text-slate-400 dark:disabled:text-slate-500
+      hover:bg-slate-50 dark:hover:bg-[#1A1C20]
+      hover:border-slate-300 dark:hover:border-white/8
+      active:bg-slate-100 dark:active:bg-[#1F2226]
+      disabled:bg-slate-100 dark:disabled:bg-[#121314]
+      disabled:text-slate-400 dark:disabled:text-[#62666D]
     `,
     outlined: `
-      bg-white/70 dark:bg-transparent
-      text-blue-700 dark:text-blue-300
-      border border-blue-200 dark:border-blue-400/30
+      bg-white dark:bg-transparent
+      text-blue-700 dark:text-[#828FFF]
+      border border-blue-200 dark:border-[#5E6AD2]/40
       shadow-sm
-      hover:bg-blue-50 dark:hover:bg-blue-500/10
-      hover:border-blue-300 dark:hover:border-blue-400/50
-      active:bg-blue-100 dark:active:bg-blue-500/15
-      disabled:border-slate-300 dark:disabled:border-slate-700
-      disabled:text-slate-400 dark:disabled:text-slate-500
-      disabled:bg-transparent
+      hover:bg-blue-50 dark:hover:bg-[#1A1C20]
+      hover:border-blue-300 dark:hover:border-[#7170FF]
+      active:bg-blue-100 dark:active:bg-[#161719]
+      disabled:border-slate-300 dark:disabled:border-[#1F2226]
+      disabled:text-slate-400 dark:disabled:text-[#62666D]
+      disabled:bg-white dark:disabled:bg-transparent
     `,
     ghost: `
-      bg-transparent border-0
-      text-slate-500 dark:text-slate-400
+      bg-white dark:bg-transparent border-0
+      text-slate-500 dark:text-[#D0D6E0]
       hover:bg-blue-50 hover:text-blue-600
-      dark:hover:bg-blue-500/10 dark:hover:text-blue-300
-      disabled:text-slate-300 dark:disabled:text-slate-600
+      dark:hover:bg-[#1A1C20] dark:hover:text-[#F7F8F8]
+      disabled:text-slate-300 dark:disabled:text-slate-400
     `,
   };
 
@@ -1336,8 +1342,8 @@ export const Button = ({
         ${sizeStyles[size]}
         ${variantStyles[variant]}
         ${fullWidth ? "w-full" : ""}
-        font-semibold rounded-lg
-        transition-all duration-200 focus:ring-4 focus:ring-blue-500/15
+        font-semibold rounded-full
+        transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/25 dark:focus-visible:ring-[#5E6AD2]/40 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#121314]
         disabled:cursor-not-allowed disabled:opacity-60
         flex items-center justify-center gap-2
         ${disabled ? "" : "cursor-pointer"}
@@ -1380,8 +1386,8 @@ export const TextAreaField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400"} bg-slate-50 dark:bg-slate-900/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
@@ -1433,7 +1439,7 @@ export const TextAreaField = ({
           {label && (
             <label
               className={`block mb-2 text-sm font-medium
-                ${error ? "text-red-500" : "text-gray-900 dark:text-white"}
+                ${error ? "text-red-500" : "text-gray-900 dark:text-[#F7F8F8]"}
               `}
             >
               {label}
@@ -1443,18 +1449,18 @@ export const TextAreaField = ({
 
           {/* Rich Text Toolbar */}
           {!disabled && (
-            <div className="mb-2 flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-2 flex flex-wrap gap-1 rounded-lg border border-slate-200 bg-slate-50 p-2 shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
               <button
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   applyFormat("bold");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Bold"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1467,11 +1473,11 @@ export const TextAreaField = ({
                   e.preventDefault();
                   applyFormat("italic");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Italic"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1484,29 +1490,29 @@ export const TextAreaField = ({
                   e.preventDefault();
                   applyFormat("underline");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Underline"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path d="M10 2a5 5 0 00-5 5v5a5 5 0 0010 0V7a5 5 0 00-5-5zm3 10a3 3 0 11-6 0V7a3 3 0 116 0v5zM4 16h12v2H4v-2z" />
                 </svg>
               </button>
-              <div className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+              <div className="w-px bg-gray-300 dark:bg-[#1F2226] mx-1" />
               <button
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   applyFormat("insertUnorderedList");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Bullet List"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1519,29 +1525,29 @@ export const TextAreaField = ({
                   e.preventDefault();
                   applyFormat("insertOrderedList");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Numbered List"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
                   <path d="M5 4v2H3V4h2zm0 5v2H3V9h2zm0 5v2H3v-2h2zM8 4h8v2H8V4zm0 5h8v2H8V9zm0 5h8v2H8v-2z" />
                 </svg>
               </button>
-              <div className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+              <div className="w-px bg-gray-300 dark:bg-[#1F2226] mx-1" />
               <button
                 type="button"
                 onMouseDown={(e) => {
                   e.preventDefault();
                   applyFormat("justifyLeft");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Align Left"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1554,11 +1560,11 @@ export const TextAreaField = ({
                   e.preventDefault();
                   applyFormat("justifyCenter");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Align Center"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1571,11 +1577,11 @@ export const TextAreaField = ({
                   e.preventDefault();
                   applyFormat("justifyRight");
                 }}
-                className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                className="rounded-full bg-transparent p-2 transition-colors hover:bg-gray-200 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                 title="Align Right"
               >
                 <svg
-                  className="w-4 h-4 text-gray-700 dark:text-gray-300"
+                  className="w-4 h-4 text-gray-700 dark:text-[#D0D6E0]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -1594,14 +1600,14 @@ export const TextAreaField = ({
             onBlur={() => setIsFocused(false)}
             suppressContentEditableWarning
             className={`
-              w-full px-3 py-3 text-sm
-              bg-white dark:bg-[#111318]
-              text-slate-950 dark:text-white
+              w-full px-2.5 py-2 text-sm
+              bg-white dark:bg-[#121314]
+              text-slate-950 dark:text-[#F7F8F8]
               outline-none
               transition-all duration-200
               overflow-y-auto
               ${variantStyles[variant]}
-              ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-900" : ""}
+              ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-[#121314]" : ""}
               ${resizeStyles[resize]}
             `}
             style={{ minHeight: `${rows * 1.5}rem` }}
@@ -1611,7 +1617,7 @@ export const TextAreaField = ({
         {/* Helper Text / Error Message */}
         {helperText && (
           <span
-            className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+            className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
           >
             {helperText}
           </span>
@@ -1628,8 +1634,8 @@ export const TextAreaField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-3"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
+              ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-3"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
             {label}
@@ -1649,11 +1655,11 @@ export const TextAreaField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-3 text-sm
-            ${label ? "pt-6 pb-3" : "py-3"}
-            bg-white dark:bg-[#111318]
-            text-slate-950 dark:text-white
-            placeholder:text-slate-400 dark:placeholder:text-slate-500
+            w-full px-2.5 text-sm
+            ${label ? "pt-5 pb-2.5" : "py-2"}
+            bg-white dark:bg-[#121314]
+            text-slate-950 dark:text-[#F7F8F8]
+            placeholder:text-slate-400 dark:placeholder:text-[#62666D]
             outline-none
             transition-all duration-200
             ${variantStyles[variant]}
@@ -1664,16 +1670,16 @@ export const TextAreaField = ({
       </div>
 
       {/* Character Count / Helper Text */}
-      <div className="flex justify-between items-center px-3">
+      <div className="flex justify-between items-center px-2.5">
         {helperText && (
           <span
-            className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+            className={`text-xs ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
           >
             {helperText}
           </span>
         )}
         {showCharCount && maxLength && (
-          <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto">
+          <span className="text-xs text-gray-500 dark:text-[#8A8F98] ml-auto">
             {value?.length || 0} / {maxLength}
           </span>
         )}
@@ -1721,11 +1727,11 @@ export const ToggleSwitch = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Left Label */}
         {leftLabel && (
           <span
-            className={`text-sm ${!checked ? "text-gray-900 dark:text-white font-medium" : "text-gray-500 dark:text-gray-400"}`}
+            className={`text-sm ${!checked ? "text-gray-900 dark:text-[#F7F8F8] font-medium" : "text-gray-500 dark:text-[#8A8F98]"}`}
           >
             {leftLabel}
           </span>
@@ -1733,7 +1739,7 @@ export const ToggleSwitch = ({
 
         {/* Main Label */}
         {label && !leftLabel && !rightLabel && (
-          <label className="text-sm font-medium text-slate-900 dark:text-white">
+          <label className="text-sm font-medium text-slate-900 dark:text-[#F7F8F8]">
             {label}
           </label>
         )}
@@ -1745,10 +1751,14 @@ export const ToggleSwitch = ({
             !disabled && onChange({ target: { checked: !checked } })
           }
           disabled={disabled}
-          className={`relative ${currentSize.switch} rounded-full shadow-inner ring-1 ring-black/5 transition-all duration-300 dark:ring-white/10 ${
+          className={`relative ${currentSize.switch} rounded-full shadow-inner ring-1 ring-black/5 transition-all duration-300 dark:ring-white/5 ${
             disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
           }`}
-          style={{ backgroundColor: checked ? checkedColor : uncheckedColor }}
+          data-toggle-switch="true"
+          style={{
+            "--toggle-track-light": checked ? checkedColor : uncheckedColor,
+            "--toggle-track-dark": checked ? "#5E6AD2" : "#1F2226",
+          }}
         >
           <div
             className={`absolute ${currentSize.thumb} flex items-center justify-center rounded-full bg-white shadow-md shadow-slate-900/20 transition-transform duration-300`}
@@ -1769,7 +1779,7 @@ export const ToggleSwitch = ({
         {/* Right Label */}
         {rightLabel && (
           <span
-            className={`text-sm ${checked ? "font-medium text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}
+            className={`text-sm ${checked ? "font-medium text-slate-900 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#8A8F98]"}`}
           >
             {rightLabel}
           </span>
@@ -1778,7 +1788,7 @@ export const ToggleSwitch = ({
 
       {/* Helper Text */}
       {helperText && (
-        <span className="text-xs text-slate-500 dark:text-slate-400">
+        <span className="text-xs text-slate-500 dark:text-[#8A8F98]">
           {helperText}
         </span>
       )}
@@ -1967,7 +1977,7 @@ export const CategoryTreeField = ({
             onClick={(e) =>
               hasChildren ? toggleExpand(id, e) : e.stopPropagation()
             }
-            className={`flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 dark:text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""} ${hasChildren ? "hover:text-gray-600 dark:hover:text-gray-300" : "invisible"}`}
+            className={`flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 dark:text-[#62666D] transition-transform ${isExpanded ? "rotate-90" : ""} ${hasChildren ? "hover:text-gray-600 dark:hover:text-gray-300" : "invisible"}`}
           >
             <svg
               className="w-3 h-3"
@@ -1989,13 +1999,13 @@ export const CategoryTreeField = ({
             className={`flex-shrink-0 w-4 h-4 border-2 rounded flex items-center justify-center transition-all duration-150
               ${
                 isChecked
-                  ? "bg-blue-600 dark:bg-white border-blue-600 dark:border-white"
-                  : "border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500"
+                  ? "bg-blue-600 dark:bg-[#5E6AD2] border-blue-600 dark:border-[#5E6AD2]"
+                  : "border-slate-200 dark:border-[#1F2226] group-hover:border-blue-400 dark:group-hover:border-[#828FFF]"
               }`}
           >
             {isChecked && (
               <svg
-                className="w-2.5 h-2.5 text-white dark:text-gray-900"
+                className="w-2.5 h-2.5 text-white dark:text-white"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -2009,13 +2019,13 @@ export const CategoryTreeField = ({
           </div>
 
           {/* Label */}
-          <span className="text-sm text-gray-800 dark:text-gray-200 select-none truncate flex-1">
+          <span className="text-sm text-gray-800 dark:text-[#D0D6E0] select-none truncate flex-1">
             {node.name}
           </span>
 
           {/* Child count badge */}
           {hasChildren && (
-            <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
+            <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-[#62666D]">
               {children.length}
             </span>
           )}
@@ -2041,8 +2051,8 @@ export const CategoryTreeField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${value.length || open ? "text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : open ? "text-blue-600 dark:text-white" : "text-gray-600 dark:text-white"}
+              ${value.length || open ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : open ? "text-blue-600 dark:text-[#F7F8F8]" : "text-gray-600 dark:text-[#F7F8F8]"}
             `}
           >
             {label}
@@ -2053,19 +2063,19 @@ export const CategoryTreeField = ({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className={`w-full px-3 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
-            ${label ? "min-h-14 py-2" : "py-3"}
+          className={`w-full px-2.5 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
+            ${label ? "min-h-12 py-1.5" : "py-2"}
             ${
               error
                 ? "border-red-500"
                 : open
-                  ? "border-blue-600 dark:border-white"
-                  : "border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
+                  ? "border-blue-600 dark:border-[#5E6AD2]"
+                  : "border-slate-200 dark:border-[#1F2226] hover:border-gray-400 dark:hover:border-[#828FFF]"
             }`}
         >
           <span
             ref={triggerContentRef}
-            className={`flex-1 truncate ${value.length ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}`}
+            className={`flex-1 truncate ${value.length ? "text-gray-900 dark:text-[#F7F8F8]" : "text-gray-400 dark:text-[#62666D]"}`}
           >
             {value.length
               ? summaryText || selectedLabels.join(", ")
@@ -2088,9 +2098,9 @@ export const CategoryTreeField = ({
       </div>
 
       {open && (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-md shadow-lg bg-white dark:bg-[#212125] overflow-hidden">
+        <div className="border border-slate-200 dark:border-[#1F2226] rounded-md shadow-lg bg-white dark:bg-[#161719] overflow-hidden">
           {searchable && (
-            <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="p-2 border-b border-gray-100 dark:border-[#1F2226]">
               <div className="relative">
                 <svg
                   className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
@@ -2112,7 +2122,7 @@ export const CategoryTreeField = ({
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search categories…"
-                  className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-[#18181B] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 rounded outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-[#121314] text-gray-900 dark:text-[#F7F8F8] border border-slate-200 dark:border-[#1F2226] rounded outline-none focus:border-blue-500 dark:focus:border-[#5E6AD2]"
                   onClick={(e) => e.stopPropagation()}
                 />
                 {search && (
@@ -2140,9 +2150,9 @@ export const CategoryTreeField = ({
             </div>
           )}
 
-          <div className="overflow-y-auto py-1" style={{ maxHeight }}>
+          <div className="overflow-y-auto py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" style={{ maxHeight }}>
             {roots.length === 0 ? (
-              <p className="px-4 py-6 text-sm text-center text-gray-400 dark:text-gray-500">
+              <p className="px-3.5 py-5 text-sm text-center text-gray-400 dark:text-[#62666D]">
                 {items.length === 0
                   ? "No categories available"
                   : "No categories match your search"}
@@ -2155,8 +2165,8 @@ export const CategoryTreeField = ({
           </div>
 
           {value.length > 0 && (
-            <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#1F2226] flex items-center justify-between">
+              <span className="text-xs text-gray-500 dark:text-[#8A8F98]">
                 {value.length} selected
               </span>
               <button
@@ -2173,7 +2183,7 @@ export const CategoryTreeField = ({
 
       {helperText && (
         <span
-          className={`text-xs px-1 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-1 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>
@@ -2378,7 +2388,7 @@ export const CategoryTreeField = ({
 //           <button
 //             type="button"
 //             onClick={(e) => hasChildren ? toggleExpand(id, e) : e.stopPropagation()}
-//             className={`flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 dark:text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''} ${hasChildren ? 'hover:text-gray-600 dark:hover:text-gray-300' : 'invisible'}`}
+//             className={`flex-shrink-0 w-4 h-4 flex items-center justify-center rounded text-gray-400 dark:text-[#62666D] transition-transform ${isExpanded ? 'rotate-90' : ''} ${hasChildren ? 'hover:text-gray-600 dark:hover:text-gray-300' : 'invisible'}`}
 //           >
 //             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -2389,30 +2399,30 @@ export const CategoryTreeField = ({
 //           <div
 //             className={`flex-shrink-0 w-4 h-4 border-2 rounded flex items-center justify-center transition-all duration-150
 //               ${checkState === 'checked'
-//                 ? 'bg-blue-600 dark:bg-white border-blue-600 dark:border-white'
+//                 ? 'bg-blue-600 dark:bg-[#5E6AD2] border-blue-600 dark:border-[#5E6AD2]'
 //                 : checkState === 'indeterminate'
-//                   ? 'bg-blue-100 dark:bg-blue-900 border-blue-400 dark:border-blue-500'
-//                   : 'border-gray-300 dark:border-gray-600 group-hover:border-blue-400 dark:group-hover:border-blue-500'
+//                   ? 'bg-blue-100 dark:bg-blue-900 border-blue-400 dark:border-[#5E6AD2]'
+//                   : 'border-slate-200 dark:border-[#1F2226] group-hover:border-blue-400 dark:group-hover:border-white'
 //               }`}
 //           >
 //             {checkState === 'checked' && (
-//               <svg className="w-2.5 h-2.5 text-white dark:text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+//               <svg className="w-2.5 h-2.5 text-white dark:text-white" fill="currentColor" viewBox="0 0 20 20">
 //                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
 //               </svg>
 //             )}
 //             {checkState === 'indeterminate' && (
-//               <div className="w-2 h-0.5 bg-blue-500 dark:bg-blue-400 rounded" />
+//               <div className="w-2 h-0.5 bg-blue-500 dark:bg-[#5E6AD2] rounded" />
 //             )}
 //           </div>
 
 //           {/* Label */}
-//           <span className="text-sm text-gray-800 dark:text-gray-200 select-none truncate flex-1">
+//           <span className="text-sm text-gray-800 dark:text-[#D0D6E0] select-none truncate flex-1">
 //             {node.name}
 //           </span>
 
 //           {/* Child count badge */}
 //           {hasChildren && (
-//             <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-gray-500">
+//             <span className="flex-shrink-0 text-[10px] text-gray-400 dark:text-[#62666D]">
 //               {children.length}
 //             </span>
 //           )}
@@ -2437,8 +2447,8 @@ export const CategoryTreeField = ({
 //         {label && (
 //           <label
 //             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-//               ${value.length || open ? 'text-xs -top-2.5 bg-white dark:bg-[#18181B] px-1' : 'text-sm top-1/2 -translate-y-1/2'}
-//               ${error ? 'text-red-500' : open ? 'text-blue-600 dark:text-white' : 'text-gray-600 dark:text-white'}
+//               ${value.length || open ? 'text-xs -top-2.5 bg-white dark:bg-[#121314] px-1' : 'text-sm top-1/2 -translate-y-1/2'}
+//               ${error ? 'text-red-500' : open ? 'text-blue-600 dark:text-[#F7F8F8]' : 'text-gray-600 dark:text-[#F7F8F8]'}
 //             `}
 //           >
 //             {label}{required && ' *'}
@@ -2449,23 +2459,23 @@ export const CategoryTreeField = ({
 //         <button
 //           type="button"
 //           onClick={() => setOpen(o => !o)}
-//           className={`w-full px-3 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
-//             ${label ? 'min-h-14 py-2' : 'py-3'}
+//           className={`w-full px-2.5 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
+//             ${label ? 'min-h-14 py-2' : 'py-2.5'}
 //             ${error
 //               ? 'border-red-500'
 //               : open
-//                 ? 'border-blue-600 dark:border-white'
-//                 : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+//                 ? 'border-blue-600 dark:border-[#5E6AD2]'
+//                 : 'border-slate-200 dark:border-[#1F2226] hover:border-gray-400 dark:hover:border-gray-500'
 //             }`}
 //         >
-//           <span ref={triggerContentRef} className={`flex-1 truncate ${value.length ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+//           <span ref={triggerContentRef} className={`flex-1 truncate ${value.length ? 'text-gray-900 dark:text-[#F7F8F8]' : 'text-gray-400 dark:text-[#62666D]'}`}>
 //             {value.length
 //               ? (summaryText || selectedLabels.join(', '))
 //               : placeholder}
 //           </span>
 //           <div className="flex items-center gap-1.5 flex-shrink-0">
 //             {value.length > 0 && (
-//               <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-medium">
+//               <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-[#F7F8F8] px-1.5 py-0.5 rounded-full font-medium">
 //                 {value.length}
 //               </span>
 //             )}
@@ -2478,11 +2488,11 @@ export const CategoryTreeField = ({
 
 //       {/* Dropdown */}
 //       {open && (
-//         <div className="border border-gray-200 dark:border-gray-700 rounded-md shadow-lg bg-white dark:bg-[#212125] overflow-hidden">
+//         <div className="border border-slate-200 dark:border-[#1F2226] rounded-md shadow-lg bg-white dark:bg-[#161719] overflow-hidden">
 
 //           {/* Search */}
 //           {searchable && (
-//             <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+//             <div className="p-2 border-b border-gray-100 dark:border-[#1F2226]">
 //               <div className="relative">
 //                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 //                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -2493,7 +2503,7 @@ export const CategoryTreeField = ({
 //                   value={search}
 //                   onChange={e => setSearch(e.target.value)}
 //                   placeholder="Search categories…"
-//                   className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-[#18181B] text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 rounded outline-none focus:border-blue-500 dark:focus:border-blue-400"
+//                   className="w-full pl-8 pr-3 py-1.5 text-sm bg-gray-50 dark:bg-[#121314] text-gray-900 dark:text-[#F7F8F8] border border-slate-200 dark:border-[#1F2226] rounded outline-none focus:border-blue-500 dark:focus:border-[#5E6AD2]"
 //                   onClick={e => e.stopPropagation()}
 //                 />
 //                 {search && (
@@ -2510,7 +2520,7 @@ export const CategoryTreeField = ({
 //           {/* Tree */}
 //           <div className="overflow-y-auto py-1" style={{ maxHeight }}>
 //             {roots.length === 0 ? (
-//               <p className="px-4 py-6 text-sm text-center text-gray-400 dark:text-gray-500">
+//               <p className="px-3.5 py-5 text-sm text-center text-gray-400 dark:text-[#62666D]">
 //                 {items.length === 0 ? 'No categories available' : 'No categories match your search'}
 //               </p>
 //             ) : (
@@ -2522,8 +2532,8 @@ export const CategoryTreeField = ({
 
 //           {/* Footer */}
 //           {value.length > 0 && (
-//             <div className="px-3 py-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-//               <span className="text-xs text-gray-500 dark:text-gray-400">{value.length} selected</span>
+//             <div className="px-2.5 py-2 border-t border-gray-100 dark:border-[#1F2226] flex items-center justify-between">
+//               <span className="text-xs text-gray-500 dark:text-[#8A8F98]">{value.length} selected</span>
 //               <button
 //                 type="button"
 //                 onClick={() => onChange([])}
@@ -2537,7 +2547,7 @@ export const CategoryTreeField = ({
 //       )}
 
 //       {helperText && (
-//         <span className={`text-xs px-1 ${error ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>
+//         <span className={`text-xs px-1 ${error ? 'text-red-500' : 'text-gray-500 dark:text-[#8A8F98]'}`}>
 //           {helperText}
 //         </span>
 //       )}
@@ -2764,7 +2774,7 @@ const CountryFlag = ({ code, name, className = "" }) => {
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-sm bg-slate-100 ring-1 ring-slate-200 dark:bg-white/10 dark:ring-white/10 ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-sm bg-slate-100 ring-1 ring-slate-200 dark:bg-[#161719] dark:ring-white/5 ${className}`}
       aria-hidden="true"
       title={name}
     >
@@ -2903,8 +2913,8 @@ export const PhoneField = ({
         {label && (
           <label
             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
-              ${isFocused || hasValue ? "text-xs -top-2.5 bg-white dark:bg-[#111318] px-1" : "text-sm top-1/2 -translate-y-1/2"}
-              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-blue-300" : "text-slate-500 dark:text-slate-300"}
+              ${isFocused || hasValue ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+              ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
             {label}
@@ -2914,13 +2924,13 @@ export const PhoneField = ({
 
         {/* Combined input row */}
         <div
-          className={`flex items-center rounded-lg border bg-white shadow-sm transition-all duration-200 dark:bg-[#111318]
+          className={`flex items-center rounded-lg border bg-white shadow-sm transition-all duration-200 dark:bg-[#121314]
             ${
               error
                 ? "border-red-500"
                 : isFocused
-                  ? "border-blue-500 dark:border-blue-400"
-                  : "border-slate-300 dark:border-slate-700"
+                  ? "border-blue-500 dark:border-[#5E6AD2]"
+                  : "border-slate-300 dark:border-[#1F2226]"
             }
             ${disabled ? "opacity-50" : ""}
           `}
@@ -2933,10 +2943,10 @@ export const PhoneField = ({
             onClick={openDrop}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex h-full flex-shrink-0 items-center gap-1.5 border-r border-slate-200 px-2.5 dark:border-slate-700
-              ${label ? "py-4" : "py-3"}
-              bg-transparent text-sm text-slate-950 dark:text-white
-              ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"}
+            className={`flex h-full flex-shrink-0 items-center gap-1.5 border-r border-slate-200 px-2.5 dark:border-[#1F2226]
+              ${label ? "py-3" : "py-2"}
+              bg-transparent text-sm text-slate-950 dark:text-[#F7F8F8]
+              ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-[#1A1C20]"}
               transition-colors rounded-l-lg
             `}
           >
@@ -2973,10 +2983,10 @@ export const PhoneField = ({
             required={required}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex-1 bg-transparent px-3 text-sm text-slate-950 dark:text-white
-              placeholder:text-slate-400 dark:placeholder:text-slate-500
+            className={`flex-1 bg-transparent px-2.5 text-sm text-slate-950 dark:text-[#F7F8F8]
+              placeholder:text-slate-400 dark:placeholder:text-[#62666D]
               outline-none
-              ${label ? "py-4" : "py-3"}
+              ${label ? "py-3" : "py-2"}
               ${disabled ? "cursor-not-allowed" : ""}
             `}
           />
@@ -2996,7 +3006,7 @@ export const PhoneField = ({
             />
             <div
               ref={dropdownRef}
-              className="fixed z-[9999] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40"
+              className="fixed z-[9999] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/40"
               style={{
                 top: dropPos.top,
                 left: dropPos.left,
@@ -3004,7 +3014,7 @@ export const PhoneField = ({
               }}
             >
               {/* Search */}
-              <div className="border-b border-slate-100 p-2 dark:border-slate-800">
+              <div className="border-b border-slate-100 p-2 dark:border-[#1F2226]">
                 <div className="relative">
                   <svg
                     className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
@@ -3025,16 +3035,16 @@ export const PhoneField = ({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search country or code…"
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 text-sm text-slate-950 outline-none transition-all focus:border-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#F7F8F8] dark:focus:border-[#5E6AD2]"
                     onClick={(e) => e.stopPropagation()}
                   />
                 </div>
               </div>
 
               {/* List */}
-              <div className="max-h-60 overflow-y-auto">
+              <div className="max-h-60 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {filtered.length === 0 ? (
-                  <p className="px-4 py-4 text-sm text-center text-gray-400">
+                  <p className="px-3.5 py-3.5 text-sm text-center text-gray-400">
                     No results
                   </p>
                 ) : (
@@ -3042,16 +3052,16 @@ export const PhoneField = ({
                     <div
                       key={c.code}
                       onClick={() => handleDialChange(c.dial)}
-                      className={`flex items-center gap-3 px-3 py-2.5 text-sm cursor-pointer transition-colors
+                      className={`flex items-center gap-2.5 px-2.5 py-2.5 text-sm cursor-pointer transition-colors
                     ${
                       c.dial === dialCode
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100"
-                        : "text-slate-800 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+                        ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]"
+                        : "text-slate-800 hover:bg-slate-50 dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
                     }`}
                     >
                       <CountryFlag code={c.code} name={c.name} className="h-4 w-6" />
                       <span className="flex-1 truncate">{c.name}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                      <span className="text-xs text-gray-500 dark:text-[#8A8F98] font-mono">
                         {c.dial}
                       </span>
                     </div>
@@ -3065,7 +3075,7 @@ export const PhoneField = ({
 
       {helperText && (
         <span
-          className={`text-xs px-3 ${error ? "text-red-500" : "text-gray-500 dark:text-gray-400"}`}
+          className={`text-xs px-2.5 ${error ? "text-red-500" : "text-gray-500 dark:text-[#8A8F98]"}`}
         >
           {helperText}
         </span>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
@@ -67,7 +68,9 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('users', 'public');
+        }
 
         $data['password'] = Hash::make($data['password']);
         $newUser = User::create($data);
@@ -146,10 +149,25 @@ class UserController extends Controller
         }
 
         $data= $request->validated();
+        $oldImage = null;
+
+        if ($request->hasFile('image')) {
+            $newImage = $request->file('image')->store('users', 'public');
+            $oldImage = $selectedUser->image;
+            $data['image'] = $newImage;
+        } elseif ($request->boolean('remove_image') && $selectedUser->image) {
+            $oldImage = $selectedUser->image;
+            $data['image'] = null;
+        }
+        unset($data['remove_image']);
+
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         }
         $selectedUser->update($data);
+        if ($oldImage) {
+            Storage::disk('public')->delete($oldImage);
+        }
 
         return response()->json([
             'success' => true,

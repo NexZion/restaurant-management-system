@@ -830,10 +830,15 @@ export const Orders = () => {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-          Orders
-        </h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
+            Orders
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
+            Review order status, fulfillment, and payment details.
+          </p>
+        </div>
         <Button
           variant="primary"
           onClick={() => {
@@ -865,7 +870,7 @@ export const Orders = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="grid w-full grid-cols-3 gap-4">
+              <div className="grid w-full grid-cols-3 gap-3.5">
                 <SelectField
                   label="Status"
                   value={filters.status}
@@ -904,7 +909,7 @@ export const Orders = () => {
               onClick={() =>
                 setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
               }
-              className="flex items-center gap-2 rounded border border-gray-300 px-3 py-2 text-sm text-gray-900 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700"
+              className="flex items-center gap-2 rounded border border-slate-200 px-2.5 py-2 text-sm text-gray-900 transition-colors hover:bg-slate-50 dark:border-[#1F2226] dark:text-[#F7F8F8] dark:hover:bg-gray-700"
             >
               <svg
                 className="h-4 w-4"
@@ -1010,9 +1015,9 @@ export const Orders = () => {
             {
               title: "Order Details",
               content: (
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   {/* Row 1 */}
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-3.5 md:grid-cols-2">
                     <TextField
                       label="Order Date"
                       type="date"
@@ -1036,7 +1041,7 @@ export const Orders = () => {
                   </div>
 
                   {/* Row 2 */}
-                  <div className="grid gap-4 md:grid-cols-[2fr_auto_1fr] items-end">
+                  <div className="grid gap-3.5 md:grid-cols-[2fr_auto_1fr] items-end">
                     <SelectField
                       label="Customer"
                       //placeholder="Search Customer..."
@@ -1058,7 +1063,7 @@ export const Orders = () => {
 
                     <Button
                       variant="secondary"
-                      className="h-[42px] px-4 whitespace-nowrap"
+                      className="h-[42px] px-3.5 whitespace-nowrap"
                       onClick={() => {
                         resetAddCustomerDialogForm();
                         setShowAddCustomerDialog(true);
@@ -1093,7 +1098,7 @@ export const Orders = () => {
             {
               title: "Menu & Attributes",
               content: (
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   <MenuItemSearch
                     label="Menu Item"
                     items={menuItems}
@@ -1106,15 +1111,15 @@ export const Orders = () => {
                       }))
                     }
                   />
-                  <div className="rounded border border-dashed border-gray-300 p-4 dark:border-gray-600">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="rounded border border-dashed border-slate-200 p-3.5 dark:border-[#1F2226]">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                       Attributes Loader
                     </p>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p className="mt-2 text-sm text-gray-600 dark:text-[#8A8F98]">
                       Select a menu item to load its available attributes here.
                     </p>
                   </div>
-                  <div className="grid w-full gap-4 md:grid-cols-2">
+                  <div className="grid w-full gap-3.5 md:grid-cols-2">
                     <TextField
                       label="Quantity"
                       type="number"
@@ -1160,31 +1165,31 @@ export const Orders = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-[#202024]">
-                    <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+                    <div className="mb-3 flex items-center justify-between gap-2.5">
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                           Order Items
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-[#8A8F98]">
                           Added items appear here instantly.
                         </p>
                       </div>
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
+                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-[#121314] dark:text-[#D0D6E0]">
                         {orderItems.length} item
                         {orderItems.length === 1 ? "" : "s"}
                       </span>
                     </div>
 
                     {orderItems.length === 0 ? (
-                      <div className="rounded border border-dashed border-gray-300 px-4 py-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                      <div className="rounded border border-dashed border-slate-200 px-3.5 py-5 text-center text-sm text-gray-500 dark:border-[#1F2226] dark:text-[#8A8F98]">
                         No menu items added yet.
                       </div>
                     ) : (
                       <div className="overflow-x-auto">
                         <table className="min-w-full border-separate border-spacing-y-2 text-sm">
                           <thead>
-                            <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-[#8A8F98]">
                               <th className="px-2 py-1">Item</th>
                               <th className="px-2 py-1">Category</th>
                               <th className="px-2 py-1">Quantity</th>
@@ -1198,10 +1203,10 @@ export const Orders = () => {
                             {orderItems.map((item) => (
                               <tr
                                 key={item.id}
-                                className="rounded-lg bg-white text-gray-900 shadow-sm dark:bg-[#18181B] dark:text-white"
+                                className="rounded-lg bg-white text-gray-900 shadow-sm dark:bg-[#121314] dark:text-[#F7F8F8]"
                               >
-                                <td className="rounded-l-lg px-2 py-2">
-                                  <div className="flex items-center gap-3">
+                                <td className="rounded-l-lg px-2 py-1.5">
+                                  <div className="flex items-center gap-2.5">
                                     {item.image ? (
                                       <img
                                         src={item.image}
@@ -1222,22 +1227,22 @@ export const Orders = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-2 py-2 text-gray-700 dark:text-gray-300">
+                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
                                   {item.category}
                                 </td>
-                                <td className="px-2 py-2 text-gray-700 dark:text-gray-300">
+                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
                                   {item.quantity}
                                 </td>
-                                <td className="px-2 py-2 text-gray-700 dark:text-gray-300">
+                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
                                   {formatMoney(item.unitPrice)}
                                 </td>
-                                <td className="px-2 py-2 text-gray-700 dark:text-gray-300">
+                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
                                   {formatMoney(item.discountAppliedPerUnit)}
                                 </td>
-                                <td className="px-2 py-2 text-gray-700 dark:text-gray-300">
+                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
                                   {formatMoney(item.netPrice)}
                                 </td>
-                                <td className="rounded-r-lg px-2 py-2 text-right">
+                                <td className="rounded-r-lg px-2 py-1.5 text-right">
                                   <button
                                     type="button"
                                     onClick={() =>
@@ -1256,23 +1261,23 @@ export const Orders = () => {
                       </div>
                     )}
 
-                    <div className="mt-3 flex items-center justify-between border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">
+                    <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
+                      <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
                         Order Items Total
                       </span>
-                      <span className="font-semibold text-gray-900 dark:text-white">
+                      <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
                         {formatMoney(orderItemsTotal)}
                       </span>
                     </div>
 
-                    <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-[#18181B]">
+                    <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
                       <div className="mb-3">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                           Apply Order Discount
                         </h4>
                       </div>
 
-                      <div className="grid w-full gap-4 md:grid-cols-2">
+                      <div className="grid w-full gap-3.5 md:grid-cols-2">
                         <SelectField
                           label="Discount Type"
                           value={formData.overallDiscountType}
@@ -1297,11 +1302,11 @@ export const Orders = () => {
                         />
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3 text-sm dark:border-gray-700">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
+                        <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
                           Net Total
                         </span>
-                        <span className="font-semibold text-gray-900 dark:text-white">
+                        <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
                           {formatMoney(orderNetTotal)}
                         </span>
                       </div>
@@ -1341,7 +1346,7 @@ export const Orders = () => {
             {
               title: "Basic Information",
               content: (
-                <div className="grid w-full grid-cols-2 gap-4 pb-4">
+                <div className="grid w-full grid-cols-2 gap-3.5 pb-4">
                   <SelectField
                     label="Customer Type"
                     value={customerDialogData.customer_type}
@@ -1377,7 +1382,7 @@ export const Orders = () => {
             {
               title: "Personal Information",
               content: (
-                <div className="grid w-full grid-cols-2 gap-4 pb-4">
+                <div className="grid w-full grid-cols-2 gap-3.5 pb-4">
                   <TextField
                     required
                     label="First Name"
@@ -1526,7 +1531,7 @@ export const Orders = () => {
             {
               title: "Address",
               content: (
-                <div className="space-y-4">
+                <div className="space-y-3.5">
                   <TextField
                     label="Address Line 1"
                     value={customerDialogData.address_line1}
@@ -1555,7 +1560,7 @@ export const Orders = () => {
                     resize="vertical"
                     maxLength={50}
                   />
-                  <div className="grid w-full grid-cols-2 gap-4 pb-4">
+                  <div className="grid w-full grid-cols-2 gap-3.5 pb-4">
                     <TextField
                       label="City"
                       value={customerDialogData.city}
@@ -1617,39 +1622,39 @@ export const Orders = () => {
         showFooter={false}
       >
         {viewOrder && (
-          <div className="space-y-6">
-            <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-5">
+            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
+                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
                     {viewOrder.order_number || "N/A"}
                   </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  <p className="mt-1 text-sm text-gray-500 dark:text-[#8A8F98]">
                     {customerName(viewOrder.customer)}
                   </p>
                 </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
                   {formatText(viewOrder.status)}
                 </span>
               </div>
             </div>
 
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                 Order Summary
               </h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {orderSummary.map((item) => (
                   <div
                     key={item.label}
-                    className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
+                    className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
                       item.wide ? "sm:col-span-2" : ""
                     }`}
                   >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
                       {item.label}
                     </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
                       {item.value || "N/A"}
                     </p>
                   </div>
@@ -1658,19 +1663,19 @@ export const Orders = () => {
             </div>
 
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                 Bill
               </h4>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {billSummary.map((item) => (
                   <div
                     key={item.label}
-                    className="rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024]"
+                    className="rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719]"
                   >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
                       {item.label}
                     </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
                       {item.value || "N/A"}
                     </p>
                   </div>

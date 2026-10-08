@@ -59,16 +59,16 @@ export default function MenuItemSearch({
 
   return (
     <div className="relative z-50 w-full overflow-visible" ref={wrapperRef}>
-      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+      <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-[#D0D6E0]">
         {label}
       </label>
 
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-left text-sm text-slate-950 shadow-sm outline-none transition-all focus:border-blue-500 dark:border-slate-700 dark:bg-[#111318] dark:text-white dark:focus:border-blue-400"
+        className="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-2.5 py-2.5 text-left text-sm text-slate-950 shadow-sm outline-none transition-all focus:border-blue-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#F7F8F8] dark:focus:border-[#5E6AD2]"
       >
-        <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
           {selected ? (
             <>
               {selected.image ? (
@@ -84,16 +84,16 @@ export default function MenuItemSearch({
               )}
 
               <div className="min-w-0 text-left">
-                <div className="truncate font-semibold text-gray-900 dark:text-white">
+                <div className="truncate font-semibold text-gray-900 dark:text-[#F7F8F8]">
                   {selected.name}
                 </div>
-                <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                <div className="truncate text-xs text-gray-500 dark:text-[#8A8F98]">
                   {selected.category}
                 </div>
               </div>
             </>
           ) : (
-          <span className="text-slate-400 dark:text-slate-500">{placeholder}</span>
+          <span className="text-slate-400 dark:text-[#F7F8F8]0">{placeholder}</span>
           )}
         </div>
 
@@ -104,14 +104,14 @@ export default function MenuItemSearch({
       </button>
 
       {open && (
-        <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 dark:border-slate-700 dark:bg-[#171a21] dark:shadow-black/40">
-          <div className="border-b border-slate-100 p-2 dark:border-slate-800">
-            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 dark:border-slate-700 dark:bg-[#111318]">
+        <div className="absolute z-[9999] mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/40">
+          <div className="border-b border-slate-100 p-2 dark:border-[#1F2226]">
+            <div className="flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2 dark:border-[#1F2226] dark:bg-[#121314]">
               <FiSearch className="text-gray-400" size={16} />
 
               <input
                 type="text"
-                className="h-9 w-full border-none bg-transparent px-2 text-sm text-slate-950 outline-none dark:text-white"
+                className="h-9 w-full border-none bg-transparent px-2 text-sm text-slate-950 outline-none dark:text-[#F7F8F8]"
                 placeholder="Search item or category..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -124,7 +124,7 @@ export default function MenuItemSearch({
             style={{ scrollbarGutter: "stable" }}
           >
             {filtered.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">
+              <div className="px-3.5 py-2.5 text-sm text-gray-400 dark:text-[#62666D]">
                 No menu items found
               </div>
             ) : (
@@ -136,8 +136,8 @@ export default function MenuItemSearch({
                     key={item.id}
                     type="button"
                     onClick={() => handleSelect(item)}
-                    className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                      isSelected ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-100" : ""
+                    className={`flex w-full items-center gap-2.5 px-2.5 py-2.5 text-left transition-colors hover:bg-slate-50 dark:bg-transparent dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20] ${
+                      isSelected ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]" : ""
                     }`}
                   >
                     {item.image ? (
@@ -153,10 +153,10 @@ export default function MenuItemSearch({
                     )}
 
                     <div className="min-w-0 flex-1">
-                      <div className="truncate font-semibold text-gray-900 dark:text-white">
+                      <div className="truncate font-semibold text-gray-900 dark:text-[#F7F8F8]">
                         {item.name}
                       </div>
-                      <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                      <div className="truncate text-xs text-gray-500 dark:text-[#8A8F98]">
                         {item.category}
                       </div>
                     </div>

@@ -3,10 +3,10 @@ import { Button } from "./DataFields";
 import { Loading } from "./Popups";
 
 const PlaceholderImage = ({ compact }) => (
-  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 via-gray-50 to-violet-100 dark:from-[#24242a] dark:via-[#202024] dark:to-[#292533]">
-    <div className="rounded-full bg-white/80 p-3 shadow-sm dark:bg-white/5">
+  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 via-gray-50 to-violet-100 dark:from-[#08090A] dark:via-[#090A0B] dark:to-[#121314]">
+    <div className="rounded-full bg-white/80 p-2.5 shadow-sm dark:bg-[#121314]">
       <svg
-        className={compact ? "h-6 w-6 text-blue-400" : "h-9 w-9 text-blue-400"}
+        className={compact ? "h-6 w-6 text-blue-400 dark:text-[#F7F8F8]" : "h-9 w-9 text-blue-400 dark:text-[#F7F8F8]"}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -133,7 +133,7 @@ export const MenuItemCardList = ({
   const visible = { ...defaultVisibility, ...show };
   const safeColumns = Math.min(8, Math.max(1, Number(columns) || 3));
   const compact = variant === "compact" || safeColumns > 4;
-  const gaps = { tight: "gap-2", normal: "gap-4", relaxed: "gap-6" };
+  const gaps = { tight: "gap-2", normal: "gap-3.5", relaxed: "gap-5" };
   const safePageSize = Math.max(1, Number(itemsPerPage) || 12);
   const totalPages = pagination
     ? Math.max(1, Math.ceil(items.length / safePageSize))
@@ -174,11 +174,11 @@ export const MenuItemCardList = ({
                 <article
                   key={item.id}
                   onClick={onCardClick ? () => onCardClick(item) : undefined}
-                  className={`group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg dark:border-gray-700 dark:bg-[#18181B] dark:hover:border-gray-600 ${onCardClick ? "cursor-pointer" : ""} ${cardClassName}`}
+                  className={`group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm transition duration-200 hover:border-blue-200 hover:shadow-md dark:border-[#1F2226] dark:bg-[#121314] dark:hover:border-white/40 ${onCardClick ? "cursor-pointer" : ""} ${cardClassName}`}
                 >
                   {visible.image && (
                     <div
-                      className={`relative overflow-hidden bg-gray-100 dark:bg-[#212125] ${compact ? "h-28" : "h-44"}`}
+                      className={`relative overflow-hidden bg-slate-50 dark:bg-[#161719] ${compact ? "h-28" : "h-44"}`}
                     >
                       {renderImage ? (
                         renderImage(item)
@@ -193,7 +193,7 @@ export const MenuItemCardList = ({
                       )}
                       {visible.status && (
                         <span
-                          className={`absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 font-medium shadow-sm backdrop-blur ${compact ? "text-[10px]" : "text-xs"} ${item.available !== false ? "border-green-200 bg-white/90 text-green-700 dark:border-green-800 dark:bg-green-950/90 dark:text-green-300" : "border-gray-200 bg-white/90 text-gray-600 dark:border-gray-700 dark:bg-gray-900/90 dark:text-gray-300"}`}
+                          className={`absolute right-2 top-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 font-medium shadow-sm backdrop-blur ${compact ? "text-[10px]" : "text-xs"} ${item.available !== false ? "border-green-200 bg-white/90 text-green-700 dark:border-green-800 dark:bg-green-950/90 dark:text-green-300" : "border-slate-200 bg-white/90 text-gray-600 dark:border-[#1F2226] dark:bg-[#121314]/90 dark:text-[#D0D6E0]"}`}
                         >
                           <span
                             className={`h-1.5 w-1.5 rounded-full ${item.available !== false ? "bg-green-500" : "bg-gray-400"}`}
@@ -207,7 +207,7 @@ export const MenuItemCardList = ({
                   )}
 
                   <div
-                    className={`flex flex-1 flex-col ${compact ? "p-3" : "p-4"}`}
+                    className={`flex flex-1 flex-col ${compact ? "p-2.5" : "p-3.5"}`}
                   >
                     {!visible.image && visible.status && (
                       <div
@@ -222,7 +222,7 @@ export const MenuItemCardList = ({
 
                     {visible.category && item.category && (
                       <p
-                        className={`mb-1 truncate font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400 ${compact ? "text-[10px]" : "text-xs"}`}
+                        className={`mb-1 truncate font-semibold uppercase tracking-wider text-blue-600 dark:text-[#F7F8F8] ${compact ? "text-[10px]" : "text-xs"}`}
                       >
                         {item.category}
                       </p>
@@ -231,14 +231,14 @@ export const MenuItemCardList = ({
                     <div className="flex items-start justify-between gap-2">
                       {visible.name && (
                         <h3
-                          className={`min-w-0 flex-1 font-semibold leading-tight text-gray-900 dark:text-white ${compact ? "line-clamp-2 text-sm" : "truncate text-lg"}`}
+                          className={`min-w-0 flex-1 font-semibold leading-tight text-gray-900 dark:text-[#F7F8F8] ${compact ? "line-clamp-2 text-sm" : "truncate text-lg"}`}
                         >
                           {item.name}
                         </h3>
                       )}
                       {visible.price && (
                         <p
-                          className={`shrink-0 font-bold text-gray-900 dark:text-white ${compact ? "text-sm" : "text-lg"}`}
+                          className={`shrink-0 font-bold text-gray-900 dark:text-[#F7F8F8] ${compact ? "text-sm" : "text-lg"}`}
                         >
                           {formatPrice(item.price, item)}
                         </p>
@@ -247,7 +247,7 @@ export const MenuItemCardList = ({
 
                     {visible.description && item.description && (
                       <p
-                        className={`text-gray-600 dark:text-gray-400 ${compact ? "mt-1 line-clamp-2 text-xs leading-4" : "mt-2 min-h-10 line-clamp-2 text-sm leading-5"}`}
+                        className={`text-gray-600 dark:text-[#8A8F98] ${compact ? "mt-1 line-clamp-2 text-xs leading-4" : "mt-2 min-h-10 line-clamp-2 text-sm leading-5"}`}
                       >
                         {item.description}
                       </p>
@@ -262,9 +262,9 @@ export const MenuItemCardList = ({
                         ? renderFooter(item)
                         : (visible.code ||
                             (visible.actions && actions.length > 0)) && (
-                            <div className="flex min-h-8 items-center justify-between gap-2 border-t border-gray-100 pt-2 dark:border-gray-700">
+                            <div className="flex min-h-8 items-center justify-between gap-2 border-t border-gray-100 pt-2 dark:border-[#1F2226]">
                               {visible.code && (
-                                <span className="truncate text-[11px] text-gray-500 dark:text-gray-400">
+                                <span className="truncate text-[11px] text-gray-500 dark:text-[#8A8F98]">
                                   {item.code ? `#${item.code}` : `#${item.id}`}
                                 </span>
                               )}
@@ -285,7 +285,7 @@ export const MenuItemCardList = ({
                                       height={
                                         action.height ?? actionButtonHeight
                                       }
-                                      className={`shrink-0 ${action.type === "delete" ? "hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400" : ""} ${action.className || ""}`}
+                                      className={`!bg-transparent dark:!bg-transparent dark:!text-slate-300 shrink-0 ${action.type === "delete" ? "hover:bg-red-50 hover:text-red-600 dark:hover:!bg-red-950/40 dark:hover:!text-red-400" : ""} ${action.className || ""}`}
                                     >
                                       {action.icon || (
                                         <svg
@@ -326,7 +326,7 @@ export const MenuItemCardList = ({
                               {actionIcons.cart}
                             </svg>
                           }
-                          className="mt-2 shadow-sm"
+                          className="mt-2 shadow-sm dark:!bg-[#5E6AD2] dark:!text-white dark:!border-[#5E6AD2] dark:hover:!bg-[#7170FF] dark:hover:!text-white dark:hover:!border-[#7170FF]"
                         >
                           {cartDisabled ? "Unavailable" : addToCartLabel}
                         </Button>
@@ -339,8 +339,8 @@ export const MenuItemCardList = ({
           </div>
 
           {pagination && totalPages > 1 && (
-            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-200 pt-4 dark:border-[#1F2226]">
+              <p className="text-sm text-gray-500 dark:text-[#8A8F98]">
                 Showing {(activePage - 1) * safePageSize + 1}–
                 {Math.min(activePage * safePageSize, items.length)} of{" "}
                 {items.length}
@@ -349,6 +349,7 @@ export const MenuItemCardList = ({
                 <Button
                   variant="outlined"
                   size="small"
+                  className="dark:!bg-transparent dark:!text-slate-300 dark:!border-slate-700 dark:hover:!bg-slate-800"
                   disabled={activePage === 1}
                   onClick={() =>
                     setCurrentPage((page) => Math.max(1, page - 1))
@@ -356,12 +357,13 @@ export const MenuItemCardList = ({
                 >
                   Previous
                 </Button>
-                <span className="min-w-20 text-center text-sm font-medium text-gray-700 dark:text-gray-200">
+                <span className="min-w-20 text-center text-sm font-medium text-gray-700 dark:text-[#D0D6E0]">
                   {activePage} / {totalPages}
                 </span>
                 <Button
                   variant="outlined"
                   size="small"
+                  className="dark:!bg-transparent dark:!text-slate-300 dark:!border-slate-700 dark:hover:!bg-slate-800"
                   disabled={activePage === totalPages}
                   onClick={() =>
                     setCurrentPage((page) => Math.min(totalPages, page + 1))
@@ -375,7 +377,7 @@ export const MenuItemCardList = ({
         </div>
       ) : (
         <div
-          className={`rounded-lg border border-dashed border-gray-300 bg-white px-6 py-12 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-[#18181B] dark:text-gray-400 ${className}`}
+          className={`rounded-lg border border-dashed border-slate-200 bg-white px-5 py-12 text-center text-sm text-gray-500 dark:border-[#1F2226] dark:bg-[#121314] dark:text-[#8A8F98] ${className}`}
         >
           {emptyMessage}
         </div>
