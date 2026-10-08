@@ -232,14 +232,14 @@ export const MenuItems = () => {
 
   const DetailItem = ({ label, value, wide = false }) => (
     <div
-      className={`rounded border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-[#202024] ${
+      className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
         wide ? "sm:col-span-2" : ""
       }`}
     >
-      <p className="text-xs font-medium uppercase text-gray-500 dark:text-gray-400">
+      <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
         {label}
       </p>
-      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-gray-100">
+      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
         {value || "Not provided"}
       </p>
     </div>
@@ -247,10 +247,15 @@ export const MenuItems = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
-          Menu Items
-        </h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
+            Menu Items
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
+            Maintain item details, pricing, and availability.
+          </p>
+        </div>
 
         <Button
           variant="primary"
@@ -290,7 +295,7 @@ export const MenuItems = () => {
           onPrimaryButtonClick={handleSubmitMenuItems}
           onSecondaryButtonClick={handleCloseAddMenuItems}
         >
-          <div className="space-y-6 mb-4">
+          <div className="space-y-5 mb-4">
             <TextField
               required
               label="Name"
@@ -303,7 +308,7 @@ export const MenuItems = () => {
               error={!!fieldErrors.name}
             />
           </div>
-          <div className="space-y-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <SelectField
               fullwidth={true}
               label="Status"
@@ -331,7 +336,7 @@ export const MenuItems = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="flex  gap-4 w-full">
+              <div className="flex  gap-3.5 w-full">
                 <SelectField
                   label="Status"
                   value={formData.statusOption}
@@ -435,17 +440,17 @@ export const MenuItems = () => {
         showFooter={false}
       >
         {viewMenuItems && (
-          <div className="space-y-6">
-            <div className="rounded border border-gray-200 bg-gray-50 p-5 dark:border-gray-700 dark:bg-[#202024]">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-5">
+            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-2xl font-semibold text-gray-950 dark:text-white">
+                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
                     {`${viewMenuItems.name || ""}`.trim() || "Not provided"}
                   </h3>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
                     {viewMenuItems.status || "Not provided"}
                   </span>
                 </div>
@@ -453,11 +458,11 @@ export const MenuItems = () => {
             </div>
 
             <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                 Menu Item Details
               </h4>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 <DetailItem label="Name" value={viewMenuItems.name} />
                 <DetailItem label="Status" value={viewMenuItems.status} />
                 <DetailItem label="Price" value={viewMenuItems.base_price} />

@@ -25,11 +25,11 @@ export const ProfileView = ({
   sections = [],
 }) => {
   return (
-    <div className="space-y-5">
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_45px_-38px_rgba(15,23,42,0.55)] dark:border-white/10 dark:bg-[#11151d]">
-        <div className="relative border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/70 px-5 py-5 dark:border-white/10 dark:from-[#151a23] dark:via-[#11151d] dark:to-blue-500/10">
-          <div className="flex items-center gap-4">
-            <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-white bg-slate-100 text-xl font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 dark:border-white/10 dark:bg-white/10 dark:text-slate-200 dark:ring-white/10 sm:size-24 sm:text-2xl">
+    <div className="space-y-3">
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_45px_-38px_rgba(15,23,42,0.55)] dark:border-white/5 dark:bg-[#121314]">
+        <div className="relative border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/70 px-4 py-4 dark:border-white/5 dark:from-[#121314] dark:via-[#090A0B] dark:to-[#121314]">
+          <div className="flex items-center gap-3">
+            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-white bg-slate-100 text-lg font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 dark:border-white/5 dark:bg-[#161719] dark:text-[#D0D6E0] dark:ring-white/5 sm:size-20 sm:text-lg">
               {avatar ? (
                 <img
                   src={avatar}
@@ -42,18 +42,18 @@ export const ProfileView = ({
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <h3 className="truncate text-2xl font-bold text-slate-950 dark:text-white">
+                  <h3 className="truncate text-lg font-bold text-slate-950 dark:text-[#F7F8F8]">
                     {formatValue(title)}
                   </h3>
-                  <p className="mt-1 truncate text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <p className="mt-1 truncate text-sm font-medium text-slate-500 dark:text-[#8A8F98]">
                     {formatValue(subtitle)}
                   </p>
                 </div>
 
                 {badges.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {badges.map((badge) => (
                       <Chip
                         key={`${badge.label}-${badge.value}`}
@@ -72,16 +72,16 @@ export const ProfileView = ({
           </div>
 
           {highlights.length > 0 && (
-            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-lg border border-slate-200 bg-white/80 px-3 py-2.5 dark:border-white/10 dark:bg-white/6"
+                  className="rounded-lg border border-slate-200 bg-white/80 px-2.5 py-2 dark:border-white/5 dark:bg-[#121314]"
                 >
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <p className="text-xs font-medium text-slate-500 dark:text-[#8A8F98]">
                     {item.label}
                   </p>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-[#D0D6E0]">
                     {formatValue(item.value)}
                   </p>
                 </div>
@@ -92,27 +92,27 @@ export const ProfileView = ({
       </section>
 
       {sections.map((section) => (
-        <section key={section.title} className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+        <section key={section.title} className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-[#161719]" />
+            <h4 className="text-sm font-semibold text-slate-700 dark:text-[#D0D6E0]">
               {section.title}
             </h4>
-            <div className="h-px flex-1 bg-slate-200 dark:bg-white/10" />
+            <div className="h-px flex-1 bg-slate-200 dark:bg-[#161719]" />
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-2">
             {section.items.map((item) => (
               <div
                 key={item.label}
-                className={`rounded-lg border border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-white/10 dark:bg-white/5 ${
+                className={`rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-2 dark:border-white/5 dark:bg-[#121314] ${
                   item.wide ? "sm:col-span-2" : ""
                 }`}
               >
-                <p className="text-xs font-medium uppercase tracking-normal text-slate-500 dark:text-slate-400">
+                <p className="text-xs font-medium uppercase tracking-normal text-slate-500 dark:text-[#8A8F98]">
                   {item.label}
                 </p>
-                <p className="mt-1 break-words text-sm font-semibold text-slate-950 dark:text-white">
+                <p className="mt-1 break-words text-sm font-semibold text-slate-950 dark:text-[#F7F8F8]">
                   {formatValue(item.value)}
                 </p>
               </div>

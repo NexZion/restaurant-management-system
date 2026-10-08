@@ -23,6 +23,8 @@ class UpdateUserRequest extends FormRequest
             'whatsapp' => 'nullable|string|max:20',
             'role_id' => 'required|exists:roles,id',
             'branch_id' => 'required|exists:branches,id',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'remove_image' => 'nullable|boolean',
             'dob' => 'nullable|date_format:Y-m-d',
             'address' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive,blocked'

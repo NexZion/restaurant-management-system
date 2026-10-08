@@ -175,7 +175,7 @@ export const Components = () => {
 
   return (
     <>
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Menu Item Card List</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Menu Item Card List</h1>
       <MenuItemCardList
         items={demoMenuItems}
         columns={3}
@@ -185,7 +185,7 @@ export const Components = () => {
         onDelete={(item) => console.log('Delete', item)}
       />
 
-      <h2 className="my-5 text-xl font-bold text-gray-900 dark:text-white">Billing / POS Example</h2>
+      <h2 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Billing / POS Example</h2>
       <MenuItemCardList
         items={demoMenuItems}
         columns={6}
@@ -199,7 +199,7 @@ export const Components = () => {
         onCardClick={(item) => console.log('Selected', item)}
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Image Upload Field</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Image Upload Field</h1>
       <ImageUploadField
         label="Profile Image"
         value={uploadedImage}
@@ -209,8 +209,8 @@ export const Components = () => {
         variant="outlined"
         fullWidth
       />
-      <h1 className="mb-5 text-2xl font-bold text-gray-900 dark:text-white">TextField</h1>
-      <div className="flex flex-col gap-4">
+      <h1 className="mb-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">TextField</h1>
+      <div className="flex flex-col gap-3.5">
         <TextField label="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
         <TextField
           label="Password"
@@ -229,7 +229,7 @@ export const Components = () => {
         />
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">TextArea</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">TextArea</h1>
       <TextAreaField
         label="Description"
         value={description}
@@ -240,7 +240,7 @@ export const Components = () => {
         showCharCount={true}
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Rich Text Editor</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Rich Text Editor</h1>
       <TextAreaField
         label="Rich Text Content"
         value={richTextContent}
@@ -250,14 +250,14 @@ export const Components = () => {
         resize="vertical"
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">SelectField</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">SelectField</h1>
       <SelectField label="Options" value={selectedOption1} options={options} onChange={(e) => setSelectedOption1(e.target.value)} />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Search SelectField</h1>
       <SelectField label="Options" value={selectedOption2} options={options} searchable={true} onChange={(e) => setSelectedOption2(e.target.value)} />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Search SelectField With Images</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Search SelectField With Images</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
         <SelectField
           label="Small Images"
           value={selectedImageOptionSmall}
@@ -292,17 +292,17 @@ export const Components = () => {
         />
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Multiple SelectField</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Multiple SelectField</h1>
       <SelectField label="Options" value={selectedOption3} options={options} multiple={true} onChange={(e) => setSelectedOption3(e.target.value)} />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Multiple Search SelectField</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Multiple Search SelectField</h1>
       <SelectField label="Country" value={selectedOption4} options={options} multiple={true} searchable={true} onChange={(e) => setSelectedOption4(e.target.value)} />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Checkbox</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Checkbox</h1>
       <CheckboxField label="I agree to terms and conditions" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Number Fields</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-5">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Number Fields</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 my-5">
         <NumberField
           label="Basic Number"
           value={numberValue}
@@ -318,11 +318,11 @@ export const Components = () => {
         />
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Radio Buttons</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Radio Buttons</h1>
       <RadioField label="Gender" name="gender" value={gender} options={genderOptions} onChange={(e) => setGender(e.target.value)} required />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Toggle Switch</h1>
-      <div className="flex flex-col gap-6 my-5">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Toggle Switch</h1>
+      <div className="flex flex-col gap-5 my-5">
         <ToggleSwitch
           label="Enable Notifications"
           checked={toggle1}
@@ -344,7 +344,7 @@ export const Components = () => {
             </svg>
           }
         />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           <ToggleSwitch
             label="Small"
             checked={toggle3}
@@ -373,7 +373,7 @@ export const Components = () => {
         />
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Buttons</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Buttons</h1>
       <div className="flex space-x-4 my-5">
         <Button type="submit" variant="primary">Submit</Button>
         <Button variant="secondary">Cancel</Button>
@@ -387,7 +387,7 @@ export const Components = () => {
         </svg>
       }>Add New</Button>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Table</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Table</h1>
       <Table
         columns={columns}
         data={data}
@@ -433,7 +433,7 @@ export const Components = () => {
         ]}
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Accordion</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Accordion</h1>
       <Accordion
         items={[
           {
@@ -443,7 +443,7 @@ export const Components = () => {
           {
             title: 'Form Fields',
             content: (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
                 <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 <Button variant="primary">Submit</Button>
@@ -470,7 +470,7 @@ export const Components = () => {
           {
             title: 'Nested Components',
             content: (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <CheckboxField label="Enable notifications" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
                 <SelectField
                   label="Choose option"
@@ -495,8 +495,8 @@ export const Components = () => {
         variant="filled"
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Alerts</h1>
-      <div className="flex flex-wrap gap-4 my-5">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Alerts</h1>
+      <div className="flex flex-wrap gap-3.5 my-5">
         <Button variant="primary" onClick={() => setShowSuccessAlert(true)}>
           Show Success
         </Button>
@@ -541,7 +541,7 @@ export const Components = () => {
         onClose={() => setShowInfoAlert(false)}
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Dialog</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Dialog</h1>
       <Button variant="primary" onClick={() => setShowDialog(true)}>
         Open Dialog
       </Button>
@@ -558,7 +558,7 @@ export const Components = () => {
         }}
         onCancel={() => setShowDialog(false)}
       >
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <p>This is a sample dialog with scrollable content.</p>
           <TextField label="Name" value={name} onChange={(e) => setName(e.target.value)} />
           <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -568,8 +568,8 @@ export const Components = () => {
         </div>
       </Dialog>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Snackbar</h1>
-      <div className="flex gap-3 flex-wrap">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Snackbar</h1>
+      <div className="flex gap-2.5 flex-wrap">
         <Button variant="primary" onClick={() => setShowSnackbarBottom(true)}>
           Bottom Left
         </Button>
@@ -614,15 +614,15 @@ export const Components = () => {
         onClose={() => setShowSnackbarRight(false)}
       />
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Loading Animation</h1>
-      <div className="flex gap-3 flex-wrap items-center">
-        <div className="p-4 border border-gray-300 dark:border-gray-600 rounded">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Loading Animation</h1>
+      <div className="flex gap-2.5 flex-wrap items-center">
+        <div className="p-3.5 border border-slate-200 dark:border-[#1F2226] rounded">
           <Loading size="small" />
         </div>
-        <div className="p-4 border border-gray-300 dark:border-gray-600 rounded">
+        <div className="p-3.5 border border-slate-200 dark:border-[#1F2226] rounded">
           <Loading size="medium" text="Loading..." />
         </div>
-        <div className="p-4 border border-gray-300 dark:border-gray-600 rounded">
+        <div className="p-3.5 border border-slate-200 dark:border-[#1F2226] rounded">
           <Loading size="large" text="Please wait" />
         </div>
         <Button variant="primary" onClick={() => setShowLoadingDialog(true)}>
@@ -644,7 +644,7 @@ export const Components = () => {
         </div>
       </Dialog>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Side Drawer</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Side Drawer</h1>
       <Button variant="primary" onClick={() => setShowDrawer(true)}>
         Open Side Drawer
       </Button>
@@ -655,7 +655,7 @@ export const Components = () => {
         onClose={() => setShowDrawer(false)}
         title="Side Drawer Example"
       >
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <p>This is a side drawer that slides from the right side of the screen.</p>
           <p>Features:</p>
           <ul className="list-disc list-inside space-y-1">
@@ -688,15 +688,15 @@ export const Components = () => {
             <Button variant="outlined" onClick={() => setShowDrawer(false)}>Cancel</Button>
           </div>
 
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-8">
+          <p className="text-gray-500 dark:text-[#8A8F98] text-sm mt-8">
             Click the fullscreen icon to expand the drawer to full width (respecting the sidebar).
           </p>
         </div>
       </Drawer>
 
       {/* Vertical Tabs */}
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Vertical Tabs</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6 " style={{ minHeight: '500px' }}>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Vertical Tabs</h1>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-5 " style={{ minHeight: '500px' }}>
         <VerticalTabs
           tabs={[
             {
@@ -704,10 +704,10 @@ export const Components = () => {
               icon: '',
               description: 'Manage your profile',
               content: (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Profile Settings</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Update your profile information and preferences.</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="space-y-3.5">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Profile Settings</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98]">Update your profile information and preferences.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 mt-6">
                     <TextField label="First Name" value={name} onChange={(e) => setName(e.target.value)} />
                     <TextField label="Last Name" value="" onChange={() => { }} />
                     <TextField label="Email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" fullWidth />
@@ -725,10 +725,10 @@ export const Components = () => {
               description: 'Security settings',
               badge: '2',
               content: (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Security Settings</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Manage your password and authentication methods.</p>
-                  <div className="space-y-4 mt-6">
+                <div className="space-y-3.5">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Security Settings</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98]">Manage your password and authentication methods.</p>
+                  <div className="space-y-3.5 mt-6">
                     <TextField label="Current Password" type="password" value="" onChange={() => { }} fullWidth />
                     <TextField label="New Password" type="password" value="" onChange={() => { }} fullWidth />
                     <TextField label="Confirm Password" type="password" value="" onChange={() => { }} fullWidth />
@@ -745,10 +745,10 @@ export const Components = () => {
               icon: '🔔',
               description: 'Notification preferences',
               content: (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Notification Preferences</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Choose how you want to be notified.</p>
-                  <div className="space-y-4 mt-6">
+                <div className="space-y-3.5">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Notification Preferences</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98]">Choose how you want to be notified.</p>
+                  <div className="space-y-3.5 mt-6">
                     <CheckboxField label="Email notifications" checked={true} onChange={() => { }} />
                     <CheckboxField label="Push notifications" checked={true} onChange={() => { }} />
                     <CheckboxField label="SMS notifications" checked={false} onChange={() => { }} />
@@ -765,15 +765,15 @@ export const Components = () => {
               icon: '💳',
               description: 'Billing & payments',
               content: (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Billing Information</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Manage your payment methods and billing history.</p>
-                  <div className="mt-6 space-y-4">
-                    <div className="p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
+                <div className="space-y-3.5">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Billing Information</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98]">Manage your payment methods and billing history.</p>
+                  <div className="mt-6 space-y-3.5">
+                    <div className="p-3.5 border border-slate-200 dark:border-[#1F2226] rounded-lg">
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">Visa ending in 4242</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Expires 12/2025</p>
+                          <p className="font-semibold text-gray-900 dark:text-[#F7F8F8]">Visa ending in 4242</p>
+                          <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Expires 12/2025</p>
                         </div>
                         <Button variant="outlined" size="small">Remove</Button>
                       </div>
@@ -795,8 +795,8 @@ export const Components = () => {
       </div>
 
       {/* ── Stepper ── */}
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Stepper — Horizontal (default)</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-8 border border-gray-200 dark:border-gray-700">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Stepper — Horizontal (default)</h1>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-8 border border-slate-200 dark:border-[#1F2226]">
         <Stepper
           variant="default"
           activeStep={stepperStep1}
@@ -805,36 +805,36 @@ export const Components = () => {
             {
               label: 'Account Info', description: 'Basic details',
               content: (
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Step 1 — Account Info</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Enter your username and password to create your account.</p>
+                <div className="flex flex-col gap-2.5">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0]">Step 1 — Account Info</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Enter your username and password to create your account.</p>
                 </div>
               )
             },
             {
               label: 'Verification', description: 'Confirm email',
               content: (
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Step 2 — Verification</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Check your inbox and enter the 6-digit code we sent you.</p>
+                <div className="flex flex-col gap-2.5">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0]">Step 2 — Verification</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Check your inbox and enter the 6-digit code we sent you.</p>
                 </div>
               )
             },
             {
               label: 'Profile', description: 'Set up profile',
               content: (
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Step 3 — Profile</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Upload a photo and fill in your display name and bio.</p>
+                <div className="flex flex-col gap-2.5">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0]">Step 3 — Profile</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Upload a photo and fill in your display name and bio.</p>
                 </div>
               )
             },
             {
               label: 'Complete', description: 'All done!',
               content: (
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2.5">
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400">🎉 All done!</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Your account is ready. You can now log in and start using the app.</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Your account is ready. You can now log in and start using the app.</p>
                 </div>
               )
             },
@@ -842,14 +842,14 @@ export const Components = () => {
         />
         <div className="flex gap-2 mt-8 justify-center">
           <button type="button" onClick={() => setStepperStep1(s => Math.max(0, s - 1))}
-            className="px-4 py-1.5 text-sm rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-slate-50 dark:bg-[#1A1C20] text-gray-700 dark:text-[#D0D6E0] hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
           <button type="button" onClick={() => setStepperStep1(s => Math.min(3, s + 1))}
-            className="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Next</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]">Next</button>
         </div>
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Stepper — Vertical</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-8 border border-gray-200 dark:border-gray-700 max-w-sm">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Stepper — Vertical</h1>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-8 border border-slate-200 dark:border-[#1F2226] max-w-sm">
         <Stepper
           variant="vertical"
           activeStep={stepperStep2}
@@ -859,8 +859,8 @@ export const Components = () => {
               label: 'Select Plan', description: 'Choose the best plan for you.',
               content: (
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Step 1 — Select Plan</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Browse available plans and pick the one that fits your needs.</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0] mb-1">Step 1 — Select Plan</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Browse available plans and pick the one that fits your needs.</p>
                 </div>
               )
             },
@@ -868,8 +868,8 @@ export const Components = () => {
               label: 'Payment', description: 'Enter your payment details.',
               content: (
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Step 2 — Payment</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Provide your card number, expiry date, and CVV.</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0] mb-1">Step 2 — Payment</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Provide your card number, expiry date, and CVV.</p>
                 </div>
               )
             },
@@ -877,8 +877,8 @@ export const Components = () => {
               label: 'Confirmation', description: 'Review and confirm your order.',
               content: (
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">Step 3 — Confirmation</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Review your order summary before finalising.</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[#D0D6E0] mb-1">Step 3 — Confirmation</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Review your order summary before finalising.</p>
                 </div>
               )
             },
@@ -887,7 +887,7 @@ export const Components = () => {
               content: (
                 <div>
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400 mb-1">✅ Subscription Active</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Thank you! Your plan is now active. Enjoy your subscription.</p>
+                  <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Thank you! Your plan is now active. Enjoy your subscription.</p>
                 </div>
               )
             },
@@ -895,37 +895,37 @@ export const Components = () => {
         />
         <div className="flex gap-2 mt-2">
           <button type="button" onClick={() => setStepperStep2(s => Math.max(0, s - 1))}
-            className="px-4 py-1.5 text-sm rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-slate-50 dark:bg-[#1A1C20] text-gray-700 dark:text-[#D0D6E0] hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
           <button type="button" onClick={() => setStepperStep2(s => Math.min(3, s + 1))}
-            className="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Next</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]">Next</button>
         </div>
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Stepper — Progress</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-8 border border-gray-200 dark:border-gray-700">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Stepper — Progress</h1>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-8 border border-slate-200 dark:border-[#1F2226]">
         <Stepper
           variant="progress"
           activeStep={stepperStep3}
           onStepClick={setStepperStep3}
           steps={[
-            { label: 'Cart', content: <p className="text-sm text-gray-500 dark:text-gray-400">Your cart has 3 items. Review them before proceeding.</p> },
-            { label: 'Shipping', content: <p className="text-sm text-gray-500 dark:text-gray-400">Enter your delivery address and choose a shipping method.</p> },
-            { label: 'Payment', content: <p className="text-sm text-gray-500 dark:text-gray-400">Provide your payment information securely.</p> },
-            { label: 'Review', content: <p className="text-sm text-gray-500 dark:text-gray-400">Review your full order — items, address, and payment — before placing.</p> },
+            { label: 'Cart', content: <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Your cart has 3 items. Review them before proceeding.</p> },
+            { label: 'Shipping', content: <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Enter your delivery address and choose a shipping method.</p> },
+            { label: 'Payment', content: <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Provide your payment information securely.</p> },
+            { label: 'Review', content: <p className="text-sm text-gray-500 dark:text-[#8A8F98]">Review your full order — items, address, and payment — before placing.</p> },
             { label: 'Placed', content: <p className="text-sm text-green-600 dark:text-green-400">🎉 Order placed! You'll receive a confirmation email shortly.</p> },
           ]}
         />
         <div className="flex gap-2 mt-8 justify-center">
           <button type="button" onClick={() => setStepperStep3(s => Math.max(0, s - 1))}
-            className="px-4 py-1.5 text-sm rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-slate-50 dark:bg-[#1A1C20] text-gray-700 dark:text-[#D0D6E0] hover:bg-gray-200 dark:hover:bg-gray-600">Back</button>
           <button type="button" onClick={() => setStepperStep3(s => Math.min(4, s + 1))}
-            className="px-4 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700">Next</button>
+            className="px-3.5 py-1.5 text-sm rounded bg-blue-600 text-white hover:bg-blue-700 dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]">Next</button>
         </div>
       </div>
 
       {/* SectionDivider Horizontal Tabs */}
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Horizontal Tabs (SectionDivider)</h1>
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6" style={{ minHeight: '300px' }}>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Horizontal Tabs (SectionDivider)</h1>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-5" style={{ minHeight: '300px' }}>
         <SectionDivider
           tabs={[
             {
@@ -935,8 +935,8 @@ export const Components = () => {
               description: 'General information',
               content: (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Overview</h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">This is the overview tab content.</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Overview</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98] mt-2">This is the overview tab content.</p>
                 </div>
               )
             },
@@ -946,8 +946,8 @@ export const Components = () => {
               description: 'More details',
               content: (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Details</h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">This is the details tab content.</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Details</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98] mt-2">This is the details tab content.</p>
                 </div>
               )
             },
@@ -958,8 +958,8 @@ export const Components = () => {
               description: 'Configuration options',
               content: (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">This is the settings tab content.</p>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-[#F7F8F8]">Settings</h2>
+                  <p className="text-gray-600 dark:text-[#8A8F98] mt-2">This is the settings tab content.</p>
                 </div>
               )
             },
@@ -976,15 +976,15 @@ export const Components = () => {
       </div>
 
       {/* ── AddItem ─────────────────────────────────────────────────────────── */}
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">AddItem</h1>
-      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">AddItem</h1>
+      <p className="mb-4 text-sm text-gray-500 dark:text-[#8A8F98]">
         A dynamic row-based input component. Define any combination of field types — the component
         handles adding, editing, and removing rows and returns values as a controlled array.
       </p>
 
       {/* Example 1 — Product attributes */}
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">Example 1 — Product Attributes</h2>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-5 border border-slate-200 dark:border-[#1F2226] mb-6">
+        <h2 className="text-base font-semibold text-gray-800 dark:text-[#D0D6E0] mb-4">Example 1 — Product Attributes</h2>
         <AddItem
           label="Product Attributes"
           addLabel="Add Attribute"
@@ -1030,8 +1030,8 @@ export const Components = () => {
           emptyMessage="No attributes yet. Click 'Add Attribute' to define one."
         />
         {demoAttributes.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">output (array)</p>
+          <div className="mt-4 p-2.5 bg-gray-50 dark:bg-[#161719] rounded border border-slate-200 dark:border-[#1F2226]">
+            <p className="text-xs font-medium text-gray-500 dark:text-[#8A8F98] mb-1 uppercase tracking-wide">output (array)</p>
             <pre className="text-xs text-green-600 dark:text-green-400 overflow-x-auto whitespace-pre-wrap">
               {JSON.stringify(demoAttributes, null, 2)}
             </pre>
@@ -1040,8 +1040,8 @@ export const Components = () => {
       </div>
 
       {/* Example 2 — Pricing tiers */}
-      <div className="bg-white dark:bg-[#18181b] rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6">
-        <h2 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-4">Example 2 — Pricing Tiers</h2>
+      <div className="bg-white dark:bg-[#121314] rounded-lg p-5 border border-slate-200 dark:border-[#1F2226] mb-6">
+        <h2 className="text-base font-semibold text-gray-800 dark:text-[#D0D6E0] mb-4">Example 2 — Pricing Tiers</h2>
         <AddItem
           label="Price List"
           addLabel="Add Price Tier"
@@ -1080,8 +1080,8 @@ export const Components = () => {
           emptyMessage="No pricing tiers defined. Click 'Add Price Tier' to start."
         />
         {demoPrices.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">output (array)</p>
+          <div className="mt-4 p-2.5 bg-gray-50 dark:bg-[#161719] rounded border border-slate-200 dark:border-[#1F2226]">
+            <p className="text-xs font-medium text-gray-500 dark:text-[#8A8F98] mb-1 uppercase tracking-wide">output (array)</p>
             <pre className="text-xs text-green-600 dark:text-green-400 overflow-x-auto whitespace-pre-wrap">
               {JSON.stringify(demoPrices, null, 2)}
             </pre>
@@ -1089,8 +1089,8 @@ export const Components = () => {
         )}
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Category Tree Field</h1>
-      <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#18181B] max-w-md">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Category Tree Field</h1>
+      <div className="p-5 border border-slate-200 dark:border-[#1F2226] rounded-xl bg-white dark:bg-[#121314] max-w-md">
         <CategoryTreeField
           label="Product Categories"
           items={demoCategoryItems}
@@ -1099,8 +1099,8 @@ export const Components = () => {
           fullWidth
         />
         {demoSelectedCategories.length > 0 && (
-          <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">selected ids</p>
+          <div className="mt-4 p-2.5 bg-gray-50 dark:bg-[#161719] rounded border border-slate-200 dark:border-[#1F2226]">
+            <p className="text-xs font-medium text-gray-500 dark:text-[#8A8F98] mb-1 uppercase tracking-wide">selected ids</p>
             <pre className="text-xs text-green-600 dark:text-green-400 overflow-x-auto whitespace-pre-wrap">
               {JSON.stringify(demoSelectedCategories, null, 2)}
             </pre>
@@ -1108,8 +1108,8 @@ export const Components = () => {
         )}
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Phone Field</h1>
-      <div className="flex flex-col gap-4 p-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-[#18181B] max-w-md">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Phone Field</h1>
+      <div className="flex flex-col gap-3.5 p-5 border border-slate-200 dark:border-[#1F2226] rounded-xl bg-white dark:bg-[#121314] max-w-md">
         <PhoneField
           label="Phone Number"
           value={demoPhone}
@@ -1144,15 +1144,15 @@ export const Components = () => {
           disabled
         />
         {demoPhone && (
-          <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">value</p>
+          <div className="p-2.5 bg-gray-50 dark:bg-[#161719] rounded border border-slate-200 dark:border-[#1F2226]">
+            <p className="text-xs font-medium text-gray-500 dark:text-[#8A8F98] mb-1 uppercase tracking-wide">value</p>
             <code className="text-xs text-green-600 dark:text-green-400">{demoPhone}</code>
           </div>
         )}
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Status Chip</h1>
-      <div className="flex max-w-2xl flex-col gap-4 rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-[#18181B]">
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Status Chip</h1>
+      <div className="flex max-w-2xl flex-col gap-3.5 rounded-xl border border-slate-200 bg-white p-5 dark:border-[#1F2226] dark:bg-[#121314]">
         <div className="flex flex-wrap gap-2">
           <Chip tone="emerald">Active</Chip>
           <Chip tone="blue">Serving</Chip>
@@ -1176,7 +1176,7 @@ export const Components = () => {
         </div>
       </div>
 
-      <h1 className="my-5 text-2xl font-bold text-gray-900 dark:text-white">Profile View</h1>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Profile View</h1>
       <div className="max-w-2xl">
         <ProfileView
           title="Ariana Fernando"

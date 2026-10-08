@@ -214,14 +214,14 @@ export const Login = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-100 p-6 dark:bg-[#0b0d12]">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-100 p-5 dark:bg-[#090A0B]">
       <LoginInteractiveBackground isDark={isDarkMode} />
 
       <div className="relative z-20 w-full max-w-[430px]">
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white/90 shadow-2xl shadow-slate-200/70 backdrop-blur-xl dark:border-[#252a35] dark:bg-[#111318]/92 dark:shadow-black/40">
-          <div className="border-b border-slate-100 px-7 py-4 dark:border-[#252a35]">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white/90 shadow-xl shadow-slate-200/70 backdrop-blur-xl dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/40">
+          <div className="border-b border-slate-100 px-7 py-3.5 dark:border-[#252a35]">
+            <div className="flex items-center justify-between gap-3.5">
+              <span className="text-sm font-medium text-slate-500 dark:text-[#8A8F98]">
                 Welcome back
               </span>
               <ToggleSwitch
@@ -266,15 +266,15 @@ export const Login = () => {
             </div>
 
             <div className="mb-8 text-center">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-950 dark:text-white">
+              <h1 className="text-xl font-bold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
                 Sign in
               </h1>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-sm text-slate-500 dark:text-[#8A8F98]">
                 Please enter your details to sign in
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4.5">
               <TextField
                 label="Username / Email"
                 value={login}
@@ -290,7 +290,7 @@ export const Login = () => {
                 fullWidth
               />
 
-              <div className="flex items-center justify-between gap-3 text-sm">
+              <div className="flex items-center justify-between gap-2.5 text-sm">
                 <CheckboxField
                   label="Remember me"
                   checked={rememberMe}
@@ -303,7 +303,7 @@ export const Login = () => {
                     event.preventDefault();
                     setShowForgotPassword(true);
                   }}
-                  className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
+                  className="font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-[#D0D6E0] dark:hover:text-white"
                 >
                   Forgot password?
                 </a>
@@ -316,7 +316,7 @@ export const Login = () => {
           </div>
         </div>
 
-        <p className="mt-8 text-center text-xs text-slate-500 dark:text-slate-500">
+        <p className="mt-8 text-center text-xs text-slate-500 dark:text-[#F7F8F8]0">
           (c) 2026 NexZion. All rights reserved.
         </p>
       </div>
@@ -330,35 +330,35 @@ export const Login = () => {
         showSecondaryButton={false}
         onPrimaryButtonClick={() => setShowForgotPassword(false)}
       >
-        <div className="space-y-4">
-          <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+        <div className="space-y-3.5">
+          <p className="text-sm leading-6 text-slate-600 dark:text-[#D0D6E0]">
             Please contact the company support team to reset your password or
             recover access to your account.
           </p>
 
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#252a35] dark:bg-[#171a21]">
-            <p className="mb-3 text-sm font-semibold text-slate-950 dark:text-white">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 dark:border-[#252a35] dark:bg-[#121314]">
+            <p className="mb-3 text-sm font-semibold text-slate-950 dark:text-[#F7F8F8]">
               Contact details
             </p>
-            <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500 dark:text-slate-400">Company</span>
-                <span className="text-right font-medium text-slate-900 dark:text-white">
+            <div className="space-y-2 text-sm text-slate-600 dark:text-[#D0D6E0]">
+              <div className="flex items-center justify-between gap-3.5">
+                <span className="text-slate-500 dark:text-[#8A8F98]">Company</span>
+                <span className="text-right font-medium text-slate-900 dark:text-[#F7F8F8]">
                   NexZion
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500 dark:text-slate-400">Email</span>
+              <div className="flex items-center justify-between gap-3.5">
+                <span className="text-slate-500 dark:text-[#8A8F98]">Email</span>
                 <a
                   href="mailto:support@nexzion.com"
-                  className="text-right font-medium text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
+                  className="text-right font-medium text-blue-600 hover:text-blue-700 dark:text-[#D0D6E0] dark:hover:text-white"
                 >
                   support@nexzion.com
                 </a>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-500 dark:text-slate-400">Phone</span>
-                <span className="text-right font-medium text-slate-900 dark:text-white">
+              <div className="flex items-center justify-between gap-3.5">
+                <span className="text-slate-500 dark:text-[#8A8F98]">Phone</span>
+                <span className="text-right font-medium text-slate-900 dark:text-[#F7F8F8]">
                   Contact your system administrator
                 </span>
               </div>

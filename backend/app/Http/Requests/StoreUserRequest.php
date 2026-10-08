@@ -40,6 +40,7 @@ class StoreUserRequest extends FormRequest
             'role_id' => ['required', 'exists:roles,id'],
             'branch_id' => ['required', 'exists:branches,id'],
             'pin' => ['nullable', 'digits:4'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'dob' => ['nullable', 'date_format:Y-m-d'],
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', 'in:active,inactive,blocked'],

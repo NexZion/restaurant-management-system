@@ -177,10 +177,10 @@ export const POSNewOrder = () => {
   );
 
   return (
-    <main className="min-h-screen bg-gray-100 p-3 text-gray-900 dark:bg-[#09090B] dark:text-white lg:p-5">
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#18181B]">
-        <header className="flex min-h-16 flex-wrap items-center justify-between gap-4 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-          <div className="flex items-center gap-6">
+    <main className="min-h-screen bg-slate-50 p-2.5 text-gray-900 dark:bg-[#090A0B] dark:text-[#F7F8F8] lg:p-4.5">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
+        <header className="flex min-h-16 flex-wrap items-center justify-between gap-3.5 border-b border-slate-200 px-3.5 py-2.5 dark:border-[#1F2226]">
+          <div className="flex items-center gap-5">
             <img
               src={logo}
               alt="Restaurant"
@@ -194,7 +194,7 @@ export const POSNewOrder = () => {
               Dashboard
             </Button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="outlined"
               size="small"
@@ -216,8 +216,8 @@ export const POSNewOrder = () => {
           </div>
         </header>
 
-        <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_450px]">
-          <section className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-[#18181B]">
+        <div className="grid gap-3.5 p-3.5 xl:grid-cols-[minmax(0,1fr)_450px]">
+          <section className="rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
             <div className="mb-4">
               <TextField
                 placeholder="Search by menu item or code"
@@ -227,16 +227,16 @@ export const POSNewOrder = () => {
               />
             </div>
 
-            <div className="mb-5 flex gap-3 overflow-x-auto pb-2">
+            <div className="mb-5 flex gap-2.5 overflow-x-auto pb-2">
               {categories.map((itemCategory) => (
                 <Button
                   key={itemCategory}
                   variant={category === itemCategory ? "primary" : "outlined"}
                   size="medium"
                   width="auto"
-                  height={50}
+                  height={42}
                   onClick={() => setCategory(itemCategory)}
-                  className="shrink-0 whitespace-nowrap px-6 text-base font-semibold"
+                  className="shrink-0 whitespace-nowrap px-4 text-sm font-semibold"
                 >
                   {itemCategory}
                 </Button>
@@ -268,8 +268,8 @@ export const POSNewOrder = () => {
             />
           </section>
 
-          <aside className="flex min-h-[calc(100vh-8.5rem)] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-[#18181B] xl:h-[calc(100vh-8.5rem)] xl:min-h-0">
-            <h1 className="mb-4 text-2xl font-bold">Current Order</h1>
+          <aside className="flex min-h-[calc(100vh-8.5rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314] xl:h-[calc(100vh-8.5rem)] xl:min-h-0">
+            <h1 className="mb-4 text-xl font-bold">Current Order</h1>
 
             <div className="mb-4 flex items-center gap-2">
               <div className="min-w-0 flex-1">
@@ -307,9 +307,9 @@ export const POSNewOrder = () => {
               </Button>
             </div>
 
-            <div className="min-h-48 max-h-96 flex-1 overflow-y-auto overscroll-contain border-y border-gray-200 pr-1 dark:border-gray-700 xl:min-h-0 xl:max-h-none">
+            <div className="min-h-48 max-h-96 flex-1 overflow-y-auto overscroll-contain border-y border-slate-200 pr-1 dark:border-[#1F2226] xl:min-h-0 xl:max-h-none">
               {cart.length === 0 ? (
-                <div className="flex h-48 flex-col items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex h-48 flex-col items-center justify-center text-center text-sm text-gray-500 dark:text-[#8A8F98]">
                   <p className="font-medium">Your order is empty</p>
                   <p className="mt-1 text-xs">
                     Select a menu item to add it here.
@@ -319,13 +319,13 @@ export const POSNewOrder = () => {
                 cart.map((line) => (
                   <div
                     key={line.id}
-                    className="grid grid-cols-[minmax(0,1fr)_70px_auto] items-center gap-2 border-b border-gray-100 py-3 last:border-0 dark:border-gray-800"
+                    className="grid grid-cols-[minmax(0,1fr)_70px_auto] items-center gap-2 border-b border-gray-100 py-2.5 last:border-0 dark:border-[#1F2226]"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-base font-semibold">
                         {line.name}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500 dark:text-[#8A8F98]">
                         {money(line.price)} each
                       </p>
                     </div>
@@ -390,8 +390,8 @@ export const POSNewOrder = () => {
         onClose={() => setShowOrdersDrawer(false)}
         title="Orders placed now"
       >
-        <div className="space-y-4">
-          <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200">
+        <div className="space-y-3.5">
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3.5 text-sm text-blue-800 dark:border-white/5 dark:bg-[#121314] dark:text-[#D0D6E0]">
             These are the orders placed during this cashier session. Mark an
             order as served after confirmation.
           </div>
@@ -430,7 +430,7 @@ export const POSNewOrder = () => {
                   </svg>
                 ) : (
                   <svg
-                    className="h-5 w-5 text-blue-500"
+                    className="h-5 w-5 text-blue-500 dark:text-[#D0D6E0]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -447,7 +447,7 @@ export const POSNewOrder = () => {
               },
             ]}
             renderExpandedRow={(row) => (
-              <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700 dark:bg-[#212125] dark:text-gray-200">
+              <div className="rounded-lg bg-gray-50 p-2.5 text-sm text-gray-700 dark:bg-[#161719] dark:text-[#D0D6E0]">
                 {row.items}
               </div>
             )}
@@ -466,19 +466,19 @@ export const POSNewOrder = () => {
         onPrimaryButtonClick={markOrderAsServed}
         onSecondaryButtonClick={() => setOrderToServe(null)}
       >
-        <div className="space-y-3">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+        <div className="space-y-2.5">
+          <p className="text-sm text-gray-600 dark:text-[#D0D6E0]">
             Are you sure you want to mark this order as served?
           </p>
           {orderToServe && (
-            <div className="rounded-lg bg-gray-50 p-3 text-sm dark:bg-[#212125]">
-              <p className="font-semibold text-gray-900 dark:text-white">
+            <div className="rounded-lg bg-gray-50 p-2.5 text-sm dark:bg-[#161719]">
+              <p className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
                 {orderToServe.orderNo}
               </p>
-              <p className="mt-1 text-gray-600 dark:text-gray-300">
+              <p className="mt-1 text-gray-600 dark:text-[#D0D6E0]">
                 {orderToServe.customer}
               </p>
-              <p className="mt-1 text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-gray-500 dark:text-[#8A8F98]">
                 {orderToServe.items}
               </p>
             </div>
