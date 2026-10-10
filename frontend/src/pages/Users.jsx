@@ -55,6 +55,7 @@ export const Users = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showViewUser, setShowViewUser] = useState(false);
   const [viewUser, setViewUser] = useState(null);
+  const [deleteUserCandidate, setDeleteUserCandidate] = useState(null);
 
   const status = [
     { value: "active", label: "Active" },
@@ -162,6 +163,7 @@ export const Users = () => {
           ),
           username: user.username,
           role: user.role ? user.role.name : "N/A",
+          roleAccessLevel: user.role?.access_level,
           branch: user.branch ? user.branch.name : "N/A",
           phone: user.phone,
           email: user.email,
@@ -424,16 +426,18 @@ export const Users = () => {
     }
   };
 
-  const handleDeleteUser = async (row) => {
+  const handleDeleteUser = (row) => {
+    setDeleteUserCandidate(row);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteUserCandidate) return;
+
     try {
-      await api.delete(`/users/${row.id}`);
+      await api.delete(`/users/${deleteUserCandidate.id}`);
 
-      //      const user = response.data.data;
-
-      // Refresh the table
       fetchUsers();
-
-      console.log("User deleted successfully.");
+      setDeleteUserCandidate(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
@@ -843,6 +847,9 @@ export const Users = () => {
                     {
                       label: "Delete user",
                       variant: "danger",
+                      disabled:
+                        Number(row.roleAccessLevel) === 5 ||
+                        row.role?.toLowerCase?.() === "admin",
                       onClick: () => handleDeleteUser(row),
                     },
                   ]}
@@ -906,6 +913,26 @@ export const Users = () => {
             ]}
           />
         )}
+      </Dialog>
+      <Dialog
+        isOpen={Boolean(deleteUserCandidate)}
+        onClose={() => setDeleteUserCandidate(null)}
+        title="Delete User"
+        size="small"
+        primaryButtonText="Delete"
+        secondaryButtonText="Cancel"
+        onPrimaryButtonClick={confirmDeleteUser}
+        onSecondaryButtonClick={() => setDeleteUserCandidate(null)}
+      >
+        <p className="text-sm text-slate-600 dark:text-[#D0D6E0]">
+          Are you sure you want to delete{" "}
+          <strong>
+            {deleteUserCandidate?.fullname ||
+              deleteUserCandidate?.username ||
+              "this user"}
+          </strong>
+          ?
+        </p>
       </Dialog>
     </div>
   );

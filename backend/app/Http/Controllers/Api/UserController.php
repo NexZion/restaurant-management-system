@@ -224,6 +224,17 @@ class UserController extends Controller
             ], 404);
         }
 
+        $isProtectedUser =
+            (int) $selectedUser->role->access_level === 5 ||
+            strtolower($selectedUser->role->name) === 'admin';
+
+        if ($isProtectedUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Level 5 and admin users cannot be deleted'
+            ], 403);
+        }
+
         $selectedUser->status = 'inactive';
         $selectedUser->is_active = 0;
         $selectedUser->save();
