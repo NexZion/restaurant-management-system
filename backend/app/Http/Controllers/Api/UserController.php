@@ -36,7 +36,26 @@ class UserController extends Controller
             ], 403);
         }
 
-        $users = User::with(['role', 'branch'])->get();            
+        $validated = $request->validate([
+            'role' => ['nullable', 'integer', 'exists:roles,id'],
+            'branch' => ['nullable', 'integer', 'exists:branches,id'],
+            'status' => ['nullable', 'in:active,inactive,blocked'],
+        ]);
+
+        $users = User::with(['role', 'branch'])
+            ->when(
+                !empty($validated['role']),
+                fn($query) => $query->where('role_id', $validated['role'])
+            )
+            ->when(
+                !empty($validated['branch']),
+                fn($query) => $query->where('branch_id', $validated['branch'])
+            )
+            ->when(
+                !empty($validated['status']),
+                fn($query) => $query->where('status', $validated['status'])
+            )
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -57,7 +76,7 @@ class UserController extends Controller
                 'message' => 'Please login first'
             ], 401);
         }
-    
+
 
         if ($user->role->access_level != 100) {
             return response()->json([
@@ -148,7 +167,7 @@ class UserController extends Controller
             ], 404);
         }
 
-        $data= $request->validated();
+        $data = $request->validated();
         $oldImage = null;
 
         if ($request->hasFile('image')) {

@@ -51,7 +51,6 @@ export const Users = () => {
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [isFormRole, setIsFormRole] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showViewUser, setShowViewUser] = useState(false);
@@ -62,6 +61,7 @@ export const Users = () => {
     { value: "inactive", label: "Inactive" },
     { value: "blocked", label: "Blocked" },
   ];
+  const filterStatus = [{ value: "", label: "All Status" }, ...status];
 
   const accessLevels = [
     { value: "1", label: "1" },
@@ -94,17 +94,10 @@ export const Users = () => {
   useEffect(() => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
-      const formattedRoles = !isFormRole
-        ? [{ value: "0", label: "All Roles" }]
-        : "";
-      formattedRoles.push(
-        ...rolesData.map((role) => ({
+      const formattedRoles = rolesData.map((role) => ({
           value: role.id,
           label: role.name,
-        })),
-      );
-
-      console.log(formattedRoles);
+        }));
       setRoles(formattedRoles);
     });
   }, []);
@@ -112,7 +105,6 @@ export const Users = () => {
   useEffect(() => {
     api.get("/branches").then((response) => {
       const branchesData = response.data.data.data;
-      console.log(branchesData);
       const formattedBranches = branchesData.map((branch) => ({
         value: branch.id,
         label: branch.name,
@@ -121,10 +113,13 @@ export const Users = () => {
     });
   }, []);
 
+  const filterRoles = [{ value: "", label: "All Roles" }, ...roles];
+  const filterBranches = [{ value: "", label: "All Branches" }, ...branches];
+
   const [filters, setFilters] = useState({
     role: "",
     branch: "",
-    status: "",
+    status: "active",
   });
 
   useEffect(() => {
@@ -135,11 +130,7 @@ export const Users = () => {
     setIsUsersLoading(true);
     try {
       const response = await api.get("/users", {
-        // params: {
-        //   role: filters.role,
-        //   branch: filters.branch,
-        //   status: filters.status,
-        // },
+        params: filters,
       });
 
       const usersData = response.data.data.map((user) => {
@@ -239,12 +230,18 @@ export const Users = () => {
   };
 
   const handleRoleChange = (value) => {
-    setFormData({ ...formData, roleOption: value });
+    const selectedRole = roles
+      .find((role) => String(role.value) === String(value))
+      ?.label?.toLowerCase();
+    const shouldKeepPin = pinRoles.includes(selectedRole);
 
-    setFormData({ ...formData, password: "", confirmPassword: "" });
-    if (!pinRoles.includes(selectedRoleName)) {
-      setFormData({ ...formData, pin: "", confirmPin: "" });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      roleOption: value,
+      password: "",
+      confirmPassword: "",
+      ...(shouldKeepPin ? {} : { pin: "", confirmPin: "" }),
+    }));
 
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -354,7 +351,6 @@ export const Users = () => {
   };
 
   const handleCloseAddUser = () => {
-    setIsFormRole(false);
     resetAddUserForm();
     setShowAddUser(false);
     setIsEditMode(false);
@@ -497,10 +493,7 @@ export const Users = () => {
 
         <Button
           variant="primary"
-          onClick={() => {
-            setIsFormRole(true);
-            setShowAddUser(true);
-          }}
+          onClick={() => setShowAddUser(true)}
           startIcon={
             <svg
               className="w-4 h-4"
@@ -787,7 +780,7 @@ export const Users = () => {
                 <SelectField
                   label="Roles"
                   value={filters.role}
-                  options={roles}
+                  options={filterRoles}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -798,7 +791,7 @@ export const Users = () => {
                 <SelectField
                   label="Branch"
                   value={filters.branch}
-                  options={branches}
+                  options={filterBranches}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -809,7 +802,7 @@ export const Users = () => {
                 <SelectField
                   label="Status"
                   value={filters.status}
-                  options={status}
+                  options={filterStatus}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
