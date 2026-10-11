@@ -13,6 +13,7 @@ import {
   PhoneField,
 } from "../components/DataFields";
 import { Table } from "../components/Tables";
+import { ActionMenu } from "../components/ActionMenu";
 import { Accordion } from "../components/Accordion";
 import { Alert, Dialog, Snackbar, Loading, Drawer } from "../components/Popups";
 import { SectionDivider, VerticalTabs } from "../components/SectionDivider";
@@ -35,10 +36,16 @@ export const Customers = () => {
     state: "",
     district: "",
     postal_code: "",
-    customer_type: "",
+    customer_type: "regular",
     id_number: "",
     id_type: "nic",
     statusOption: "active",
+  });
+
+  const [filterData, setFilterData] = useState({
+    district: "all",
+    customer_type: "all",
+    statusOption: "all",
   });
 
   const [showAddCustomer, setShowAddCustomer] = useState(false);
@@ -52,14 +59,23 @@ export const Customers = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showViewCustomer, setShowViewCustomer] = useState(false);
   const [viewCustomer, setViewCustomer] = useState(null);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [isDeletingCustomer, setIsDeletingCustomer] = useState(false);
 
   const fetchCustomers = async () => {
     setIsCustomersLoading(true);
     try {
-      const response = await api.get("/customers");
+      const response = await api.get("/customers", {
+        params: {
+          district: filterData.district,
+          customer_type: filterData.customer_type,
+          status: filterData.statusOption,
+        },
+      });
       console.log("Fetched customers:", response);
-      const customerData = response.data.data.data.map((customer) => ({
+      const customerData = response.data.data.map((customer) => ({
         id: customer.id,
+        created_at: customer.created_at,
         name: `${customer.first_name} ${customer.last_name}`,
         customer_type: customer.customer_type,
         district: customer.district,
@@ -81,9 +97,10 @@ export const Customers = () => {
 
   useEffect(() => {
     fetchCustomers();
-  }, []);
+  }, [filterData]);
 
   const districts = [
+    { value: "all", label: "All Districts" },
     { value: "Ampara", label: "Ampara" },
     { value: "Anuradhapura", label: "Anuradhapura" },
     { value: "Badulla", label: "Badulla" },
@@ -112,12 +129,14 @@ export const Customers = () => {
   ];
 
   const customerTypes = [
+    { value: "all", label: "All Types" },
     { value: "regular", label: "Normal Customer" },
     { value: "corporate", label: "Corporate Customer" },
     { value: "vip", label: "VIP Customer" },
   ];
 
   const status = [
+    { value: "all", label: "All Statuses" },
     { value: "active", label: "Active" },
     { value: "inactive", label: "Inactive" },
     { value: "suspended", label: "Suspended" },
@@ -161,7 +180,7 @@ export const Customers = () => {
         state: customer.state || "",
         district: customer.district || "",
         postal_code: customer.postal_code || "",
-        customer_type: customer.customer_type || "",
+        customer_type: customer.customer_type || "regular",
         id_number: customer.id_number || "",
         id_type: customer.id_type || "nic",
       });
@@ -217,7 +236,7 @@ export const Customers = () => {
       state: "",
       district: "",
       postal_code: "",
-      customer_type: "",
+      customer_type: "regular",
       id_number: "",
       id_type: "nic",
       statusOption: "active",
@@ -271,18 +290,22 @@ export const Customers = () => {
     setShowAddCustomer(false);
   };
 
-  const handleDeleteCustomer = async (row) => {
+  const handleDeleteCustomer = (row) => {
+    setCustomerToDelete(row);
+  };
+
+  const confirmDeleteCustomer = async () => {
+    if (!customerToDelete) return;
+
+    setIsDeletingCustomer(true);
     try {
-      await api.delete(`/customers/${row.id}`);
-
-      //      const user = response.data.data;
-
-      // Refresh the table
-      fetchCustomers();
-
-      console.log("Customer deleted successfully.");
+      await api.delete(`/customers/${customerToDelete.id}`);
+      await fetchCustomers();
+      setCustomerToDelete(null);
     } catch (error) {
       console.error("Failed to delete customer:", error);
+    } finally {
+      setIsDeletingCustomer(false);
     }
   };
 
@@ -338,7 +361,7 @@ export const Customers = () => {
           isOpen={showAddCustomer}
           onClose={handleCloseAddCustomer}
           title={isEditMode ? "Edit Customer" : "Add Customer"}
-          size="large"
+          size="medium"
           primaryButtonText={
             isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
           }
@@ -348,247 +371,225 @@ export const Customers = () => {
           onPrimaryButtonClick={handleSubmitCustomer}
           onSecondaryButtonClick={handleCloseAddCustomer}
         >
-          <Accordion
-            items={[
-              {
-                title: "Basic Information",
-                content: (
-                  <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
-                    <SelectField
-                      label="Customer Type"
-                      value={formData.customer_type}
-                      options={customerTypes}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          customer_type: e.target.value,
-                        });
-                        setFieldError("customer_type", "");
-                      }}
-                      helperText={fieldErrors.customer_type || ""}
-                      error={!!fieldErrors.customer_type}
-                    />
-                    <SelectField
-                      label="Status"
-                      value={formData.statusOption}
-                      options={status}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          statusOption: e.target.value,
-                        })
-                      }
-                      fullWidth={true}
-                    />
-                  </div>
-                ),
-              },
-              {
-                title: "Personal Information",
-                content: (
-                  <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
-                    <TextField
-                      required
-                      label="First Name"
-                      value={formData.first_name}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          first_name: e.target.value,
-                        });
-                        setFieldError("first_name", "");
-                      }}
-                      helperText={fieldErrors.first_name || ""}
-                      error={!!fieldErrors.first_name}
-                    />
-                    <TextField
-                      required
-                      label="Last Name"
-                      value={formData.last_name}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          last_name: e.target.value,
-                        });
-                        setFieldError("last_name", "");
-                      }}
-                      helperText={fieldErrors.last_name || ""}
-                      error={!!fieldErrors.last_name}
-                    />
-                    <SelectField
-                      label="ID Type"
-                      value={formData.id_type}
-                      options={idTypes}
-                      onChange={(e) => {
-                        setFormData({ ...formData, id_type: e.target.value });
-                        setFieldError("id_type", "");
-                      }}
-                      helperText={fieldErrors.id_type || ""}
-                      error={!!fieldErrors.id_type}
-                    />
-                    <TextField
-                      label="ID Number"
-                      value={formData.id_number}
-                      onChange={(e) => {
-                        setFormData({ ...formData, id_number: e.target.value });
-                        setFieldError("id_number", "");
-                      }}
-                      helperText={fieldErrors.id_number || ""}
-                      error={!!fieldErrors.id_number}
-                    />
-                    <TextField
-                      required
-                      fullWidth={true}
-                      label="Email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => {
-                        setFormData({ ...formData, email: e.target.value });
-                        setFieldError("email", "");
-                      }}
-                      helperText={fieldErrors.email || ""}
-                      error={!!fieldErrors.email}
-                    />
-                    <PhoneField
-                      required
-                      label="Phone Number"
-                      defaultCode="+94"
-                      value={formData.phone}
-                      onChange={(value) => {
-                        setFormData({ ...formData, phone: value });
-                        setFieldError("phone", "");
-                      }}
-                      fullWidth
-                      helperText={fieldErrors.phone || ""}
-                      error={!!fieldErrors.phone}
-                    />
 
-                    <PhoneField
-                      required
-                      label="whatsapp Number"
-                      defaultCode="+94"
-                      disabled={isDisabledWhatsapp}
-                      value={formData.whatsapp}
-                      onChange={(value) => {
-                        setFormData({ ...formData, whatsapp: value });
-                        setFieldError("whatsapp", "");
-                      }}
-                      fullWidth
-                      helperText={fieldErrors.whatsapp || ""}
-                      error={!!fieldErrors.whatsapp}
-                    />
+          <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
+            <SelectField
+              label="Customer Type"
+              value={formData.customer_type}
+              options={customerTypes.filter((option) => option.value !== "all")}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  customer_type: e.target.value,
+                });
+                setFieldError("customer_type", "");
+              }}
+              helperText={fieldErrors.customer_type || ""}
+              error={!!fieldErrors.customer_type}
+            />
+            <SelectField
+              label="Status"
+              value={formData.statusOption}
+              options={status}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  statusOption: e.target.value,
+                })
+              }
+              fullWidth={true}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
+            <TextField
+              required
+              label="First Name"
+              value={formData.first_name}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  first_name: e.target.value,
+                });
+                setFieldError("first_name", "");
+              }}
+              helperText={fieldErrors.first_name || ""}
+              error={!!fieldErrors.first_name}
+            />
+            <TextField
+              required
+              label="Last Name"
+              value={formData.last_name}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  last_name: e.target.value,
+                });
+                setFieldError("last_name", "");
+              }}
+              helperText={fieldErrors.last_name || ""}
+              error={!!fieldErrors.last_name}
+            />
+            <SelectField
+              label="ID Type"
+              value={formData.id_type}
+              options={idTypes}
+              onChange={(e) => {
+                setFormData({ ...formData, id_type: e.target.value });
+                setFieldError("id_type", "");
+              }}
+              helperText={fieldErrors.id_type || ""}
+              error={!!fieldErrors.id_type}
+            />
+            <TextField
+              label="ID Number"
+              value={formData.id_number}
+              onChange={(e) => {
+                setFormData({ ...formData, id_number: e.target.value });
+                setFieldError("id_number", "");
+              }}
+              helperText={fieldErrors.id_number || ""}
+              error={!!fieldErrors.id_number}
+            />
+            <TextField
+              required
+              fullWidth={true}
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value });
+                setFieldError("email", "");
+              }}
+              helperText={fieldErrors.email || ""}
+              error={!!fieldErrors.email}
+            />
+            <PhoneField
+              required
+              label="Phone Number"
+              defaultCode="+94"
+              value={formData.phone}
+              onChange={(value) => {
+                setFormData({ ...formData, phone: value });
+                setFieldError("phone", "");
+              }}
+              fullWidth
+              helperText={fieldErrors.phone || ""}
+              error={!!fieldErrors.phone}
+            />
 
-                    <CheckboxField
-                      label="Same as Phone Number"
-                      checked={isSameAsPhone}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setIsSameAsPhone(true);
-                          setFormData({
-                            ...formData,
-                            whatsapp: formData.phone,
-                          });
-                          setIsDisabledWhatsapp(true);
-                        } else {
-                          setIsSameAsPhone(false);
-                          setIsDisabledWhatsapp(false);
-                        }
-                      }}
-                    />
-                  </div>
-                ),
-              },
-              {
-                title: "Address",
-                content: (
-                  <div>
-                    <TextField
-                      label="Address Line 1"
-                      value={formData.address_line1}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          address_line1: e.target.value,
-                        });
-                      }}
-                      rows={1}
-                      className="mb-4"
-                      resize="vertical"
-                      maxLength={50}
-                    />
-                    <TextField
-                      label="Address Line 2"
-                      value={formData.address_line2}
-                      onChange={(e) => {
-                        setFormData({
-                          ...formData,
-                          address_line2: e.target.value,
-                        });
-                      }}
-                      rows={1}
-                      className="mb-4"
-                      resize="vertical"
-                      maxLength={50}
-                    />
-                    <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
-                      <TextField
-                        label="City"
-                        value={formData.city}
-                        onChange={(e) => {
-                          setFormData({ ...formData, city: e.target.value });
-                          setFieldError("city", "");
-                        }}
-                        helperText={fieldErrors.city || ""}
-                        error={!!fieldErrors.city}
-                      />
-                      <TextField
-                        label="State"
-                        value={formData.state}
-                        onChange={(e) => {
-                          setFormData({ ...formData, state: e.target.value });
-                          setFieldError("state", "");
-                        }}
-                        helperText={fieldErrors.state || ""}
-                        error={!!fieldErrors.state}
-                      />
-                      <SelectField
-                        label="District"
-                        value={formData.district}
-                        options={districts}
-                        searchable={true}
-                        onChange={(e) => {
-                          setFormData({
-                            ...formData,
-                            district: e.target.value,
-                          });
-                          setFieldError("district", "");
-                        }}
-                        helperText={fieldErrors.district || ""}
-                        error={!!fieldErrors.district}
-                      />
-                      <TextField
-                        label="Postal Code"
-                        value={formData.postal_code}
-                        onChange={(e) => {
-                          setFormData({
-                            ...formData,
-                            postal_code: e.target.value,
-                          });
-                          setFieldError("postal_code", "");
-                        }}
-                        helperText={fieldErrors.postal_code || ""}
-                        error={!!fieldErrors.postal_code}
-                      />
-                    </div>
-                  </div>
-                ),
-              },
-            ]}
-            allowMultiple={true}
-            iconPosition="right"
-            defaultExpanded={[0, 1, 2]}
-            variant="filled"
-          />
+            <PhoneField
+              required
+              label="whatsapp Number"
+              defaultCode="+94"
+              disabled={isDisabledWhatsapp}
+              value={formData.whatsapp}
+              onChange={(value) => {
+                setFormData({ ...formData, whatsapp: value });
+                setFieldError("whatsapp", "");
+              }}
+              fullWidth
+              helperText={fieldErrors.whatsapp || ""}
+              error={!!fieldErrors.whatsapp}
+            />
+
+            <CheckboxField
+              label="Same as Phone Number"
+              checked={isSameAsPhone}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setIsSameAsPhone(true);
+                  setFormData({
+                    ...formData,
+                    whatsapp: formData.phone,
+                  });
+                  setIsDisabledWhatsapp(true);
+                } else {
+                  setIsSameAsPhone(false);
+                  setIsDisabledWhatsapp(false);
+                }
+              }}
+            />
+          </div>
+          <div>
+            <TextField
+              label="Address Line 1"
+              value={formData.address_line1}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  address_line1: e.target.value,
+                });
+              }}
+              rows={1}
+              className="mb-4"
+              resize="vertical"
+              maxLength={50}
+            />
+            <TextField
+              label="Address Line 2"
+              value={formData.address_line2}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  address_line2: e.target.value,
+                });
+              }}
+              rows={1}
+              className="mb-4"
+              resize="vertical"
+              maxLength={50}
+            />
+            <div className="grid grid-cols-2 gap-3.5 w-full pb-4">
+              <TextField
+                label="City"
+                value={formData.city}
+                onChange={(e) => {
+                  setFormData({ ...formData, city: e.target.value });
+                  setFieldError("city", "");
+                }}
+                helperText={fieldErrors.city || ""}
+                error={!!fieldErrors.city}
+              />
+              <TextField
+                label="State"
+                value={formData.state}
+                onChange={(e) => {
+                  setFormData({ ...formData, state: e.target.value });
+                  setFieldError("state", "");
+                }}
+                helperText={fieldErrors.state || ""}
+                error={!!fieldErrors.state}
+              />
+              <SelectField
+                label="District"
+                value={formData.district}
+                options={districts}
+                searchable={true}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    district: e.target.value,
+                  });
+                  setFieldError("district", "");
+                }}
+                helperText={fieldErrors.district || ""}
+                error={!!fieldErrors.district}
+              />
+              <TextField
+                label="Postal Code"
+                value={formData.postal_code}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    postal_code: e.target.value,
+                  });
+                  setFieldError("postal_code", "");
+                }}
+                helperText={fieldErrors.postal_code || ""}
+                error={!!fieldErrors.postal_code}
+              />
+            </div>
+          </div>
         </Dialog>
       </div>
       <Accordion
@@ -596,34 +597,51 @@ export const Customers = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="flex  gap-3.5 w-full">
+              <div className="grid grid-cols-1 items-end gap-3.5 w-full md:grid-cols-7">
                 <SelectField
-                  label="district"
-                  value={formData.district}
+                  label="District"
+                  className="md:col-span-2"
+                  value={filterData.district}
                   options={districts}
+                  searchable={true}
                   onChange={(e) =>
-                    setFormData({ ...formData, district: e.target.value })
+                    setFilterData({ ...filterData, district: e.target.value })
                   }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Customer Type"
-                  value={formData.customer_type}
+                  className="md:col-span-2"
+                  value={filterData.customer_type}
                   options={customerTypes}
                   onChange={(e) =>
-                    setFormData({ ...formData, customer_type: e.target.value })
+                    setFilterData({ ...filterData, customer_type: e.target.value })
                   }
                   fullWidth={true}
                 />
                 <SelectField
                   label="Status"
-                  value={formData.statusOption}
+                  className="md:col-span-2"
+                  value={filterData.statusOption}
                   options={status}
                   onChange={(e) =>
-                    setFormData({ ...formData, statusOption: e.target.value })
+                    setFilterData({ ...filterData, statusOption: e.target.value })
                   }
                   fullWidth={true}
                 />
+                <Button
+                  variant="secondary"
+                  width="100%"
+                  onClick={() =>
+                    setFilterData({
+                      district: "all",
+                      customer_type: "all",
+                      statusOption: "all",
+                    })
+                  }
+                >
+                  Clear filters
+                </Button>
               </div>
             ),
           },
@@ -643,73 +661,80 @@ export const Customers = () => {
           filterable={false}
           pagination={true}
           loading={isCustomersLoading}
-          actions={[
+          sortSelectOptions={[
             {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-              ),
-              label: "Edit",
-              onClick: handleEditCustomer,
+              value: "latest",
+              label: "Latest added",
+              key: "created_at",
+              direction: "desc",
             },
             {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              ),
-              label: "Delete",
-              onClick: handleDeleteCustomer,
+              value: "oldest",
+              label: "Oldest added",
+              key: "created_at",
+              direction: "asc",
             },
             {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
+              value: "name_asc",
+              label: "Name (A–Z)",
+              key: "name",
+              direction: "asc",
+            },
+            {
+              value: "name_desc",
+              label: "Name (Z–A)",
+              key: "name",
+              direction: "desc",
+            },
+          ]}
+          sortSelectValue="latest"
+          sortSelectPlaceholder="Sort customers"
+          onRowClick={handleViewCustomer}
+          actionsAlign="right"
+          showActionsHeader={false}
+          actions={(row) => [
+            {
+              label: "Customer actions",
+              render: () => (
+                <ActionMenu
+                  label={`Actions for ${row.name || "customer"}`}
+                  items={[
+                    {
+                      label: "Edit customer",
+                      onClick: () => handleEditCustomer(row),
+                    },
+                    {
+                      label: "Delete customer",
+                      variant: "danger",
+                      onClick: () => handleDeleteCustomer(row),
+                    },
+                  ]}
+                />
               ),
-              label: "View",
-              onClick: handleViewCustomer,
             },
           ]}
         />
       </div>
+
+      <Dialog
+        isOpen={!!customerToDelete}
+        onClose={() => setCustomerToDelete(null)}
+        title="Delete Customer"
+        size="small"
+        primaryButtonText={isDeletingCustomer ? "Deleting..." : "Delete"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={isDeletingCustomer}
+        secondaryButtonDisabled={isDeletingCustomer}
+        onPrimaryButtonClick={confirmDeleteCustomer}
+        onSecondaryButtonClick={() => setCustomerToDelete(null)}
+      >
+        <div className="space-y-2">
+          <p>
+            Are you sure you want to delete {customerToDelete?.name || "this customer"}?
+          </p>
+          <p>They will be removed from the customer list.</p>
+        </div>
+      </Dialog>
 
       <Dialog
         isOpen={showViewCustomer}
@@ -726,6 +751,7 @@ export const Customers = () => {
             }
             subtitle={viewCustomer.customer_code || "No customer code"}
             avatarAlt="Customer"
+            showAvatar={false}
             badges={[
               { value: viewCustomer.customer_type, tone: "default" },
               { value: viewCustomer.status },

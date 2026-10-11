@@ -104,7 +104,7 @@ export const ActionMenu = ({
                 closeMenu();
                 item.onClick?.();
               }}
-              className={`w-full px-3 py-1.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`w-full px-3 py-1.5 text-left text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                 item.variant === "danger"
                   ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                   : "text-slate-700 hover:bg-slate-50 dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
