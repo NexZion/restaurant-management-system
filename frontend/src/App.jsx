@@ -14,6 +14,8 @@ import { MenuCategories } from "./pages/Menu/MenuCategories";
 import { CashierBilling } from "./pages/CashierBilling";
 import { POSNewOrder } from "./pages/WaiterOrdering";
 import { NotFound } from "./pages/NotFound";
+import { Roles } from "./pages/Roles";
+import { Branches } from "./pages/Branches";
 
 function App() {
   return (
@@ -55,6 +57,10 @@ function App() {
             <Route path="/menu/menus" element={<Menus />} />
             <Route path="/menu/menu-items" element={<MenuItems />} />
             <Route path="/menu/menu-categories" element={<MenuCategories />} />
+            <Route path="/settings/roles" element={<Roles />} />
+            <Route path="/roles" element={<Roles />} />
+            <Route path="/settings/branches" element={<Branches />} />
+            <Route path="/branches" element={<Branches />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
