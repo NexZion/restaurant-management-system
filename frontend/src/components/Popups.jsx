@@ -202,6 +202,7 @@ export const Dialog = ({
   showSecondaryButton = true,
   primaryButtonDisabled = false,
   secondaryButtonDisabled = false,
+  className = '',
 }) => {
   const [visible, setVisible] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -270,6 +271,7 @@ export const Dialog = ({
             flex flex-col max-h-[90vh] pointer-events-auto
             transition-all duration-300 ease-out
             ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+            ${className}
           `}
           onClick={(e) => e.stopPropagation()}
         >

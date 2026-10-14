@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import lightModeLogo from '../assets/logo-light.png'
+import darkModeLogo from '../assets/logo-dark.png'
 import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../components/DataFields'
 import { Dialog } from '../components/Popups'
 import { useTheme } from '../context/ThemeContext'
@@ -176,7 +177,7 @@ export const CashierBilling = () => {
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
         <header className="flex min-h-16 flex-wrap items-center justify-between gap-3.5 border-b border-slate-200 px-3.5 py-2.5 dark:border-[#1F2226]">
           <div className="flex items-center gap-5">
-            <img src={logo} alt="Restaurant" className="h-9 w-auto max-w-36 object-contain invert dark:invert-0" />
+            <img src={isDarkMode ? darkModeLogo : lightModeLogo} alt="Restaurant" className="h-9 w-auto max-w-36 object-contain" />
             <Button variant="ghost" size="small" onClick={() => navigate('/dashboard')}>Dashboard</Button>
             <Button variant="ghost" size="small" onClick={() => navigate('/pos/new-order')}>New Order</Button>
           </div>
@@ -276,7 +277,7 @@ export const CashierBilling = () => {
               <div className="min-h-0 flex-1 overflow-y-auto pr-1">
                 <div className="rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm dark:border-[#1F2226] dark:bg-[#161719]">
                   <div className="border-b border-dashed border-slate-200 pb-4 text-center dark:border-[#1F2226]">
-                    <img src={logo} alt="Restaurant" className="mx-auto h-10 w-auto max-w-36 object-contain invert dark:invert-0" />
+                    <img src={isDarkMode ? darkModeLogo : lightModeLogo} alt="Restaurant" className="mx-auto h-10 w-auto max-w-36 object-contain" />
                     <p className="mt-2 text-xs uppercase tracking-[0.3em] text-gray-500 dark:text-[#8A8F98]">Pre-payment bill</p>
                     <h3 className="mt-1 text-xl font-black">{selectedOrder.orderNo}</h3>
                   </div>

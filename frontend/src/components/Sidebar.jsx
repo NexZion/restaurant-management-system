@@ -1,7 +1,8 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import lightModeLogo from "../assets/logo-light.png";
+import darkModeLogo from "../assets/logo-dark.png";
 import { menuItems } from "../data/menuItems";
 import { Icon } from "./Icons";
 import { useTheme } from "../context/ThemeContext";
@@ -142,8 +143,8 @@ export const Sidebar = ({
             </svg>
           </button>
           <img
-            src={logo}
-            className={`h-auto invert transition-opacity dark:invert-0 ${isDesktopCollapsed ? "hidden" : "w-[68%]"}`}
+            src={isDarkMode ? darkModeLogo : lightModeLogo}
+            className={`h-auto transition-opacity ${isDesktopCollapsed ? "hidden" : "w-[68%]"}`}
             alt="Logo"
           />
         </div>
