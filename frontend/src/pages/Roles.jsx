@@ -202,7 +202,7 @@ export const Roles = () => {
                 isOpen={showModal}
                 onClose={handleCloseModal}
                 title={isEditMode ? "Edit Role" : "Add Role"}
-                size="medium"
+                size="small"
                 primaryButtonText={isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
                 secondaryButtonText="Cancel"
                 primaryButtonDisabled={isSubmitting}
@@ -219,7 +219,6 @@ export const Roles = () => {
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         error={!!fieldErrors.name}
                         helperText={fieldErrors.name}
-                        placeholder="e.g. Manager, Cashier"
                     />
 
                     <NumberField
@@ -229,9 +228,9 @@ export const Roles = () => {
                         min={1}
                         max={100}
                         value={formData.access_level}
-                        onChange={(val) => setFormData({ ...formData, access_level: val })}
+                        onChange={(event) => setFormData({ ...formData, access_level: event.target.value })}
                         error={!!fieldErrors.access_level}
-                        helperText={fieldErrors.access_level || "100 = Super Admin, 80 = Manager, etc."}
+                        helperText={fieldErrors.access_level}
                     />
 
                     <TextAreaField
@@ -240,7 +239,6 @@ export const Roles = () => {
                         rows={3}
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Brief description of this role"
                     />
                 </div>
             </Dialog>

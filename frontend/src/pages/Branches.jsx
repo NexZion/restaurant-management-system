@@ -277,7 +277,7 @@ export const Branches = () => {
                 isOpen={showModal}
                 onClose={handleCloseModal}
                 title={isEditMode ? "Edit Branch" : "Add Branch"}
-                size="large"
+                size="medium"
                 primaryButtonText={isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"}
                 secondaryButtonText="Cancel"
                 primaryButtonDisabled={isSubmitting}
@@ -294,7 +294,6 @@ export const Branches = () => {
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                         error={!!fieldErrors.code}
                         helperText={fieldErrors.code}
-                        placeholder="e.g. BR-001"
                     />
 
                     <TextField
@@ -305,7 +304,6 @@ export const Branches = () => {
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         error={!!fieldErrors.name}
                         helperText={fieldErrors.name}
-                        placeholder="e.g. Colombo Central"
                     />
 
                     <TextField
@@ -316,7 +314,6 @@ export const Branches = () => {
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         error={!!fieldErrors.phone}
                         helperText={fieldErrors.phone}
-                        placeholder="e.g. 0112345678"
                     />
 
                     <TextField
@@ -327,7 +324,6 @@ export const Branches = () => {
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         error={!!fieldErrors.email}
                         helperText={fieldErrors.email}
-                        placeholder="e.g. branch@restaurant.com"
                     />
 
                     <TextField
@@ -338,7 +334,6 @@ export const Branches = () => {
                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                         error={!!fieldErrors.city}
                         helperText={fieldErrors.city}
-                        placeholder="e.g. Colombo"
                     />
 
                     <SelectField
@@ -358,7 +353,6 @@ export const Branches = () => {
                             onChange={(e) => setFormData({ ...formData, address_line1: e.target.value })}
                             error={!!fieldErrors.address_line1}
                             helperText={fieldErrors.address_line1}
-                            placeholder="e.g. No 123, Galle Road"
                         />
                     </div>
 
