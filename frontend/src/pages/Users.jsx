@@ -64,14 +64,6 @@ export const Users = () => {
   ];
   const filterStatus = [{ value: "", label: "All Status" }, ...status];
 
-  const accessLevels = [
-    { value: "1", label: "1" },
-    { value: "2", label: "2" },
-    { value: "3", label: "3" },
-    { value: "4", label: "4" },
-    { value: "5", label: "5" },
-  ];
-
   const columns = [
     { key: "profileImage", label: "Image" },
     { key: "fullname", label: "Full Name", sortable: true },
@@ -163,7 +155,6 @@ export const Users = () => {
           ),
           username: user.username,
           role: user.role ? user.role.name : "N/A",
-          roleAccessLevel: user.role?.access_level,
           branch: user.branch ? user.branch.name : "N/A",
           phone: user.phone,
           email: user.email,
@@ -203,7 +194,6 @@ export const Users = () => {
         roleOption: user.role_id || "",
         branchOption: user.branch_id || "",
         statusOption: (user.status || "active").toLowerCase(),
-        accessLevel: user.accessLevel || "5",
         uploadedImage: user.image || user.profileImage || null,
       });
 
@@ -347,7 +337,6 @@ export const Users = () => {
       roleOption: "",
       branchOption: "",
       statusOption: "active",
-      accessLevel: "5",
     });
     setFieldErrors({});
   };
@@ -564,14 +553,6 @@ export const Users = () => {
                 onChange={(e) => handleUsernameChange(e.target.value)}
                 helperText={fieldErrors.username || ""}
                 error={!!fieldErrors.username}
-              />
-              <SelectField
-                label="Access Level"
-                value={formData.accessLevel}
-                options={accessLevels}
-                onChange={(e) => {
-                  setFormData({ ...formData, accessLevel: e.target.value });
-                }}
               />
               <TextField
                 required
