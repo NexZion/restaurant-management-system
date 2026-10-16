@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderItemController;
 use App\Http\Controllers\Api\OrderBillController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\RawMaterialController;
+use App\Http\Controllers\Api\UnitController;
+use App\Http\Controllers\Api\RecipeController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -56,6 +59,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('branches', BranchController::class);
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
+    Route::apiResource('raw-materials', RawMaterialController::class);
+    Route::apiResource('units', UnitController::class);
+    Route::apiResource('recipes', RecipeController::class);
     Route::apiResource('menu-item-images', MenuItemImageController::class);
     Route::apiResource('menus', MenuController::class);
 

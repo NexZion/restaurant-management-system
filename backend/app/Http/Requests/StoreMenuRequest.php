@@ -15,15 +15,21 @@ class StoreMenuRequest extends FormRequest
     {
         return [
 
-            'branch_id' => 'required|exists:branches,id',
+            'branch_ids' => 'required|array|min:1',
 
-            'name' => 'required|string|max:255',
+            'branch_ids.*' => 'required|integer|distinct|exists:branches,id',
+
+            'menu_item_ids' => 'nullable|array',
+            'menu_item_ids.*' => 'required|integer|distinct|exists:menu_items,id',
+
+            'name' => 'required|string|max:150',
+
+            'code' => 'required|string|max:50|unique:menus,code',
 
             'description' => 'nullable|string',
 
-            'display_order' => 'nullable|integer|min:0',
-
-            'status' => 'required|in:active,inactive'
+            'is_active' => 'required|boolean',
+            'display_order' => 'sometimes|integer|min:0',
         ];
     }
 }

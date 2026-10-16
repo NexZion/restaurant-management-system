@@ -28,11 +28,15 @@ import api from "../../axiosClient";
 
 export const Menus = () => {
   const [formData, setFormData] = useState({
-    Menu_name: "",
-    branch: "",
-    statusOption: "active",
+    name: "",
+    code: "",
+    branch_ids: [],
+    menu_item_ids: [],
+    display_order: "0",
+    is_active: true,
     description: "",
   });
+  const [branchFilter, setBranchFilter] = useState("");
 
   const [showAddMenus, setShowAddMenus] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -43,17 +47,15 @@ export const Menus = () => {
   const [showViewMenus, setShowViewMenus] = useState(false);
   const [viewMenus, setViewMenus] = useState(null);
   const [branches, setBranches] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
 
   useEffect(() => {
-    api.get("/branches").then((response) => {
-      const branchesData = response.data.data.data;
-      console.log(branchesData);
-      const formattedBranches = branchesData.map((branch) => ({
-        value: branch.id,
-        label: branch.name,
-      }));
-      setBranches(formattedBranches);
-    });
+    Promise.all([api.get("/branches"), api.get("/menu-items")])
+      .then(([branchResponse, itemResponse]) => {
+        setBranches(branchResponse.data.data.data.map((branch) => ({ value: String(branch.id), label: branch.name })));
+        setMenuItems(itemResponse.data.data);
+      })
+      .catch((error) => console.error("Failed to load menu assignment options", error));
   }, []);
 
   const fetchMenus = async () => {
@@ -64,10 +66,13 @@ export const Menus = () => {
         id: menus.id,
         name: menus.name,
         description: menus.description,
-        branch: menus.branch.name,
-        statusOption: menus.status
-          ? menus.status.charAt(0).toUpperCase() + menus.status.slice(1)
-          : "N/A",
+        branch: menus.branches?.map((branch) => branch.name).join(", ") || "—",
+        branch_ids: menus.branches?.map((branch) => String(branch.id)) || [],
+        menu_item_ids: menus.menu_items?.map((item) => String(item.id)) || [],
+        menu_item_count: menus.menu_items?.length ?? 0,
+        display_order: menus.display_order,
+        code: menus.code || "",
+        active_label: menus.is_active ? "Active" : "Inactive",
       }));
       setMenus(menuData);
     } catch (error) {
@@ -79,17 +84,14 @@ export const Menus = () => {
     fetchMenus();
   }, []);
 
-  const status = [
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
-    { value: "suspended", label: "Suspended" },
-  ];
-
   const columns = [
+    { key: "code", label: "Code", sortable: true },
     { key: "name", label: "Name", sortable: true },
-    { key: "branch", label: "Branch", sortable: true },
+    { key: "branch", label: "Branches", sortable: true },
+    { key: "menu_item_count", label: "Items" },
+    { key: "display_order", label: "Order", sortable: true },
     { key: "description", label: "Description", sortable: true },
-    { key: "statusOption", label: "Status" },
+    { key: "active_label", label: "Status" },
   ];
 
   const handleEditMenus = async (row) => {
@@ -104,9 +106,12 @@ export const Menus = () => {
       setFormData({
         id: menu.id,
         name: menu.name || "",
+        code: menu.code || "",
         description: menu.description || "",
-        branch: menu.branch_id || "",
-        statusOption: menu.status || "active",
+        branch_ids: menu.branches?.map((branch) => String(branch.id)) || [],
+        menu_item_ids: menu.menu_items?.map((item) => String(item.id)) || [],
+        display_order: String(menu.display_order ?? 0),
+        is_active: Boolean(menu.is_active),
       });
 
       setShowAddMenus(true);
@@ -133,8 +138,8 @@ export const Menus = () => {
     const errors = {};
 
     if (!(formData.name || "").trim()) errors.name = "Name is required.";
-    if (!(formData.description || "").trim())
-      errors.description = "Description is required.";
+    if (!(formData.code || "").trim()) errors.code = "Code is required.";
+    if (!formData.branch_ids.length) errors.branch_ids = "Select at least one branch.";
 
     setFieldErrors(errors);
     console.log(errors);
@@ -144,9 +149,12 @@ export const Menus = () => {
   const resetAddMenusForm = () => {
     setFormData({
       name: "",
+      code: "",
       description: "",
-      branch: "",
-      statusOption: "active",
+      branch_ids: [],
+      menu_item_ids: [],
+      display_order: "0",
+      is_active: true,
     });
     setFieldErrors({});
   };
@@ -158,32 +166,40 @@ export const Menus = () => {
     setEditingMenus(null);
   };
 
-  const handleSubmitMenus = () => {
+  const handleSubmitMenus = async () => {
     console.log(fieldErrors);
     if (!validateSubmit()) return;
 
-    setIsSubmitting(true);
-
     const menus = {
-      name: formData.name,
+      name: formData.name.trim(),
+      code: formData.code.trim().toUpperCase(),
       description: formData.description,
-      branch: formData.branch,
-      status: formData.statusOption,
+      branch_ids: formData.branch_ids.map(Number),
+      menu_item_ids: formData.menu_item_ids.map(Number),
+      display_order: Number(formData.display_order || 0),
+      is_active: formData.is_active,
     };
 
-    console.log("Submitted menus:", menus);
-    if (isEditMode) {
-      console.log("Editing menus with ID:", editingMenus.id);
-      api.put(`/menus/${editingMenus.id}`, menus);
-    } else {
-      api.post("/menus", menus);
+    setIsSubmitting(true);
+    try {
+      if (isEditMode) {
+        await api.put(`/menus/${editingMenus.id}`, menus);
+      } else {
+        await api.post("/menus", menus);
+      }
+      await fetchMenus();
+      handleCloseAddMenus();
+    } catch (error) {
+      const errors = error.response?.data?.errors || {};
+      setFieldErrors({
+        name: errors.name?.[0],
+        code: errors.code?.[0],
+        branch_ids: errors.branch_ids?.[0] || errors["branch_ids.0"]?.[0],
+        menu_item_ids: errors.menu_item_ids?.[0] || errors["menu_item_ids.0"]?.[0],
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-    setIsEditMode(false);
-    resetAddMenusForm();
-    fetchMenus();
-    setShowAddMenus(false);
   };
 
   const handleDeleteMenus = async (row) => {
@@ -226,6 +242,9 @@ export const Menus = () => {
       </p>
     </div>
   );
+  const availableMenuItemOptions = menuItems
+    .filter((item) => item.branches?.some((branch) => formData.branch_ids.includes(String(branch.id)) && branch.pivot.is_active && branch.pivot.is_available))
+    .map((item) => ({ value: String(item.id), label: `${item.sku} · ${item.name}` }));
   return (
     <div>
       {/* Header */}
@@ -289,29 +308,49 @@ export const Menus = () => {
               helperText={fieldErrors.name || ""}
               error={!!fieldErrors.name}
             />
+            <TextField
+              required
+              label="Code"
+              value={formData.code}
+              onChange={(e) => {
+                setFormData({ ...formData, code: e.target.value.toUpperCase() });
+                setFieldError("code", "");
+              }}
+              helperText={fieldErrors.code || ""}
+              error={!!fieldErrors.code}
+            />
           </div>
           <div className="space-y-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <SelectField
               required
-              fullwidth={true}
-              label="Select Branch"
-              value={formData.branch}
+              fullWidth
+              multiple
+              searchable
+              label="Select Branches"
+              value={formData.branch_ids}
               options={branches}
               onChange={(e) => {
-                setFormData({ ...formData, branch: e.target.value });
-                setFieldError("branch", "");
+                setFormData({ ...formData, branch_ids: e.target.value });
+                setFieldError("branch_ids", "");
               }}
-              helperText={fieldErrors.branch || ""}
-              error={!!fieldErrors.branch}
+              helperText={fieldErrors.branch_ids || "Select every branch where this menu is available."}
+              error={!!fieldErrors.branch_ids}
             />
+            <CheckboxField label="Active" checked={formData.is_active} onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} />
+            <NumberField label="Display order" min={0} value={formData.display_order} onChange={(e) => setFormData({ ...formData, display_order: e.target.value })} />
             <SelectField
-              fullwidth={true}
-              label="Status"
-              value={formData.statusOption}
-              options={status}
+              fullWidth
+              multiple
+              searchable
+              label="Menu Items"
+              value={formData.menu_item_ids}
+              options={availableMenuItemOptions}
               onChange={(e) => {
-                setFormData({ ...formData, statusOption: e.target.value });
+                setFormData({ ...formData, menu_item_ids: e.target.value });
+                setFieldError("menu_item_ids", "");
               }}
+              helperText={fieldErrors.menu_item_ids || "Only items available at selected branches are listed."}
+              error={!!fieldErrors.menu_item_ids}
             />
           </div>
           <TextAreaField
@@ -333,20 +372,11 @@ export const Menus = () => {
             content: (
               <div className="flex  gap-3.5 w-full">
                 <SelectField
-                  label="Status"
-                  value={formData.statusOption}
-                  options={status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, statusOption: e.target.value })
-                  }
-                  fullWidth={true}
-                />
-                <SelectField
                   label="Branch"
-                  value={formData.branch}
+                  value={branchFilter}
                   options={branches}
                   onChange={(e) =>
-                    setFormData({ ...formData, branch: e.target.value })
+                    setBranchFilter(e.target.value)
                   }
                   fullWidth={true}
                 />
@@ -455,7 +485,7 @@ export const Menus = () => {
 
                 <div className="flex flex-wrap gap-2">
                   <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                    {viewMenus.status || "Not provided"}
+                    {viewMenus.is_active ? "Active" : "Inactive"}
                   </span>
                 </div>
               </div>
@@ -468,8 +498,9 @@ export const Menus = () => {
 
               <div className="grid gap-2.5 sm:grid-cols-2">
                 <DetailItem label="Name" value={viewMenus.name} />
-                <DetailItem label="Status" value={viewMenus.status} />
-                <DetailItem label="Branch" value={viewMenus.branch} />
+                <DetailItem label="Status" value={viewMenus.is_active ? "Active" : "Inactive"} />
+                <DetailItem label="Branches" value={viewMenus.branches?.map((branch) => branch.name).join(", ")} />
+                <DetailItem label="Menu Items" value={viewMenus.menu_items?.map((item) => item.name).join(", ")} wide />
               </div>
               <div className="mt-4"></div>
               <DetailItem label="Description" value={viewMenus.description} />

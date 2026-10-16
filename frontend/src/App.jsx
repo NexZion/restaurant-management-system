@@ -11,6 +11,9 @@ import { Orders } from "./pages/Orders/Orders";
 import { Menus } from "./pages/Menu/Menus";
 import { MenuItems } from "./pages/Menu/MenuItems";
 import { MenuCategories } from "./pages/Menu/MenuCategories";
+import { RawMaterials } from "./pages/Menu/RawMaterials";
+import { Units } from "./pages/Menu/Units";
+import { Recipes } from "./pages/Menu/Recipes";
 import { CashierBilling } from "./pages/CashierBilling";
 import { POSNewOrder } from "./pages/WaiterOrdering";
 import { NotFound } from "./pages/NotFound";
@@ -55,6 +58,9 @@ function App() {
             <Route path="/menu/menus" element={<Menus />} />
             <Route path="/menu/menu-items" element={<MenuItems />} />
             <Route path="/menu/menu-categories" element={<MenuCategories />} />
+            <Route path="/menu/recipes" element={<Recipes />} />
+            <Route path="/raw-materials/materials" element={<RawMaterials />} />
+            <Route path="/raw-materials/units" element={<Units />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

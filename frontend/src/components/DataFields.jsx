@@ -284,6 +284,109 @@ export const ImageUploadField = ({
   );
 };
 
+export const ImageListField = ({
+  label = "Images",
+  value = [],
+  onChange,
+  accept = "image/*",
+  maxImages = 10,
+  disabled = false,
+  error = false,
+  helperText = "",
+  addLabel = "Add images",
+  className = "",
+}) => {
+  const inputRef = useRef(null);
+  const [previewUrls, setPreviewUrls] = useState({});
+
+  useEffect(() => {
+    const createdUrls = [];
+    const previews = {};
+    value.forEach((entry, index) => {
+      const image = entry?.image ?? entry;
+      if (image instanceof Blob) {
+        previews[index] = URL.createObjectURL(image);
+        createdUrls.push(previews[index]);
+      } else if (typeof image === "string") {
+        previews[index] = /^(https?:|blob:|data:)/i.test(image) ? image : storageUrl(image);
+      }
+    });
+    setPreviewUrls(previews);
+    return () => createdUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [value]);
+
+  const addImages = (files) => {
+    const remaining = Math.max(0, maxImages - value.length);
+    const additions = Array.from(files).slice(0, remaining);
+    if (additions.length) onChange?.([...value, ...additions]);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const removeImage = (removeIndex) => {
+    onChange?.(value.filter((_, index) => index !== removeIndex));
+  };
+
+  return (
+    <div className={`flex w-full flex-col gap-2 ${className}`}>
+      <div className="flex items-center justify-between gap-3">
+        {label && <span className={`text-sm font-medium ${error ? "text-red-500" : "text-slate-800 dark:text-[#D0D6E0]"}`}>{label}</span>}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || value.length >= maxImages}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#30343A] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
+        >
+          {addLabel}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple
+          disabled={disabled || value.length >= maxImages}
+          className="hidden"
+          onChange={(event) => addImages(event.target.files ?? [])}
+        />
+      </div>
+
+      {value.length > 0 ? (
+        <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-[#1F2226] dark:border-[#1F2226]">
+          {value.map((entry, index) => {
+            const image = entry?.image ?? entry;
+            const name = image instanceof File ? image.name : (entry?.name || String(image).split("/").pop());
+            return (
+              <li key={`${name}-${index}`} className="flex items-center gap-3 p-2.5">
+                {previewUrls[index] ? (
+                  <img src={previewUrls[index]} alt={entry?.alt_text || name || `Image ${index + 1}`} className="h-12 w-12 rounded-md border border-slate-200 object-cover dark:border-[#30343A]" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-slate-100 text-slate-400 dark:bg-[#1A1C20] dark:text-[#8A8F98]" aria-hidden="true">IMG</div>
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-[#D0D6E0]">{name || `Image ${index + 1}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  disabled={disabled}
+                  aria-label={`Remove ${name || `image ${index + 1}`}`}
+                  className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className={`rounded-lg border border-dashed px-4 py-6 text-center text-sm ${error ? "border-red-400 text-red-500" : "border-slate-300 text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]"}`}>
+          No images added yet.
+        </div>
+      )}
+
+      {helperText && <span className={`text-xs ${error ? "text-red-500" : "text-slate-500 dark:text-[#8A8F98]"}`}>{helperText}</span>}
+      <span className="text-right text-xs text-slate-400 dark:text-[#62666D]">{value.length} / {maxImages}</span>
+    </div>
+  );
+};
+
 // ─── ImageGridUploadField ─────────────────────────────────────────────────────
 // Rectangular (non-round) single-image upload field designed for use inside
 // image grids. Shows a thumbnail preview, hover overlay to change, and a

@@ -34,6 +34,20 @@ class MenuMenuItemController extends Controller
             ], 404);
         }
 
+        $menuBranchIds = $menu->branches()->wherePivot('is_active', true)->pluck('branches.id')->map(fn ($id) => (int) $id)->all();
+        $itemBranchIds = $menuItem->branches()
+            ->wherePivot('is_active', true)
+            ->wherePivot('is_available', true)
+            ->pluck('branches.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        if (!array_intersect($menuBranchIds, $itemBranchIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The menu and item must both be active at at least one shared branch.',
+            ], 422);
+        }
+
         // Already attached
         $exists = $menu->menuItems()
             ->where('menu_item_id', $request->menu_item_id)
@@ -50,8 +64,6 @@ class MenuMenuItemController extends Controller
             $request->menu_item_id,
             [
                 'display_order' => $request->display_order ?? 0,
-                'created_at' => now(),
-                'updated_at' => now()
             ]
         );
 
@@ -125,7 +137,6 @@ class MenuMenuItemController extends Controller
             $itemId,
             [
                 'display_order' => $request->display_order,
-                'updated_at' => now()
             ]
         );
 

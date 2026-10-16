@@ -13,24 +13,24 @@ class MenuItem extends Model
     protected $fillable = [
 
         'menu_category_id',
-
         'sku',
-
         'name',
-
-        'slug',
-
-        'short_description',
-
-        'long_description',
-
+        'description',
         'base_price',
-
+        'base_cost',
         'preparation_time',
-
         'display_order',
+        'is_active',
+        'is_available',
+    ];
 
-        'status'
+    protected $casts = [
+        'base_price' => 'decimal:2',
+        'base_cost' => 'decimal:2',
+        'preparation_time' => 'integer',
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
+        'is_available' => 'boolean',
     ];
 
     public function menuCategory()
@@ -49,9 +49,20 @@ class MenuItem extends Model
     {
         return $this->belongsToMany(
             Menu::class,
-            'menu_menu_item'
-        )->withPivot('display_order')
+            'menu_menu_items'
+        )->withPivot(['id', 'display_order']);
+    }
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'branch_menu_items')
+            ->withPivot(['id', 'selling_price', 'is_active', 'is_available', 'display_order'])
             ->withTimestamps();
+    }
+
+    public function recipe()
+    {
+        return $this->hasOne(Recipe::class);
     }
 
     public function orderItems()

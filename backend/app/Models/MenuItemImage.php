@@ -4,18 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class MenuItemImage extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+
+    public const UPDATED_AT = null;
 
     protected $fillable = [
 
         'menu_item_id',
 
         'image_path',
-
+        'alt_text',
         'is_primary',
 
         'display_order'

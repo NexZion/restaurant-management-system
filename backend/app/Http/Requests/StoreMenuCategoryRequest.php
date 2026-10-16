@@ -16,15 +16,20 @@ class StoreMenuCategoryRequest extends FormRequest
         return [
 
 
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:150',
+
+            'code' => 'required|string|max:50|unique:menu_categories,code',
+
+            'branch_ids' => 'required|array|min:1',
+            'branch_ids.*' => 'required|integer|distinct|exists:branches,id',
 
             'description' => 'nullable|string',
 
-            'image' => 'nullable|string',
+            'image_path' => 'nullable|string|max:500',
 
             'display_order' => 'nullable|integer|min:0',
 
-            'status' => 'required|in:active,inactive'
+            'is_active' => 'required|boolean',
         ];
     }
 }

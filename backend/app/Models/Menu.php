@@ -12,29 +12,31 @@ class Menu extends Model
 
     protected $fillable = [
 
-        'branch_id',
-
+        'code',
         'name',
-
         'description',
-
         'display_order',
-
-        'status'
+        'is_active',
     ];
 
-    public function branch()
+    protected $casts = [
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
+    ];
+
+    public function branches()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsToMany(Branch::class, 'branch_menus')
+            ->withPivot(['id', 'is_active', 'display_order'])
+            ->withTimestamps();
     }
 
     public function menuItems()
     {
         return $this->belongsToMany(
             MenuItem::class,
-            'menu_menu_item'
-        )->withPivot('display_order')
-            ->withTimestamps();
+            'menu_menu_items'
+        )->withPivot(['id', 'display_order']);
 
     }
 }
