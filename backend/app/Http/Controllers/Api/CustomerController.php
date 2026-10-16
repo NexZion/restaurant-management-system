@@ -5,28 +5,31 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Http\Requests\CustomerIndexRequest;
 use App\Http\Requests\StoreCustomerRequest;
 use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
-    public function index(Request $request)
+    public function index(CustomerIndexRequest $request)
     {
-        $user = $request->user();
+        $filters = $request->validated();
 
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please login first'
-            ], 401);
-        }
+        $customers = Customer::query()
+            ->withoutTrashed()
+            ->applyFilters($filters)
+            ->when(($filters['sort_by'] ?? 'created_at') === 'name', function ($query) use ($filters) {
+                $direction = $filters['sort_direction'] ?? 'asc';
+                $query->orderBy('first_name', $direction)
+                    ->orderBy('last_name', $direction);
+            }, function ($query) use ($filters) {
+                $query->orderBy('created_at', $filters['sort_direction'] ?? 'desc');
+            })
+            ->orderByDesc('id')
+            ->paginate($filters['per_page'] ?? 70)
+            ->withQueryString();
 
-        $customers = Customer::paginate($request->input('per_page', 70));
-
-        return response()->json([
-            'success' => true,
-            'data' => $customers
-        ]);
+        return response()->json($customers);
     }
     public function store(StoreCustomerRequest $request)
     {

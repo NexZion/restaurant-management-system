@@ -9,6 +9,7 @@ export const Accordion = ({
   defaultExpanded = [], // Array of indices to be expanded by default
   groupTitle = '', // Optional group title
   variant = 'outlined', // 'outlined', 'filled', 'standard'
+  className = '',
 }) => {
   const [expandedItems, setExpandedItems] = useState(defaultExpanded)
 
@@ -65,7 +66,7 @@ export const Accordion = ({
   const styles = variantStyles[variant]
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       {/* Group Title */}
       {groupTitle && (
         <h3 className="text-lg font-semibold text-gray-900 dark:text-[#F7F8F8] mb-2">

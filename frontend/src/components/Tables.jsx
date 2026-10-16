@@ -37,6 +37,7 @@ export const Table = ({
   sortSelectValue = "", // Optional controlled selected sort option value
   sortSelectPlaceholder = "Sort by", // Sort select placeholder label
   onSortSelectChange = null, // Callback when sort option changes
+  className = "",
 }) => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [expandedRows, setExpandedRows] = useState([]);
@@ -199,7 +200,7 @@ export const Table = ({
     paginatedData.length > 0 && selectedRows.length === paginatedData.length;
 
   return (
-    <div className="flex flex-col gap-3.5">
+    <div className={`flex flex-col gap-3.5 ${className}`}>
       {/* Top Controls */}
       {(sortSelectOptions.length > 0 ||
         searchable ||

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/logo.png'
+import lightModeLogo from '../assets/logo-light.png'
+import darkModeLogo from '../assets/logo-dark.png'
 import { Button, NumberField, SelectField, TextField, ToggleSwitch } from '../components/DataFields'
 import { MenuItemCardList } from '../components/MenuItemCardList'
 import { useTheme } from '../context/ThemeContext'
@@ -79,7 +80,7 @@ export const POSNewOrder = () => {
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-[#1F2226] dark:bg-[#121314]">
         <header className="flex min-h-16 flex-wrap items-center justify-between gap-3.5 border-b border-slate-200 px-3.5 py-2.5 dark:border-[#1F2226]">
           <div className="flex items-center gap-5">
-            <img src={logo} alt="Restaurant" className="h-9 w-auto max-w-36 object-contain invert dark:invert-0" />
+            <img src={isDarkMode ? darkModeLogo : lightModeLogo} alt="Restaurant" className="h-9 w-auto max-w-36 object-contain" />
             <Button variant="ghost" size="small" onClick={() => navigate('/dashboard')}>Dashboard</Button>
           </div>
           <div className="flex items-center gap-2.5">

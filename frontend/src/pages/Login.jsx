@@ -6,7 +6,8 @@ import {
   ToggleSwitch,
 } from "../components/DataFields";
 import { useTheme } from "../context/ThemeContext";
-import logoImage from "../assets/logo.png";
+import lightModeLogo from "../assets/logo-light.png";
+import darkModeLogo from "../assets/logo-dark.png";
 import api from "../axiosClient";
 import { useNavigate } from "react-router-dom";
 import { isSessionValid, saveAuthSession } from "../utils/authStorage";
@@ -259,9 +260,9 @@ export const Login = () => {
           <div className="px-7 pb-8 pt-8 sm:px-9">
             <div className="mb-8 flex justify-center">
               <img
-                src={logoImage}
+                src={isDarkMode ? darkModeLogo : lightModeLogo}
                 alt="Logo"
-                className="h-14 invert dark:invert-0"
+                className="h-14"
               />
             </div>
 

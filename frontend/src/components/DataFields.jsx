@@ -98,6 +98,7 @@ export const TextField = ({
 
         {/* Input */}
         <input
+          style={{ fontSize: "13px" }}
           type={inputType}
           value={value}
           onChange={onChange}
@@ -109,7 +110,7 @@ export const TextField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full text-sm
+            w-full text-xs
             ${label ? "py-3" : "py-2"}
             ${isPasswordField && showPasswordToggle ? "px-2.5 pr-10" : "px-2.5"}
             bg-white dark:bg-[#121314]
@@ -148,6 +149,7 @@ export const ImageUploadField = ({
   showRemove = true,
   avatarSize = 96, // px
   uploadButtonLabel = "Change",
+  className = "",
   placeholderIcon = (
     <svg
       className="w-12 h-12 text-gray-300"
@@ -196,7 +198,7 @@ export const ImageUploadField = ({
 
   return (
     <div
-      className={`flex flex-col gap-2 items-center ${fullWidth ? "w-full" : ""}`}
+      className={`flex flex-col gap-2 items-center ${fullWidth ? "w-full" : ""} ${className}`}
     >
       {label && (
         <label
@@ -298,6 +300,7 @@ export const ImageGridUploadField = ({
   accept = "image/jpeg,image/png,image/jpg,image/gif,image/webp",
   aspectRatio = "4/3", // CSS aspect-ratio string, e.g. '1/1', '16/9'
   showRemove = true,
+  className = "",
 }) => {
   const inputRef = useRef(null);
   const BASE_URL = import.meta.env.VITE_API_URL + "/storage/";
@@ -323,7 +326,7 @@ export const ImageGridUploadField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       {label && (
         <label
           className={`text-xs font-medium ${error ? "text-red-500" : "text-gray-600 dark:text-[#8A8F98]"}`}
@@ -445,6 +448,7 @@ export const NumberField = ({
   step = 1,
   decimals,
   integerOnly = false,
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -552,7 +556,7 @@ export const NumberField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -613,6 +617,7 @@ export const NumberField = ({
         </div>
         {/* Input - Hide default spinner */}
         <input
+          style={{ fontSize: "13px" }}
           type="number"
           value={value}
           onChange={handleInputChange}
@@ -625,7 +630,7 @@ export const NumberField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
           className={`
-            w-full pr-10 pl-3 text-sm
+            w-full pr-10 pl-3 text-xs
             ${label ? "py-3" : "py-2"}
             bg-white dark:bg-[#121314]
             text-slate-950 dark:text-[#F7F8F8]
@@ -668,6 +673,7 @@ export const SelectField = ({
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
   optionImageSize = "medium", // small, medium, large, xlarge
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -826,7 +832,7 @@ export const SelectField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -845,12 +851,13 @@ export const SelectField = ({
         <button
           ref={selectButtonRef}
           type="button"
+          style={{ fontSize: "13px" }}
           disabled={disabled}
           onClick={handleOpen}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-2.5 text-sm text-left flex items-center justify-between gap-2
+            w-full px-2.5 text-xs text-left flex items-center justify-between gap-2
             ${hasOptionImages ? `${selectImageHeightClass} py-1.5` : label ? "min-h-12 py-1.5" : "py-2"}
             bg-white text-slate-950 dark:bg-[#121314] dark:text-[#F7F8F8]
             outline-none
@@ -1074,6 +1081,7 @@ export const CheckboxField = ({
   helperText = "",
   name = "",
   required = false,
+  className = "",
 }) => {
   const checkboxId = `checkbox-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1084,7 +1092,7 @@ export const CheckboxField = ({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <div className="flex items-center">
         <div className="flex items-center h-5">
           <input
@@ -1164,9 +1172,10 @@ export const RadioField = ({
   name = "",
   required = false,
   row = false, // Layout: false = vertical (default), true = horizontal
+  className = "",
 }) => {
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       {/* Group Title */}
       {label && (
         <label
@@ -1282,8 +1291,8 @@ export const Button = ({
   const cssSize = (value) => typeof value === "number" ? `${value}px` : value;
   const sizeStyles = {
     small: "px-2 py-1 text-xs",
-    medium: "px-3.5 py-1.5 text-xs",
-    large: "px-3.5 py-2 text-sm",
+    medium: "px-3.5 py-1.5 text-[10px]",
+    large: "px-3.5 py-2 text-xs",
     icon: "p-0 text-sm",
   };
 
@@ -1384,6 +1393,7 @@ export const TextAreaField = ({
   maxLength = null,
   showCharCount = false,
   richText = false, // Enable rich text editor
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -1435,7 +1445,7 @@ export const TextAreaField = ({
 
   if (richText) {
     return (
-      <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+      <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
         <div className="relative">
           {/* Label */}
           {label && (
@@ -1602,7 +1612,7 @@ export const TextAreaField = ({
             onBlur={() => setIsFocused(false)}
             suppressContentEditableWarning
             className={`
-              w-full px-2.5 py-2 text-sm
+              w-full px-2.5 py-2 text-xs
               bg-white dark:bg-[#121314]
               text-slate-950 dark:text-[#F7F8F8]
               outline-none
@@ -1630,7 +1640,7 @@ export const TextAreaField = ({
 
   // Simple textarea
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -1647,6 +1657,7 @@ export const TextAreaField = ({
 
         {/* Textarea */}
         <textarea
+          style={{ fontSize: "13px" }}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -1657,7 +1668,7 @@ export const TextAreaField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-2.5 text-sm
+            w-full px-2.5 text-xs
             ${label ? "pt-5 pb-2.5" : "py-2"}
             bg-white dark:bg-[#121314]
             text-slate-950 dark:text-[#F7F8F8]
@@ -1703,6 +1714,7 @@ export const ToggleSwitch = ({
   helperText = "",
   checkedColor = "#3B82F6",
   uncheckedColor = "#6B7280",
+  className = "",
 }) => {
   const sizeStyles = {
     small: {
@@ -1728,7 +1740,7 @@ export const ToggleSwitch = ({
   const currentSize = sizeStyles[size];
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       <div className="flex items-center gap-2.5">
         {/* Left Label */}
         {leftLabel && (
@@ -1832,6 +1844,7 @@ export const CategoryTreeField = ({
   error = false,
   helperText = "",
   required = false,
+  className = "",
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -2047,7 +2060,7 @@ export const CategoryTreeField = ({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}
+      className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}
     >
       <div className="relative">
         {label && (
@@ -2065,7 +2078,7 @@ export const CategoryTreeField = ({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className={`w-full px-2.5 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
+          className={`w-full px-2.5 text-xs text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
             ${label ? "min-h-12 py-1.5" : "py-2"}
             ${
               error
@@ -2802,6 +2815,7 @@ export const PhoneField = ({
   required = false,
   fullWidth = false,
   defaultCode = "+1",
+  className = "",
 }) => {
   // ── Parse stored value into dial code + number ─────────────────────────────
   const parseValue = (v) => {
@@ -2909,7 +2923,7 @@ export const PhoneField = ({
   const hasValue = dialCode || number;
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Floating label */}
         {label && (
@@ -2947,7 +2961,7 @@ export const PhoneField = ({
             onBlur={() => setIsFocused(false)}
             className={`flex h-full flex-shrink-0 items-center gap-1.5 border-r border-slate-200 px-2.5 dark:border-[#1F2226]
               ${label ? "py-3" : "py-2"}
-              bg-transparent text-sm text-slate-950 dark:text-[#F7F8F8]
+              bg-transparent text-xs text-slate-950 dark:text-[#F7F8F8]
               ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-[#1A1C20]"}
               transition-colors rounded-l-lg
             `}
@@ -2977,6 +2991,7 @@ export const PhoneField = ({
 
           {/* Number input */}
           <input
+            style={{ fontSize: "13px" }}
             type="tel"
             value={number}
             onChange={handleNumberChange}
@@ -2985,7 +3000,7 @@ export const PhoneField = ({
             required={required}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex-1 bg-transparent px-2.5 text-sm text-slate-950 dark:text-[#F7F8F8]
+            className={`flex-1 bg-transparent px-2.5 text-xs text-slate-950 dark:text-[#F7F8F8]
               placeholder:text-slate-400 dark:placeholder:text-[#62666D]
               outline-none
               ${label ? "py-3" : "py-2"}

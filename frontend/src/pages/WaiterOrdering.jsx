@@ -1,6 +1,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/logo.png";
+import lightModeLogo from "../assets/logo-light.png";
+import darkModeLogo from "../assets/logo-dark.png";
 import {
   Button,
   NumberField,
@@ -182,9 +183,9 @@ export const POSNewOrder = () => {
         <header className="flex min-h-16 flex-wrap items-center justify-between gap-3.5 border-b border-slate-200 px-3.5 py-2.5 dark:border-[#1F2226]">
           <div className="flex items-center gap-5">
             <img
-              src={logo}
+              src={isDarkMode ? darkModeLogo : lightModeLogo}
               alt="Restaurant"
-              className="h-9 w-auto max-w-36 object-contain invert dark:invert-0"
+              className="h-9 w-auto max-w-36 object-contain"
             />
             <Button
               variant="ghost"

@@ -20,26 +20,30 @@ export const ProfileView = ({
   subtitle,
   avatar,
   avatarAlt = "",
+  showAvatar = true,
   badges = [],
   highlights = [],
   sections = [],
+  className = "",
 }) => {
   return (
-    <div className="space-y-3">
+    <div className={`space-y-3 ${className}`}>
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_18px_45px_-38px_rgba(15,23,42,0.55)] dark:border-white/5 dark:bg-[#121314]">
         <div className="relative border-b border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/70 px-4 py-4 dark:border-white/5 dark:from-[#121314] dark:via-[#090A0B] dark:to-[#121314]">
           <div className="flex items-center gap-3">
-            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-white bg-slate-100 text-lg font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 dark:border-white/5 dark:bg-[#161719] dark:text-[#D0D6E0] dark:ring-white/5 sm:size-20 sm:text-lg">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={avatarAlt || title || ""}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span>{getInitials(title)}</span>
-              )}
-            </div>
+            {showAvatar && (
+              <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-white bg-slate-100 text-lg font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 dark:border-white/5 dark:bg-[#161719] dark:text-[#D0D6E0] dark:ring-white/5 sm:size-20 sm:text-lg">
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt={avatarAlt || title || ""}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span>{getInitials(title)}</span>
+                )}
+              </div>
+            )}
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
