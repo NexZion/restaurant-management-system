@@ -761,11 +761,13 @@ export const Users = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="grid grid-cols-3 gap-4 w-full">
+              <div className="grid grid-cols-1 items-end gap-3.5 w-full md:grid-cols-7">
                 <SelectField
                   label="Roles"
+                  className="md:col-span-2"
                   value={filters.role}
                   options={filterRoles}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -775,8 +777,10 @@ export const Users = () => {
                 />
                 <SelectField
                   label="Branch"
+                  className="md:col-span-2"
                   value={filters.branch}
                   options={filterBranches}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -786,8 +790,10 @@ export const Users = () => {
                 />
                 <SelectField
                   label="Status"
+                  className="md:col-span-2"
                   value={filters.status}
                   options={filterStatus}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -795,6 +801,19 @@ export const Users = () => {
                     }))
                   }
                 />
+                <Button
+                  variant="secondary"
+                  width="100%"
+                  onClick={() =>
+                    setFilters({
+                      role: "",
+                      branch: "",
+                      status: "",
+                    })
+                  }
+                >
+                  Clear filters
+                </Button>
               </div>
             ),
           },

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Http\Requests\UserIndexRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Branch;
@@ -18,7 +19,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(UserIndexRequest $request)
     {
         $user = $request->user();
 
@@ -36,31 +37,18 @@ class UserController extends Controller
             ], 403);
         }
 
-        $validated = $request->validate([
-            'role' => ['nullable', 'integer', 'exists:roles,id'],
-            'branch' => ['nullable', 'integer', 'exists:branches,id'],
-            'status' => ['nullable', 'in:active,inactive,blocked'],
-        ]);
+        $filters = $request->validated();
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortDirection = $filters['sort_direction'] ?? 'desc';
 
         $users = User::with(['role', 'branch'])
-            ->when(
-                !empty($validated['role']),
-                fn($query) => $query->where('role_id', $validated['role'])
-            )
-            ->when(
-                !empty($validated['branch']),
-                fn($query) => $query->where('branch_id', $validated['branch'])
-            )
-            ->when(
-                !empty($validated['status']),
-                fn($query) => $query->where('status', $validated['status'])
-            )
-            ->get();
+            ->applyFilters($filters)
+            ->orderBy($sortBy, $sortDirection)
+            ->orderByDesc('id')
+            ->paginate($filters['per_page'] ?? 70)
+            ->withQueryString();
 
-        return response()->json([
-            'success' => true,
-            'data' => $users
-        ]);
+        return response()->json($users);
     }
 
     /**
