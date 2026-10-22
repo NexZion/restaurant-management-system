@@ -42,6 +42,14 @@ const formatDate = (value) => {
       });
 };
 
+const getTodayDate = () => {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+
+      return `${today.getFullYear()}-${month}-${day}`;
+};
+
 const formatMoney = (value) => {
   if (value === null || value === undefined || value === "") return "N/A";
 
@@ -75,7 +83,7 @@ const calculateDiscountAmount = (unitPrice, discountType, discountValue) => {
 export const Orders = () => {
   const [formData, setFormData] = useState({
     id: "",
-    date: "",
+    date: getTodayDate(),
     customerId: "",
     customerName: "",
     orderType: "dine_in",
@@ -102,7 +110,11 @@ export const Orders = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [sortDirection, setSortDirection] = useState("asc");
-  const [filters, setFilters] = useState({ status: "" });
+  const [filters, setFilters] = useState({
+    date: "",
+    status: "all",
+    customerId: "all",
+  });
   const [showViewOrder, setShowViewOrder] = useState(false);
   const [viewOrder, setViewOrder] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
@@ -144,13 +156,16 @@ export const Orders = () => {
         id: order.id,
         orderNo: order.order_number,
         customer: customerName(order.customer),
+        customerId: String(order.customer?.id || order.customer_id || ""),
         type: formatText(order.order_type),
         table: order.table?.table_number || order.table?.name || "N/A",
         waiter: order.waiter?.name || "N/A",
         date: formatDate(order.created_at),
+        rawDate: String(order.created_at || ""),
         status: formatText(order.status),
         payment: formatText(order.bill?.bill_status || "unpaid"),
         total: formatMoney(order.bill?.grand_total),
+        note: order.notes || "",
         due:
           order.bill?.bill_status === "paid"
             ? formatMoney(0)
@@ -255,9 +270,17 @@ export const Orders = () => {
   }, []);
 
   const filteredOrders = useMemo(() => {
-    const list = filters.status
-      ? orders.filter((order) => order.rawStatus === filters.status)
-      : orders;
+    const list = orders.filter((order) => {
+      const matchesDate =
+        !filters.date || order.rawDate.slice(0, 10) === filters.date;
+      const matchesStatus =
+        filters.status === "all" || order.rawStatus === filters.status;
+      const matchesCustomer =
+        filters.customerId === "all" ||
+        order.customerId === filters.customerId;
+
+      return matchesDate && matchesStatus && matchesCustomer;
+    });
 
     return [...list].sort((a, b) => {
       const left = (a.orderNo || "").toLowerCase();
@@ -267,7 +290,7 @@ export const Orders = () => {
       if (left > right) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
-  }, [filters.status, orders, sortDirection]);
+  }, [filters, orders, sortDirection]);
 
   const orderItemsTotal = useMemo(
     () => orderItems.reduce((sum, item) => sum + Number(item.netPrice || 0), 0),
@@ -379,7 +402,7 @@ export const Orders = () => {
   const resetAddOrderForm = () => {
     setFormData({
       id: "",
-      date: "",
+      date: getTodayDate(),
       customerId: "",
       customerName: "",
       orderType: "dine_in",
@@ -800,6 +823,14 @@ export const Orders = () => {
     { key: "due", label: "Due" },
   ];
 
+  const customerFilterOptions = [
+    { value: "all", label: "All Customers" },
+    ...customers.map((customer) => ({
+      value: String(customer.id),
+      label: customer.name,
+    })),
+  ];
+
   const orderSummary = viewOrder
     ? [
         { label: "Order Type", value: formatText(viewOrder.order_type) },
@@ -870,9 +901,24 @@ export const Orders = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="grid w-full grid-cols-3 gap-3.5">
+              <div className="grid w-full grid-cols-1 items-end gap-3.5 md:grid-cols-7">
+                <TextField
+                  floatLabel={true}
+                  label="Date"
+                  type="date"
+                  className="md:col-span-2"
+                  value={filters.date}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      date: e.target.value,
+                    }))
+                  }
+                  fullWidth={true}
+                />
                 <SelectField
                   label="Status"
+                  className="md:col-span-2"
                   value={filters.status}
                   options={status}
                   onChange={(e) =>
@@ -881,7 +927,35 @@ export const Orders = () => {
                       status: e.target.value,
                     }))
                   }
+                  fullWidth={true}
                 />
+                <SelectField
+                  label="Customer"
+                  className="md:col-span-2"
+                  value={filters.customerId}
+                  options={customerFilterOptions}
+                  searchable={true}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      customerId: e.target.value,
+                    }))
+                  }
+                  fullWidth={true}
+                />
+                <Button
+                  variant="secondary"
+                  width="100%"
+                  onClick={() =>
+                    setFilters({
+                      date: "",
+                      status: "all",
+                      customerId: "all",
+                    })
+                  }
+                >
+                  Clear filters
+                </Button>
               </div>
             ),
           },
@@ -1019,6 +1093,7 @@ export const Orders = () => {
                   {/* Row 1 */}
                   <div className="grid gap-3.5 md:grid-cols-2">
                     <TextField
+                      floatLabel = {true}
                       label="Order Date"
                       type="date"
                       value={formData.date}
@@ -1034,9 +1109,28 @@ export const Orders = () => {
                       label="Order Type"
                       value={formData.orderType}
                       options={orderTypes}
-                      onChange={(e) =>
-                        setFormData({ ...formData, orderType: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const orderType = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          orderType,
+                          tableNumber:
+                            orderType === "dine_in" ? prev.tableNumber : "",
+                        }));
+                        setFieldError("tableNumber", "");
+                      }}
+                    />
+
+                    <TextField
+                      label="Note"
+                      type="text"
+                      value={formData.note}
+                      onChange={(e) => {
+                        setFormData({ ...formData, note: e.target.value });
+                        setFieldError("note", "");
+                      }}
+                      helperText={fieldErrors.note || ""}
+                      error={!!fieldErrors.note}
                     />
                   </div>
 
@@ -1072,25 +1166,27 @@ export const Orders = () => {
                       Add Customer
                     </Button>
 
-                    <SelectField
-                      label="Table"
-                      searchable
-                      value={formData.tableNumber || ""}
-                      options={tables
-                        .filter((table) => table.status === "available")
-                        .map((table) => ({
-                          value: table.id,
-                          label: `Table ${table.table_number} (${table.capacity} seats)`,
-                        }))}
-                      helperText={fieldErrors.tableNumber || ""}
-                      error={!!fieldErrors.tableNumber}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          tableNumber: e.target.value,
-                        })
-                      }
-                    />
+                    {formData.orderType === "dine_in" && (
+                      <SelectField
+                        label="Table"
+                        searchable
+                        value={formData.tableNumber || ""}
+                        options={tables
+                          .filter((table) => table.status === "available")
+                          .map((table) => ({
+                            value: table.id,
+                            label: `Table ${table.table_number} (${table.capacity} seats)`,
+                          }))}
+                        helperText={fieldErrors.tableNumber || ""}
+                        error={!!fieldErrors.tableNumber}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            tableNumber: e.target.value,
+                          }))
+                        }
+                      />
+                    )}
                   </div>
                 </div>
               ),

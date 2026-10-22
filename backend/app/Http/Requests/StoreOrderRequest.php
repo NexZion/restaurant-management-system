@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -18,7 +19,12 @@ class StoreOrderRequest extends FormRequest
 
         'branch_id' => 'nullable|exists:branches,id',
 
-        'order_number' => 'nullable|string|max:50',
+        'order_number' => [
+            'nullable',
+            'string',
+            'max:50',
+            Rule::unique('orders', 'order_number'),
+        ],
 
         'table_id' => 'nullable|exists:restaurant_tables,id',
 
@@ -37,7 +43,18 @@ class StoreOrderRequest extends FormRequest
         'items' => 'required|array',
         'items.*.menu_item_id' => 'required|exists:menu_items,id',
         'items.*.quantity' => 'required|integer|min:1',
-        'items.*.notes' => 'nullable|string|max:500'
+        'items.*.unit_price' => 'required|numeric|min:0',
+        'items.*.discount' => 'nullable|numeric|min:0',
+        'items.*.total_price' => 'nullable|numeric|min:0',
+        'items.*.notes' => 'nullable|string|max:500',
+
+        'bill' => 'nullable|array',
+        'bill.subtotal' => 'nullable|numeric|min:0',
+        'bill.discount' => 'nullable|numeric|min:0',
+        'bill.tax' => 'nullable|numeric|min:0',
+        'bill.service_charge' => 'nullable|numeric|min:0',
+        'bill.grand_total' => 'nullable|numeric|min:0',
+        'bill.bill_status' => 'nullable|in:unpaid,partially_paid,paid,refunded'
     ];
 }
 }

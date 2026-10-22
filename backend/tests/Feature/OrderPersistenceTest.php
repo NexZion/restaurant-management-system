@@ -58,7 +58,9 @@ test('it persists the full order with items and bill in a transaction', function
 
     $order = Order::query()->latest('id')->first();
     $this->assertNotNull($order);
+    $this->assertMatchesRegularExpression('/^ORD - \d{6}$/', $order->order_number);
     $this->assertEquals($customer->id, $order->customer_id);
+    $this->assertEquals($branch->id, $order->branch_id);
     $this->assertEquals('pending', $order->status);
     $this->assertEquals('VIP table', $order->notes);
 

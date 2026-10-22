@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
-use App\Models\MenuItem;
-use App\Models\OrderItem;
 
 class OrderController extends Controller
 {
@@ -39,7 +37,9 @@ class OrderController extends Controller
             $orderPayload = $validated;
             unset($orderPayload['items'], $orderPayload['bill']);
 
-            $orderNumber = $orderPayload['order_number'] ?? ('ORD-' . now()->format('Y') . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT));
+            $orderNumber = $orderPayload['order_number'] ?? $this->generateOrderNumber();
+            $orderPayload['branch_id'] =
+                $request->user()?->branch_id ?? $orderPayload['branch_id'] ?? null;
 
             $order = Order::create(array_merge($orderPayload, [
                 'order_number' => $orderNumber,
@@ -81,44 +81,22 @@ class OrderController extends Controller
             return $order;
         });
 
-        foreach ($request->items as $item) {
-            $menuItem = MenuItem::find($item['menu_item_id']);
-
-            if (!$menuItem) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Menu item not found'
-                ], 404);
-            }
-
-            $unitPrice = $menuItem->base_price;
-
-            $quantity = $request->quantity;
-
-            $totalPrice = $unitPrice * $quantity;
-
-            $orderItem = OrderItem::Create([
-
-                'order_id' => $order->id,
-
-                'menu_item_id' => $menuItem->id,
-
-                'quantity' => $quantity,
-
-                'unit_price' => $unitPrice,
-
-                'total_price' => $totalPrice,
-
-                'notes' => $request->notes
-            ]);
-        }
-
         return response()->json([
             'success' => true,
             'message' => 'Order created successfully',
             'data' => $order->load(['items', 'bill'])
         ], 201);
     }
+
+    private function generateOrderNumber(): string
+    {
+        do {
+            $orderNumber = sprintf('ORD - %06d', random_int(0, 999999));
+        } while (Order::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
+    }
+
     public function show($id)
     {
         $order = Order::with([
