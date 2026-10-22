@@ -7,6 +7,7 @@ import { SectionDivider, VerticalTabs } from "../components/SectionDivider"
 import { Stepper } from "../components/Stepper"
 import { AddItem } from "../components/AddItem"
 import { MenuItemCardList } from "../components/MenuItemCardList"
+import { ImageSelectListField } from "../components/ImageSelectListField"
 import { ProfileView } from "../components/ProfileView"
 import { Chip } from "../components/Chip"
 
@@ -44,6 +45,7 @@ export const Components = () => {
   const [username, setUsername] = useState("")
   const [uploadedImage, setUploadedImage] = useState(null)
   const [uploadedImages, setUploadedImages] = useState([])
+  const [selectedImageList, setSelectedImageList] = useState([])
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -217,6 +219,15 @@ export const Components = () => {
         onChange={setUploadedImages}
         maxImages={6}
         helperText="Choose multiple images. Remove any image from the list before submitting."
+      />
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Image Selection List</h1>
+      <ImageSelectListField
+        label="Menu items"
+        options={imageOptions}
+        value={selectedImageList}
+        onChange={setSelectedImageList}
+        addLabel="Add"
+        emptyMessage="Choose an item above and add it to the list."
       />
       <h1 className="mb-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">TextField</h1>
       <div className="flex flex-col gap-3.5">

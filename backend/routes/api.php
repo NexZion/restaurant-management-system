@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\RawMaterialController;
 use App\Http\Controllers\Api\UnitController;
 use App\Http\Controllers\Api\RecipeController;
+use App\Http\Controllers\Api\VariantController;
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -62,11 +63,15 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('raw-materials', RawMaterialController::class);
     Route::apiResource('units', UnitController::class);
     Route::apiResource('recipes', RecipeController::class);
+    Route::apiResource('variants', VariantController::class);
     Route::apiResource('menu-item-images', MenuItemImageController::class);
     Route::apiResource('menus', MenuController::class);
+    Route::put('/menus/{menu}/branches', [MenuController::class, 'updateBranches']);
+    Route::patch('/menus/{menu}/availability', [MenuController::class, 'updateAvailability']);
 
     Route::post('/menus/{menu}/items', [MenuMenuItemController::class, 'attach']);
     Route::get('/menus/{menu}/items', [MenuMenuItemController::class, 'index']);
+    Route::put('/menus/{menu}/items', [MenuMenuItemController::class, 'sync']);
     Route::delete('/menus/{menu}/items/{item}', [MenuMenuItemController::class, 'detach']);
     Route::put('/menus/{menu}/items/{item}/order', [MenuMenuItemController::class, 'updateOrder']);
 

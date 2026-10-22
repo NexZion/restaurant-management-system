@@ -62,6 +62,7 @@ export const menuItems = [
     items: [
       { name: 'Menus', path: '/menu/menus' },
       { name: 'Menu Items', path: '/menu/menu-items' },
+      { name: 'Variants', path: '/menu/variants' },
       { name: 'Menu Categories', path: '/menu/menu-categories' },
       { name: 'Recipes', path: '/menu/recipes' },
     ]

@@ -7,17 +7,23 @@ use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Http\Requests\StoreMenuRequest;
 use App\Http\Requests\UpdateMenuRequest;
-use App\Models\MenuItem;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        $menus = Menu::with(['branches', 'menuItems'])
+        $menus = Menu::with(['branches'])
             ->latest()
             ->get();
+        $branchId = request()->user()?->branch_id ?? request()->integer('branch_id');
+        $menus->each(function (Menu $menu) use ($branchId) {
+            $branch = $branchId ? $menu->branches->firstWhere('id', $branchId) : null;
+            $menu->setAttribute('branch_availability', $branch ? (bool) $branch->pivot->is_active : null);
+            $menu->setAttribute('availability_branch_id', $branchId ?: null);
+            $menu->setAttribute('branch_menu_item_count', $branchId ? $menu->menuItemsForBranch((int) $branchId)->count() : 0);
+        });
 
         return response()->json([
             'success' => true,
@@ -28,18 +34,20 @@ class MenuController extends Controller
     public function store(StoreMenuRequest $request)
     {
         $data = $request->validated();
-        $branchIds = $data['branch_ids'];
-        $menuItemIds = $data['menu_item_ids'] ?? [];
-        unset($data['branch_ids']);
-        unset($data['menu_item_ids']);
+        $branchId = $request->user()?->branch_id ?? $request->integer('branch_id');
+        if (!$branchId) {
+            throw ValidationException::withMessages([
+                'branch_id' => 'A logged-in branch is required to create a menu.',
+            ]);
+        }
 
-        $menu = DB::transaction(function () use ($data, $branchIds, $menuItemIds) {
+        $menu = DB::transaction(function () use ($data, $branchId) {
             $menu = Menu::create($data);
-            $menu->branches()->syncWithPivotValues($branchIds, [
-                'is_active' => $menu->is_active,
+            $menu->branches()->attach($branchId, [
+                'is_active' => true,
                 'display_order' => $menu->display_order,
             ]);
-            $this->syncMenuItemsForBranches($menu, $menuItemIds, $branchIds);
+
             return $menu;
         });
         $menu->load('branches');
@@ -53,7 +61,7 @@ class MenuController extends Controller
 
     public function show($id)
     {
-        $menu = Menu::with(['menuItems', 'branches'])
+        $menu = Menu::with(['branches'])
             ->find($id);
 
         if (!$menu) {
@@ -63,6 +71,11 @@ class MenuController extends Controller
                 'message' => 'Menu not found'
             ], 404);
         }
+
+        $branchId = request()->user()?->branch_id ?? request()->integer('branch_id');
+        $menu->setRelation('menuItems', $branchId
+            ? $menu->menuItemsForBranch((int) $branchId)->with(['images', 'menuCategory'])->get()
+            : collect());
 
         return response()->json([
             'success' => true,
@@ -85,19 +98,7 @@ class MenuController extends Controller
         }
 
         $data = $request->validated();
-        $branchIds = $data['branch_ids'] ?? $menu->branches()->pluck('branches.id')->map(fn ($id) => (int) $id)->all();
-        $menuItemIds = $data['menu_item_ids'] ?? $menu->menuItems()->pluck('menu_items.id')->all();
-        DB::transaction(function () use ($menu, $branchIds, $menuItemIds, $data) {
-            if (array_key_exists('branch_ids', $data) || array_key_exists('is_active', $data) || array_key_exists('display_order', $data)) {
-                $menu->branches()->syncWithPivotValues($branchIds, [
-                    'is_active' => $data['is_active'] ?? $menu->is_active,
-                    'display_order' => $data['display_order'] ?? $menu->display_order,
-                ]);
-            }
-            $this->syncMenuItemsForBranches($menu, $menuItemIds, $branchIds);
-            $menu->update(collect($data)->except(['branch_ids', 'menu_item_ids'])->all());
-        });
-        unset($data['branch_ids'], $data['menu_item_ids']);
+        $menu->update($data);
         $menu->load('branches');
 
         return response()->json([
@@ -126,21 +127,62 @@ class MenuController extends Controller
         ]);
     }
 
-    private function syncMenuItemsForBranches(Menu $menu, array $menuItemIds, array $branchIds): void
+    public function updateAvailability(Request $request, Menu $menu)
     {
-        $assignments = [];
-        foreach (array_values($menuItemIds) as $position => $menuItemId) {
-            $item = MenuItem::with('branches')->find($menuItemId);
-            $itemBranchIds = $item?->branches
-                ->filter(fn ($branch) => $branch->pivot->is_active && $branch->pivot->is_available)
-                ->pluck('id')->map(fn ($id) => (int) $id)->all() ?? [];
-            if (!$item || !array_intersect(array_map('intval', $branchIds), $itemBranchIds)) {
-                throw ValidationException::withMessages([
-                    'menu_item_ids' => 'Every menu item must be active and available at a branch assigned to this menu.',
-                ]);
-            }
-            $assignments[$menuItemId] = ['display_order' => $position];
+        $data = $request->validate(['is_active' => ['required', 'boolean']]);
+        $branchId = $request->user()?->branch_id ?? $request->integer('branch_id');
+        if (!$branchId) {
+            throw ValidationException::withMessages(['branch_id' => 'A branch must be selected to set menu availability.']);
         }
-        $menu->menuItems()->sync($assignments);
+
+        $menu->branches()->syncWithoutDetaching([
+            $branchId => [
+                'is_active' => $data['is_active'],
+                'display_order' => $menu->display_order,
+            ],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['branch_id' => (int) $branchId, 'is_active' => (bool) $data['is_active']],
+        ]);
     }
+
+    public function updateBranches(Request $request, Menu $menu)
+    {
+        $data = $request->validate([
+            'branch_ids' => ['required', 'array'],
+            'branch_ids.*' => ['required', 'integer', 'distinct', 'exists:branches,id'],
+        ]);
+
+        $branchIds = array_map('intval', $data['branch_ids']);
+        $existingBranches = $menu->branches()->get()->keyBy('id');
+        $assignments = collect($branchIds)->mapWithKeys(function (int $branchId) use ($existingBranches, $menu) {
+            $existing = $existingBranches->get($branchId);
+
+            return [$branchId => [
+                'is_active' => $existing ? (bool) $existing->pivot->is_active : true,
+                'display_order' => $existing ? $existing->pivot->display_order : $menu->display_order,
+            ]];
+        })->all();
+        $detachedBranchIds = $existingBranches->keys()->diff($branchIds);
+
+        DB::transaction(function () use ($menu, $assignments, $detachedBranchIds) {
+            $menu->branches()->sync($assignments);
+
+            if ($detachedBranchIds->isNotEmpty()) {
+                DB::table('branch_menu_menu_items')
+                    ->where('menu_id', $menu->id)
+                    ->whereIn('branch_id', $detachedBranchIds)
+                    ->delete();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Menu branches updated successfully.',
+            'data' => $menu->load('branches'),
+        ]);
+    }
+
 }

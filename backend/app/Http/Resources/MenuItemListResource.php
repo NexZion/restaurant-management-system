@@ -47,6 +47,20 @@ class MenuItemListResource extends JsonResource
                 'name' => $branch->name,
                 'pivot' => $branch->pivot,
             ])),
+            'variant_options' => $this->whenLoaded('variantOptions', fn () => $this->variantOptions->map(fn ($option) => [
+                'id' => $option->id,
+                'variant_id' => $option->variant_id,
+                'variant_name' => $option->variant?->name,
+                'selection_type' => $option->variant?->selection_type,
+                'min_select' => $option->variant?->min_select,
+                'max_select' => $option->variant?->max_select,
+                'name' => $option->name,
+                'code' => $option->code,
+                'additional_price' => $option->pivot->additional_price,
+                'is_default' => (bool) $option->pivot->is_default,
+                'is_active' => (bool) $option->pivot->is_active && (bool) $option->is_active && (bool) $option->variant?->is_active,
+                'display_order' => $option->pivot->display_order,
+            ])),
         ];
     }
 }

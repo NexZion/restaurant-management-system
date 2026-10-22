@@ -41,6 +41,12 @@ class StoreMenuItemRequest extends FormRequest
             'branch_assignments.*.is_active' => 'required|boolean',
             'branch_assignments.*.is_available' => 'required|boolean',
             'branch_assignments.*.display_order' => 'sometimes|integer|min:0',
+            'variant_option_assignments' => 'sometimes|array',
+            'variant_option_assignments.*.variant_option_id' => 'required|integer|distinct|exists:variant_options,id',
+            'variant_option_assignments.*.additional_price' => 'required|numeric|min:0',
+            'variant_option_assignments.*.is_default' => 'required|boolean',
+            'variant_option_assignments.*.is_active' => 'required|boolean',
+            'variant_option_assignments.*.display_order' => 'required|integer|min:0',
         ];
     }
 }

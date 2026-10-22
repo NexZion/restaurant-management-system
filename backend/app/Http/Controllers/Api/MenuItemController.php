@@ -19,6 +19,7 @@ class MenuItemController extends Controller
             'menuCategory',
             'images',
             'branches',
+            'variantOptions.variant',
         ]);
         $branchId = request()->user()?->branch_id ?? request()->integer('branch_id');
         if ($branchId) {
@@ -54,11 +55,13 @@ class MenuItemController extends Controller
             unset($assignment['branch_id']);
             return [$branchId => $assignment];
         })->all();
+        $variantAssignments = $this->variantAssignments($data['variant_option_assignments'] ?? []);
         $this->ensureCategoryAssignedToBranches($data['menu_category_id'], array_keys($assignments));
-        unset($data['branch_assignments']);
+        unset($data['branch_assignments'], $data['variant_option_assignments']);
         $item = MenuItem::create($data);
         $item->branches()->sync($assignments);
-        $item->load(['menuCategory', 'branches', 'images']);
+        $item->variantOptions()->sync($variantAssignments);
+        $item->load(['menuCategory', 'branches', 'images', 'variantOptions.variant']);
 
         return response()->json([
             'success' => true,
@@ -73,6 +76,7 @@ class MenuItemController extends Controller
             'menuCategory',
             'images',
             'branches',
+            'variantOptions.variant',
 
         ])->find($id);
 
@@ -108,11 +112,13 @@ class MenuItemController extends Controller
             unset($assignment['branch_id']);
             return [$branchId => $assignment];
         })->all();
+        $variantAssignments = $this->variantAssignments($data['variant_option_assignments'] ?? []);
         $this->ensureCategoryAssignedToBranches($data['menu_category_id'], array_keys($assignments));
-        unset($data['branch_assignments']);
+        unset($data['branch_assignments'], $data['variant_option_assignments']);
         $item->update($data);
         $item->branches()->sync($assignments);
-        $item->load(['menuCategory', 'branches', 'images']);
+        $item->variantOptions()->sync($variantAssignments);
+        $item->load(['menuCategory', 'branches', 'images', 'variantOptions.variant']);
 
         return response()->json([
             'success' => true,
@@ -152,5 +158,14 @@ class MenuItemController extends Controller
                 'menu_category_id' => 'The selected category must be active and assigned to every selected branch.',
             ]);
         }
+    }
+
+    private function variantAssignments(array $assignments): array
+    {
+        return collect($assignments)->mapWithKeys(function ($assignment) {
+            $id = $assignment['variant_option_id'];
+            unset($assignment['variant_option_id']);
+            return [$id => $assignment];
+        })->all();
     }
 }

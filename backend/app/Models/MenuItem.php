@@ -45,12 +45,17 @@ class MenuItem extends Model
     {
         return $this->hasMany(MenuItemImage::class);
     }
+    public function variantOptions()
+    {
+        return $this->belongsToMany(VariantOption::class, 'menu_item_variant_options')
+            ->withPivot(['id', 'additional_price', 'is_default', 'is_active', 'display_order']);
+    }
     public function menus()
     {
         return $this->belongsToMany(
             Menu::class,
-            'menu_menu_items'
-        )->withPivot(['id', 'display_order']);
+            'branch_menu_menu_items'
+        )->withPivot(['id', 'branch_id', 'display_order']);
     }
 
     public function branches()

@@ -775,6 +775,8 @@ export const SelectField = ({
   placeholder = "",
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
+  selectAllOption = false,
+  selectAllLabel = "Select all",
   optionImageSize = "medium", // small, medium, large, xlarge
   className = "",
 }) => {
@@ -861,6 +863,7 @@ export const SelectField = ({
   const selectedOptions = multiple
     ? options.filter((opt) => valueArray.includes(opt.value))
     : [];
+  const allOptionsSelected = options.length > 0 && options.every((option) => valueArray.includes(option.value));
 
   // Check if label should float
   const hasValue = multiple ? valueArray.length > 0 : Boolean(value);
@@ -888,6 +891,14 @@ export const SelectField = ({
     e.preventDefault();
     const newValue = valueArray.filter((v) => v !== optionValue);
     onChange({ target: { value: newValue } });
+  };
+
+  const handleSelectAll = () => {
+    onChange({
+      target: {
+        value: allOptionsSelected ? [] : options.map((option) => option.value),
+      },
+    });
   };
 
   const updateDropdownPosition = () => {
@@ -1102,6 +1113,29 @@ export const SelectField = ({
 
                 {/* Options Container */}
                 <div>
+                  {multiple && selectAllOption && options.length > 0 && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={handleSelectAll}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleSelectAll();
+                        }
+                      }}
+                      className={`flex cursor-pointer items-center gap-2.5 border-b border-slate-100 px-3.5 py-2.5 text-sm font-medium transition-colors dark:border-[#1F2226] ${
+                        allOptionsSelected
+                          ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]"
+                          : "text-slate-900 hover:bg-slate-50 dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]"
+                      }`}
+                    >
+                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${allOptionsSelected ? "border-blue-600 bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"}`}>
+                        {allOptionsSelected && <span className="text-[10px] leading-none text-white">✓</span>}
+                      </div>
+                      <span className="flex-1">{selectAllLabel}</span>
+                    </div>
+                  )}
                   {filteredOptions.length === 0 ? (
                     <div className="px-3.5 py-2.5">
                       <div className="text-sm text-gray-400 dark:text-[#62666D]">

@@ -19,12 +19,14 @@ const emptyForm = {
   is_active: true,
   is_available: true,
   branch_assignments: [],
+  variant_option_assignments: [],
 };
 
 export const MenuItems = () => {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [variantGroups, setVariantGroups] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -32,14 +34,16 @@ export const MenuItems = () => {
   const [errors, setErrors] = useState({});
 
   const loadData = async () => {
-    const [itemResponse, categoryResponse, branchResponse] = await Promise.all([
+    const [itemResponse, categoryResponse, branchResponse, variantResponse] = await Promise.all([
       api.get("/menu-items"),
       api.get("/menu-categories"),
       api.get("/branches"),
+      api.get("/variants"),
     ]);
     setItems(itemResponse.data.data);
     setCategories(categoryResponse.data.data.filter((category) => category.is_active));
     setBranches(branchResponse.data.data.data.map((branch) => ({ value: String(branch.id), label: branch.name })));
+    setVariantGroups(variantResponse.data.data.filter((variant) => variant.is_active));
   };
 
   useEffect(() => {
@@ -78,6 +82,13 @@ export const MenuItems = () => {
           is_available: Boolean(branch.pivot.is_available),
           display_order: String(branch.pivot.display_order ?? 0),
         })),
+        variant_option_assignments: (item.variant_options ?? []).map((option) => ({
+          variant_option_id: Number(option.id),
+          additional_price: String(option.pivot?.additional_price ?? 0),
+          is_default: Boolean(option.pivot?.is_default),
+          is_active: Boolean(option.pivot?.is_active),
+          display_order: String(option.pivot?.display_order ?? 0),
+        })),
       });
       setErrors({});
       setIsOpen(true);
@@ -110,6 +121,20 @@ export const MenuItems = () => {
     }));
   };
 
+  const toggleVariantOption = (option, checked) => {
+    setForm((current) => ({
+      ...current,
+      variant_option_assignments: checked
+        ? [...current.variant_option_assignments, { variant_option_id: option.id, additional_price: String(option.default_additional_price ?? 0), is_default: false, is_active: true, display_order: String(option.display_order ?? 0) }]
+        : current.variant_option_assignments.filter((assignment) => assignment.variant_option_id !== option.id),
+    }));
+  };
+
+  const updateVariantAssignment = (id, field, value) => setForm((current) => ({
+    ...current,
+    variant_option_assignments: current.variant_option_assignments.map((assignment) => assignment.variant_option_id === id ? { ...assignment, [field]: value } : assignment),
+  }));
+
   const save = async () => {
     const nextErrors = {};
     if (!form.name.trim()) nextErrors.name = "Name is required.";
@@ -135,6 +160,12 @@ export const MenuItems = () => {
         ...assignment,
         branch_id: Number(assignment.branch_id),
         selling_price: assignment.selling_price === "" ? null : Number(assignment.selling_price),
+        display_order: Number(assignment.display_order || 0),
+      })),
+      variant_option_assignments: form.variant_option_assignments.map((assignment) => ({
+        ...assignment,
+        variant_option_id: Number(assignment.variant_option_id),
+        additional_price: Number(assignment.additional_price || 0),
         display_order: Number(assignment.display_order || 0),
       })),
     };
@@ -267,6 +298,23 @@ export const MenuItems = () => {
               <CheckboxField label="Available at this branch" checked={assignment.is_available} onChange={(event) => updateBranch(assignment.branch_id, "is_available", event.target.checked)} />
             </div>
           ))}
+          <section className="space-y-3 sm:col-span-2">
+            <h3 className="font-semibold text-slate-900 dark:text-[#F7F8F8]">Variant options</h3>
+            {variantGroups.length === 0 && <p className="text-sm text-slate-500">Create variant groups first.</p>}
+            {variantGroups.map((group) => (
+              <div key={group.id} className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-[#30343A]">
+                <p className="font-medium">{group.name} <span className="text-xs text-slate-500">({group.selection_type}; choose {group.min_select}–{group.max_select})</span></p>
+                {group.options?.map((option) => {
+                  const assignment = form.variant_option_assignments.find((entry) => entry.variant_option_id === option.id);
+                  return <div key={option.id} className="grid items-center gap-2 sm:grid-cols-[1fr_140px_auto]">
+                    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(assignment)} onChange={(event) => toggleVariantOption(option, event.target.checked)} />{option.name}</label>
+                    {assignment && <NumberField label="Item price add-on" min={0} step={0.01} value={assignment.additional_price} onChange={(event) => updateVariantAssignment(option.id, "additional_price", event.target.value)} />}
+                    {assignment && <CheckboxField label="Default" checked={assignment.is_default} onChange={(event) => updateVariantAssignment(option.id, "is_default", event.target.checked)} />}
+                  </div>;
+                })}
+              </div>
+            ))}
+          </section>
         </div>
       </Dialog>
     </div>
