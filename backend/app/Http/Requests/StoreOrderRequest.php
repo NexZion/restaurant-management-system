@@ -16,7 +16,7 @@ class StoreOrderRequest extends FormRequest
 {
     return [
 
-        'branch_id' => 'nullable|exists:branches,id',
+        'branch_id' => 'required|exists:branches,id',
 
         'order_number' => 'nullable|string|max:50',
 
@@ -37,7 +37,9 @@ class StoreOrderRequest extends FormRequest
         'items' => 'required|array',
         'items.*.menu_item_id' => 'required|exists:menu_items,id',
         'items.*.quantity' => 'required|integer|min:1',
-        'items.*.notes' => 'nullable|string|max:500'
+        'items.*.notes' => 'nullable|string|max:500',
+        'items.*.variant_option_ids' => 'sometimes|array',
+        'items.*.variant_option_ids.*' => 'required|integer|distinct|exists:variant_options,id',
     ];
 }
 }

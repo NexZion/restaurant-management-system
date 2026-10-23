@@ -284,6 +284,109 @@ export const ImageUploadField = ({
   );
 };
 
+export const ImageListField = ({
+  label = "Images",
+  value = [],
+  onChange,
+  accept = "image/*",
+  maxImages = 10,
+  disabled = false,
+  error = false,
+  helperText = "",
+  addLabel = "Add images",
+  className = "",
+}) => {
+  const inputRef = useRef(null);
+  const [previewUrls, setPreviewUrls] = useState({});
+
+  useEffect(() => {
+    const createdUrls = [];
+    const previews = {};
+    value.forEach((entry, index) => {
+      const image = entry?.image ?? entry;
+      if (image instanceof Blob) {
+        previews[index] = URL.createObjectURL(image);
+        createdUrls.push(previews[index]);
+      } else if (typeof image === "string") {
+        previews[index] = /^(https?:|blob:|data:)/i.test(image) ? image : storageUrl(image);
+      }
+    });
+    setPreviewUrls(previews);
+    return () => createdUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [value]);
+
+  const addImages = (files) => {
+    const remaining = Math.max(0, maxImages - value.length);
+    const additions = Array.from(files).slice(0, remaining);
+    if (additions.length) onChange?.([...value, ...additions]);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const removeImage = (removeIndex) => {
+    onChange?.(value.filter((_, index) => index !== removeIndex));
+  };
+
+  return (
+    <div className={`flex w-full flex-col gap-2 ${className}`}>
+      <div className="flex items-center justify-between gap-3">
+        {label && <span className={`text-sm font-medium ${error ? "text-red-500" : "text-slate-800 dark:text-[#D0D6E0]"}`}>{label}</span>}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || value.length >= maxImages}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#30343A] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
+        >
+          {addLabel}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple
+          disabled={disabled || value.length >= maxImages}
+          className="hidden"
+          onChange={(event) => addImages(event.target.files ?? [])}
+        />
+      </div>
+
+      {value.length > 0 ? (
+        <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-[#1F2226] dark:border-[#1F2226]">
+          {value.map((entry, index) => {
+            const image = entry?.image ?? entry;
+            const name = image instanceof File ? image.name : (entry?.name || String(image).split("/").pop());
+            return (
+              <li key={`${name}-${index}`} className="flex items-center gap-3 p-2.5">
+                {previewUrls[index] ? (
+                  <img src={previewUrls[index]} alt={entry?.alt_text || name || `Image ${index + 1}`} className="h-12 w-12 rounded-md border border-slate-200 object-cover dark:border-[#30343A]" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-slate-100 text-slate-400 dark:bg-[#1A1C20] dark:text-[#8A8F98]" aria-hidden="true">IMG</div>
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-[#D0D6E0]">{name || `Image ${index + 1}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  disabled={disabled}
+                  aria-label={`Remove ${name || `image ${index + 1}`}`}
+                  className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className={`rounded-lg border border-dashed px-4 py-6 text-center text-sm ${error ? "border-red-400 text-red-500" : "border-slate-300 text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]"}`}>
+          No images added yet.
+        </div>
+      )}
+
+      {helperText && <span className={`text-xs ${error ? "text-red-500" : "text-slate-500 dark:text-[#8A8F98]"}`}>{helperText}</span>}
+      <span className="text-right text-xs text-slate-400 dark:text-[#62666D]">{value.length} / {maxImages}</span>
+    </div>
+  );
+};
+
 // ─── ImageGridUploadField ─────────────────────────────────────────────────────
 // Rectangular (non-round) single-image upload field designed for use inside
 // image grids. Shows a thumbnail preview, hover overlay to change, and a
@@ -672,6 +775,8 @@ export const SelectField = ({
   placeholder = "",
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
+  selectAllOption = false,
+  selectAllLabel = "Select all",
   optionImageSize = "medium", // small, medium, large, xlarge
   className = "",
 }) => {
@@ -758,6 +863,7 @@ export const SelectField = ({
   const selectedOptions = multiple
     ? options.filter((opt) => valueArray.includes(opt.value))
     : [];
+  const allOptionsSelected = options.length > 0 && options.every((option) => valueArray.includes(option.value));
 
   // Check if label should float
   const hasValue = multiple ? valueArray.length > 0 : Boolean(value);
@@ -785,6 +891,14 @@ export const SelectField = ({
     e.preventDefault();
     const newValue = valueArray.filter((v) => v !== optionValue);
     onChange({ target: { value: newValue } });
+  };
+
+  const handleSelectAll = () => {
+    onChange({
+      target: {
+        value: allOptionsSelected ? [] : options.map((option) => option.value),
+      },
+    });
   };
 
   const updateDropdownPosition = () => {
@@ -999,6 +1113,29 @@ export const SelectField = ({
 
                 {/* Options Container */}
                 <div>
+                  {multiple && selectAllOption && options.length > 0 && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={handleSelectAll}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleSelectAll();
+                        }
+                      }}
+                      className={`flex cursor-pointer items-center gap-2.5 border-b border-slate-100 px-3.5 py-2.5 text-sm font-medium transition-colors dark:border-[#1F2226] ${
+                        allOptionsSelected
+                          ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]"
+                          : "text-slate-900 hover:bg-slate-50 dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]"
+                      }`}
+                    >
+                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${allOptionsSelected ? "border-blue-600 bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"}`}>
+                        {allOptionsSelected && <span className="text-[10px] leading-none text-white">✓</span>}
+                      </div>
+                      <span className="flex-1">{selectAllLabel}</span>
+                    </div>
+                  )}
                   {filteredOptions.length === 0 ? (
                     <div className="px-3.5 py-2.5">
                       <div className="text-sm text-gray-400 dark:text-[#62666D]">

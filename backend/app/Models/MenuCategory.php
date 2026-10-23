@@ -13,16 +13,23 @@ class MenuCategory extends Model
     protected $fillable = [
 
         'name',
-
+        'code',
         'description',
-
-        'image',
-
+        'image_path',
         'display_order',
-
-        'status'
+        'is_active',
     ];
 
+    protected $casts = [
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
+    ];
+
+    public function branches()
+    {
+        return $this->belongsToMany(Branch::class, 'branch_menu_categories')
+            ->withPivot(['id', 'is_active', 'display_order']);
+    }
 
     public function menuItems()
     {

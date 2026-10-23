@@ -12,29 +12,47 @@ class Menu extends Model
 
     protected $fillable = [
 
-        'branch_id',
-
+        'code',
+        'menu_type',
+        'availability_type',
+        'start_time',
+        'end_time',
+        'available_days',
+        'start_date',
+        'end_date',
+        'service_types',
         'name',
-
         'description',
-
         'display_order',
-
-        'status'
+        'is_active',
     ];
 
-    public function branch()
+    protected $casts = [
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
+        'available_days' => 'array',
+        'service_types' => 'array',
+        'start_date' => 'date:Y-m-d',
+        'end_date' => 'date:Y-m-d',
+    ];
+
+    public function branches()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsToMany(Branch::class, 'branch_menus')
+            ->withPivot(['id', 'is_active', 'display_order'])
+            ->withTimestamps();
     }
 
     public function menuItems()
     {
         return $this->belongsToMany(
             MenuItem::class,
-            'menu_menu_item'
-        )->withPivot('display_order')
-            ->withTimestamps();
+            'branch_menu_menu_items'
+        )->withPivot(['id', 'branch_id', 'display_order']);
+    }
 
+    public function menuItemsForBranch(int $branchId)
+    {
+        return $this->menuItems()->wherePivot('branch_id', $branchId);
     }
 }

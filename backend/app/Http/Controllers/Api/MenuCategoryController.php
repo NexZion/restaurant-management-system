@@ -14,13 +14,21 @@ class MenuCategoryController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => MenuCategory::all()
+            'data' => MenuCategory::with('branches')->get()
         ]);
     }
 
     public function store(StoreMenuCategoryRequest $request)
     {
-        $category = MenuCategory::create($request->validated());
+        $data = $request->validated();
+        $branchIds = $data['branch_ids'];
+        unset($data['branch_ids']);
+        $category = MenuCategory::create($data);
+        $category->branches()->syncWithPivotValues($branchIds, [
+            'is_active' => $category->is_active,
+            'display_order' => $category->display_order,
+        ]);
+        $category->load('branches');
 
         return response()->json([
             'success' => true,
@@ -31,7 +39,7 @@ class MenuCategoryController extends Controller
 
     public function show($id)
     {
-        $category = MenuCategory::find($id);
+        $category = MenuCategory::with('branches')->find($id);
 
         if (!$category) {
 
@@ -59,7 +67,19 @@ class MenuCategoryController extends Controller
             ], 404);
         }
 
-        $category->update($request->validated());
+        $data = $request->validated();
+        if (array_key_exists('branch_ids', $data) || array_key_exists('is_active', $data) || array_key_exists('display_order', $data)) {
+            $branchIds = $data['branch_ids'] ?? $category->branches()->pluck('branches.id')->all();
+            $category->branches()->syncWithPivotValues($branchIds, [
+                'is_active' => $data['is_active'] ?? $category->is_active,
+                'display_order' => $data['display_order'] ?? $category->display_order,
+            ]);
+        }
+        if (array_key_exists('branch_ids', $data)) {
+            unset($data['branch_ids']);
+        }
+        $category->update($data);
+        $category->load('branches');
 
         return response()->json([
             'success' => true,

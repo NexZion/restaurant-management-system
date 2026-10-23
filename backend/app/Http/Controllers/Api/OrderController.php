@@ -10,6 +10,7 @@ use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\MenuItem;
 use App\Models\OrderItem;
+use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -32,7 +33,40 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         $validated = $request->validated();
-        $orderItems = collect($validated['items'] ?? []);
+        $branchId = (int) $validated['branch_id'];
+        $orderItems = collect($validated['items'] ?? [])->values()->map(function ($itemPayload, $index) use ($branchId) {
+            $menuItem = MenuItem::with(['branches', 'menuCategory.branches', 'menus.branches'])
+                ->find($itemPayload['menu_item_id']);
+            $branchAssignment = $menuItem?->branches->firstWhere('id', $branchId);
+            $categoryBranch = $menuItem?->menuCategory?->branches->firstWhere('id', $branchId);
+            $hasActiveMenu = $menuItem?->menus->contains(function ($menu) use ($branchId) {
+                $menuBranch = $menu->branches->firstWhere('id', $branchId);
+                return $menu->is_active && $menuBranch && $menuBranch->pivot->is_active;
+            });
+
+            if (
+                !$menuItem || !$menuItem->is_active || !$menuItem->is_available || !$branchAssignment
+                || !$branchAssignment->pivot->is_active || !$branchAssignment->pivot->is_available
+                || !$menuItem->menuCategory?->is_active || !$categoryBranch || !$categoryBranch->pivot->is_active
+                || !$hasActiveMenu
+            ) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.menu_item_id" => 'This item is not orderable at the selected branch.',
+                ]);
+            }
+
+            $unitPrice = $branchAssignment->pivot->selling_price ?? $menuItem->base_price;
+            $quantity = (int) $itemPayload['quantity'];
+            return [
+                'menu_item_id' => $menuItem->id,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'discount' => 0,
+                'total_price' => $unitPrice * $quantity,
+                'notes' => $itemPayload['notes'] ?? null,
+                'status' => 'pending',
+            ];
+        });
         $billPayload = $validated['bill'] ?? [];
 
         $order = DB::transaction(function () use ($validated, $orderItems, $billPayload, $request) {
@@ -52,21 +86,11 @@ class OrderController extends Controller
             ]));
 
             foreach ($orderItems as $itemPayload) {
-                $order->items()->create([
-                    'menu_item_id' => $itemPayload['menu_item_id'],
-                    'quantity' => $itemPayload['quantity'],
-                    'unit_price' => $itemPayload['unit_price'],
-                    'discount' => $itemPayload['discount'] ?? 0,
-                    'total_price' => $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']),
-                    'notes' => $itemPayload['notes'] ?? null,
-                    'status' => 'pending',
-                ]);
+                $order->items()->create($itemPayload);
             }
 
             if ($orderItems->isNotEmpty() || !empty($billPayload)) {
-                $subtotal = $orderItems->sum(function ($itemPayload) {
-                    return $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']);
-                });
+                $subtotal = $orderItems->sum('total_price');
 
                 $order->bill()->create([
                     'subtotal' => $billPayload['subtotal'] ?? $subtotal,
@@ -80,38 +104,6 @@ class OrderController extends Controller
 
             return $order;
         });
-
-        foreach ($request->items as $item) {
-            $menuItem = MenuItem::find($item['menu_item_id']);
-
-            if (!$menuItem) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Menu item not found'
-                ], 404);
-            }
-
-            $unitPrice = $menuItem->base_price;
-
-            $quantity = $request->quantity;
-
-            $totalPrice = $unitPrice * $quantity;
-
-            $orderItem = OrderItem::Create([
-
-                'order_id' => $order->id,
-
-                'menu_item_id' => $menuItem->id,
-
-                'quantity' => $quantity,
-
-                'unit_price' => $unitPrice,
-
-                'total_price' => $totalPrice,
-
-                'notes' => $request->notes
-            ]);
-        }
 
         return response()->json([
             'success' => true,
