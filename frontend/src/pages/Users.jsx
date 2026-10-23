@@ -223,7 +223,6 @@ export const Users = () => {
   const passwordRegex =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
-
   const setFieldError = (field, message) => {
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -461,10 +460,10 @@ export const Users = () => {
     return Number.isNaN(date.getTime())
       ? value
       : date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
   };
 
   const getUserImageSrc = (user) => {
@@ -869,14 +868,17 @@ export const Users = () => {
         {viewUser && (
           <ProfileView
             title={viewUser.name}
-            subtitle={viewUser.username ? `@${viewUser.username}` : "No username"}
+            subtitle={
+              viewUser.username ? `@${viewUser.username}` : "No username"
+            }
             avatar={getUserImageSrc(viewUser)}
             avatarAlt={viewUser.name || "User"}
             badges={[
               { value: viewUser.status },
               {
                 label: "Level",
-                value: viewUser.accessLevel || viewUser.role?.access_level || "N/A",
+                value:
+                  viewUser.accessLevel || viewUser.role?.access_level || "N/A",
                 tone: "default",
               },
             ]}

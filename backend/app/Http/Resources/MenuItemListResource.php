@@ -20,6 +20,8 @@ class MenuItemListResource extends JsonResource
             : null;
         $imagePath = $this->images->firstWhere('is_primary', true)?->image_path
             ?? $this->images->first()?->image_path;
+        $isAvailable = (bool) $this->is_active && (bool) $this->is_available
+            && (!$branchId || ($branch && (bool) $branch->pivot->is_active && (bool) $branch->pivot->is_available));
 
         return [
             'id' => $this->id,
@@ -35,9 +37,8 @@ class MenuItemListResource extends JsonResource
             'preparation_time' => $this->preparation_time,
             'is_active' => $this->is_active,
             'is_available' => $this->is_available,
-            'available' => (bool) $this->is_active && (bool) $this->is_available
-                && (!$branch || ((bool) $branch->pivot->is_active && (bool) $branch->pivot->is_available)),
-            'status' => !$this->is_active ? 'inactive' : ($this->is_available ? 'available' : 'unavailable'),
+            'available' => $isAvailable,
+            'status' => !$this->is_active ? 'inactive' : ($isAvailable ? 'available' : 'unavailable'),
             'display_order' => $this->display_order,
             'image_path' => $imagePath,
             'image' => $imagePath,

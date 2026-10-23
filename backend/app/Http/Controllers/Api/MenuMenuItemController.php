@@ -36,50 +36,67 @@ class MenuMenuItemController extends Controller
         $data = $request->validate([
             'menu_item_ids' => ['present', 'array'],
             'menu_item_ids.*' => ['required', 'integer', 'distinct', 'exists:menu_items,id'],
+            'all_branches' => ['sometimes', 'boolean'],
         ]);
         $itemIds = collect($data['menu_item_ids'])->map(fn ($id) => (int) $id)->values();
-        $existingIds = $menu->menuItemsForBranch($branchId)->pluck('menu_items.id')->map(fn ($id) => (int) $id);
-        $availableIds = $this->availableItems($branchId)->pluck('menu_items.id')->map(fn ($id) => (int) $id);
-        $allowedIds = $availableIds->merge($existingIds)->unique();
+        $targetBranchIds = !empty($data['all_branches'])
+            ? $menu->branches()->pluck('branches.id')->map(fn ($id) => (int) $id)->all()
+            : [$branchId];
 
-        if ($itemIds->diff($allowedIds)->isNotEmpty()) {
+        if (!$targetBranchIds) {
             throw ValidationException::withMessages([
-                'menu_item_ids' => 'Every assigned item must be active and available at your branch.',
+                'all_branches' => 'Assign this menu to at least one branch before applying its items to all branches.',
             ]);
         }
 
-        DB::transaction(function () use ($menu, $branchId, $itemIds) {
-            if ($itemIds->isNotEmpty()) {
-                $branchMenuExists = DB::table('branch_menus')
-                    ->where('menu_id', $menu->id)
-                    ->where('branch_id', $branchId)
-                    ->exists();
-                if (!$branchMenuExists) {
-                    DB::table('branch_menus')->insert([
-                        'menu_id' => $menu->id,
-                        'branch_id' => $branchId,
-                        'is_active' => false,
-                        'display_order' => $menu->display_order,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
+        foreach ($targetBranchIds as $targetBranchId) {
+            $existingIds = $menu->menuItemsForBranch($targetBranchId)->pluck('menu_items.id')->map(fn ($id) => (int) $id);
+            $availableIds = $this->availableItems($targetBranchId)->pluck('menu_items.id')->map(fn ($id) => (int) $id);
+            $allowedIds = $availableIds->merge($existingIds)->unique();
+
+            if ($itemIds->diff($allowedIds)->isNotEmpty()) {
+                throw ValidationException::withMessages([
+                    'menu_item_ids' => !empty($data['all_branches'])
+                        ? 'Every selected item must be active and available at all branches assigned to this menu.'
+                        : 'Every assigned item must be active and available at your branch.',
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($menu, $targetBranchIds, $itemIds) {
+            foreach ($targetBranchIds as $targetBranchId) {
+                if ($itemIds->isNotEmpty()) {
+                    $branchMenuExists = DB::table('branch_menus')
+                        ->where('menu_id', $menu->id)
+                        ->where('branch_id', $targetBranchId)
+                        ->exists();
+                    if (!$branchMenuExists) {
+                        DB::table('branch_menus')->insert([
+                            'menu_id' => $menu->id,
+                            'branch_id' => $targetBranchId,
+                            'is_active' => false,
+                            'display_order' => $menu->display_order,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
                 }
-            }
 
-            $query = DB::table('branch_menu_menu_items')
-                ->where('menu_id', $menu->id)
-                ->where('branch_id', $branchId);
-            if ($itemIds->isEmpty()) {
-                $query->delete();
-                return;
-            }
+                $query = DB::table('branch_menu_menu_items')
+                    ->where('menu_id', $menu->id)
+                    ->where('branch_id', $targetBranchId);
+                if ($itemIds->isEmpty()) {
+                    $query->delete();
+                    continue;
+                }
 
-            $query->whereNotIn('menu_item_id', $itemIds->all())->delete();
-            foreach ($itemIds as $position => $itemId) {
-                DB::table('branch_menu_menu_items')->updateOrInsert(
-                    ['menu_id' => $menu->id, 'branch_id' => $branchId, 'menu_item_id' => $itemId],
-                    ['display_order' => $position],
-                );
+                $query->whereNotIn('menu_item_id', $itemIds->all())->delete();
+                foreach ($itemIds as $position => $itemId) {
+                    DB::table('branch_menu_menu_items')->updateOrInsert(
+                        ['menu_id' => $menu->id, 'branch_id' => $targetBranchId, 'menu_item_id' => $itemId],
+                        ['display_order' => $position],
+                    );
+                }
             }
         });
 
@@ -140,9 +157,7 @@ class MenuMenuItemController extends Controller
             ->whereHas('branches', fn ($query) => $query->where('branches.id', $branchId)
                 ->where('branch_menu_items.is_active', true)
                 ->where('branch_menu_items.is_available', true))
-            ->whereHas('menuCategory', fn ($query) => $query->where('is_active', true)
-                ->whereHas('branches', fn ($branchQuery) => $branchQuery->where('branches.id', $branchId)
-                    ->where('branch_menu_categories.is_active', true)))
+            ->whereHas('menuCategory', fn ($query) => $query->where('is_active', true))
             ->orderBy('name');
     }
 

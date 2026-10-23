@@ -58,12 +58,6 @@ class Branch extends Model
             ->withTimestamps();
     }
 
-    public function menuCategories()
-    {
-        return $this->belongsToMany(MenuCategory::class, 'branch_menu_categories')
-            ->withPivot(['id', 'is_active', 'display_order']);
-    }
-
     public function menuItems()
     {
         return $this->belongsToMany(MenuItem::class, 'branch_menu_items')

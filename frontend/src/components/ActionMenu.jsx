@@ -7,12 +7,16 @@ export const ActionMenu = ({
   label = "Actions",
   className = "",
   menuClassName = "",
-  menuWidth = 144,
+  menuWidth = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
+  const contentWidth = menuWidth ?? Math.max(
+    144,
+    ...items.map((item) => String(item.label ?? "").length * 7 + 24),
+  );
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -30,14 +34,16 @@ export const ActionMenu = ({
       const viewportHeight = window.innerHeight;
       const maxHeight = Math.max(0, viewportHeight - 16);
       const menuHeight = Math.min(items.length * 28 + 10, maxHeight);
-      const maxLeft = Math.max(8, window.innerWidth - menuWidth - 8);
-      const left = Math.min(maxLeft, Math.max(8, rect.right - menuWidth));
+      const availableWidth = Math.max(0, window.innerWidth - 16);
+      const width = Math.min(contentWidth, availableWidth);
+      const maxLeft = Math.max(8, window.innerWidth - width - 8);
+      const left = Math.min(maxLeft, Math.max(8, rect.right - width));
       const belowTop = rect.bottom + 4;
       const top = belowTop + menuHeight <= viewportHeight - 8
         ? belowTop
         : Math.max(8, Math.min(rect.top - menuHeight - 4, viewportHeight - menuHeight - 8));
 
-      setMenuPosition({ top, left, maxHeight });
+      setMenuPosition({ top, left, width, maxHeight });
     };
 
     const closeOnOutsideClick = (event) => {
@@ -61,7 +67,7 @@ export const ActionMenu = ({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, items.length, menuWidth]);
+  }, [isOpen, items, contentWidth]);
 
   return (
     <div
@@ -92,10 +98,10 @@ export const ActionMenu = ({
             position: "fixed",
             top: menuPosition.top,
             left: menuPosition.left,
-            width: menuWidth,
+            width: menuPosition.width,
             maxHeight: menuPosition.maxHeight,
           }}
-          className={`z-[9999] flex flex-col overflow-y-auto overflow-x-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-[#1F2226] dark:bg-[#121314] ${menuClassName}`}
+          className={`z-[9999] flex flex-col overflow-y-auto overflow-x-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-[#1F2226] dark:bg-[#121314] ${menuClassName}`}
         >
           {items.map((item, index) => (
             <button
@@ -107,7 +113,7 @@ export const ActionMenu = ({
                 closeMenu();
                 item.onClick?.();
               }}
-              className={`block w-full shrink-0 px-3 py-1.5 text-left text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`block w-full shrink-0 whitespace-nowrap px-3 py-1.5 text-left text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                 item.variant === "danger"
                   ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                   : "text-slate-700 hover:bg-slate-50 dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"

@@ -20,12 +20,10 @@ class StoreMenuCategoryRequest extends FormRequest
 
             'code' => 'required|string|max:50|unique:menu_categories,code',
 
-            'branch_ids' => 'required|array|min:1',
-            'branch_ids.*' => 'required|integer|distinct|exists:branches,id',
-
             'description' => 'nullable|string',
 
             'image_path' => 'nullable|string|max:500',
+            'image_file' => 'nullable|image|max:5120',
 
             'display_order' => 'nullable|integer|min:0',
 

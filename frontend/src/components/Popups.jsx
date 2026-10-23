@@ -202,6 +202,7 @@ export const Dialog = ({
   showSecondaryButton = true,
   primaryButtonDisabled = false,
   secondaryButtonDisabled = false,
+  zIndex = 50,
   className = '',
 }) => {
   const [visible, setVisible] = useState(false)
@@ -260,11 +261,12 @@ export const Dialog = ({
           fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm transition-opacity duration-300 dark:bg-[#090A0B]/75
           ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}
+        style={{ zIndex }}
         onClick={handleClose}
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 pointer-events-none" style={{ zIndex }}>
         <div
           className={`
             ${sizeClasses[size]} w-full rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/20 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/50
