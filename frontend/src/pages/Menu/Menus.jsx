@@ -69,6 +69,7 @@ export const Menus = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [Menus, setMenus] = useState([]);
+  const [isMenusLoading, setIsMenusLoading] = useState(false);
   const [menuToDelete, setMenuToDelete] = useState(null);
   const [isDeletingMenu, setIsDeletingMenu] = useState(false);
   const [editingMenus, setEditingMenus] = useState(null);
@@ -77,6 +78,8 @@ export const Menus = () => {
   const [viewMenus, setViewMenus] = useState(null);
   const [assignMenu, setAssignMenu] = useState(null);
   const [showAssignItems, setShowAssignItems] = useState(false);
+  const [assignItemsToAllBranches, setAssignItemsToAllBranches] =
+    useState(false);
   const [assignmentOptions, setAssignmentOptions] = useState([]);
   const [assignedItemIds, setAssignedItemIds] = useState([]);
   const [showAssignBranches, setShowAssignBranches] = useState(false);
@@ -102,6 +105,7 @@ export const Menus = () => {
   };
 
   const fetchMenus = async () => {
+    setIsMenusLoading(true);
     try {
       const response = await api.get("/menus");
       console.log("Fetched menus:", response);
@@ -112,12 +116,20 @@ export const Menus = () => {
         branches: menus.branches || [],
         branch_availability: menus.branch_availability,
         availability_label: (
-          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${menus.branch_availability === true
-            ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30"
-            : menus.branch_availability === false
-              ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30"
-              : "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30"}`}>
-            {menus.branch_availability === true ? "Available" : menus.branch_availability === false ? "Unavailable" : "Not assigned"}
+          <span
+            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${
+              menus.branch_availability === true
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30"
+                : menus.branch_availability === false
+                  ? "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-500/30"
+                  : "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30"
+            }`}
+          >
+            {menus.branch_availability === true
+              ? "Available"
+              : menus.branch_availability === false
+                ? "Unavailable"
+                : "Not assigned"}
           </span>
         ),
         menu_item_count: menus.branch_menu_item_count ?? 0,
@@ -150,11 +162,16 @@ export const Menus = () => {
       menuData.sort((a, b) => {
         const availabilityOrder = (value) =>
           value === true ? 0 : value === false ? 1 : 2;
-        return availabilityOrder(a.branch_availability) - availabilityOrder(b.branch_availability);
+        return (
+          availabilityOrder(a.branch_availability) -
+          availabilityOrder(b.branch_availability)
+        );
       });
       setMenus(menuData);
     } catch (error) {
       console.error("Error fetching menus:", error);
+    } finally {
+      setIsMenusLoading(false);
     }
   };
 
@@ -164,6 +181,7 @@ export const Menus = () => {
 
   const openAssignItems = async (menu) => {
     setAssignMenu(menu);
+    setAssignItemsToAllBranches(false);
     setAssignedItemIds([]);
     setAssignmentOptions([]);
     setAssignmentError("");
@@ -173,12 +191,30 @@ export const Menus = () => {
       const { data } = await api.get(`/menus/${menu.id}/items`);
       const availableItems = data.available_items ?? [];
       const assignedItems = data.assigned_items ?? [];
-      const optionItems = [...availableItems, ...assignedItems.filter((item) => !availableItems.some((available) => available.id === item.id))];
-      setAssignMenu({ ...menu, details: data.menu, branch_name: data.branch_name });
-      setAssignmentOptions(optionItems.map((item) => ({ value: String(item.id), label: item.name, image: item.image_path || item.image })));
+      const optionItems = [
+        ...availableItems,
+        ...assignedItems.filter(
+          (item) =>
+            !availableItems.some((available) => available.id === item.id),
+        ),
+      ];
+      setAssignMenu({
+        ...menu,
+        details: data.menu,
+        branch_name: data.branch_name,
+      });
+      setAssignmentOptions(
+        optionItems.map((item) => ({
+          value: String(item.id),
+          label: item.name,
+          image: item.image_path || item.image,
+        })),
+      );
       setAssignedItemIds(assignedItems.map((item) => String(item.id)));
     } catch (error) {
-      setAssignmentError(error.response?.data?.message || "Could not load branch menu items.");
+      setAssignmentError(
+        error.response?.data?.message || "Could not load branch menu items.",
+      );
     } finally {
       setIsLoadingAssignments(false);
     }
@@ -189,12 +225,19 @@ export const Menus = () => {
     setIsSavingAssignments(true);
     setAssignmentError("");
     try {
-      await api.put(`/menus/${assignMenu.id}/items`, { menu_item_ids: assignedItemIds.map(Number) });
+      await api.put(`/menus/${assignMenu.id}/items`, {
+        menu_item_ids: assignedItemIds.map(Number),
+        all_branches: assignItemsToAllBranches,
+      });
       setShowAssignItems(false);
       setAssignMenu(null);
       await fetchMenus();
     } catch (error) {
-      setAssignmentError(Object.values(error.response?.data?.errors ?? {}).flat()[0] || error.response?.data?.message || "Could not save menu item assignments.");
+      setAssignmentError(
+        Object.values(error.response?.data?.errors ?? {}).flat()[0] ||
+          error.response?.data?.message ||
+          "Could not save menu item assignments.",
+      );
     } finally {
       setIsSavingAssignments(false);
     }
@@ -216,13 +259,19 @@ export const Menus = () => {
       const branches = branchResponse.data.data.data ?? [];
       const currentMenu = menuResponse.data.data;
       setBranchAssignMenu({ ...menu, details: currentMenu });
-      setBranchOptions(branches.map((branch) => ({
-        value: String(branch.id),
-        label: branch.name,
-      })));
-      setAssignedBranchIds((currentMenu.branches ?? []).map((branch) => String(branch.id)));
+      setBranchOptions(
+        branches.map((branch) => ({
+          value: String(branch.id),
+          label: branch.name,
+        })),
+      );
+      setAssignedBranchIds(
+        (currentMenu.branches ?? []).map((branch) => String(branch.id)),
+      );
     } catch (error) {
-      setBranchAssignmentError(error.response?.data?.message || "Could not load branches.");
+      setBranchAssignmentError(
+        error.response?.data?.message || "Could not load branches.",
+      );
     } finally {
       setIsLoadingBranches(false);
     }
@@ -241,7 +290,11 @@ export const Menus = () => {
       setBranchAssignMenu(null);
       await fetchMenus();
     } catch (error) {
-      setBranchAssignmentError(Object.values(error.response?.data?.errors ?? {}).flat()[0] || error.response?.data?.message || "Could not save branch assignments.");
+      setBranchAssignmentError(
+        Object.values(error.response?.data?.errors ?? {}).flat()[0] ||
+          error.response?.data?.message ||
+          "Could not save branch assignments.",
+      );
     } finally {
       setIsSavingBranches(false);
     }
@@ -448,8 +501,9 @@ export const Menus = () => {
 
   const DetailItem = ({ label, value, wide = false }) => (
     <div
-      className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${wide ? "sm:col-span-2" : ""
-        }`}
+      className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
+        wide ? "sm:col-span-2" : ""
+      }`}
     >
       <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
         {label}
@@ -607,7 +661,10 @@ export const Menus = () => {
                   value={formData.available_days}
                   options={availableDayOptions}
                   onChange={(e) => {
-                    setFormData({ ...formData, available_days: e.target.value });
+                    setFormData({
+                      ...formData,
+                      available_days: e.target.value,
+                    });
                     setFieldError("available_days", "");
                   }}
                   error={!!fieldErrors.available_days}
@@ -656,7 +713,10 @@ export const Menus = () => {
               value={formData.is_active ? "active" : "inactive"}
               options={menuStatusOptions}
               onChange={(e) =>
-                setFormData({ ...formData, is_active: e.target.value === "active" })
+                setFormData({
+                  ...formData,
+                  is_active: e.target.value === "active",
+                })
               }
             />
             <TextAreaField
@@ -683,22 +743,42 @@ export const Menus = () => {
           searchable={true}
           filterable={false}
           pagination={true}
-          actions={(row) => [{
-            label: "Menu actions",
-            render: () => <ActionMenu
-              label={`Actions for ${row.name}`}
-              menuWidth={176}
-              menuClassName="whitespace-nowrap"
-              items={[
-                { label: "Edit menu", onClick: () => handleEditMenus(row) },
-                { label: "View menu", onClick: () => handleViewMenus(row) },
-                { label: "Assign items", onClick: () => openAssignItems(row) },
-                { label: "Assign branches", onClick: () => openAssignBranches(row) },
-                { label: row.branch_availability === true ? "Set unavailable" : "Set available", onClick: () => updateAvailability(row) },
-                { label: "Delete menu", variant: "danger", onClick: () => handleDeleteMenus(row) },
-              ]}
-            />,
-          }]}
+          loading={isMenusLoading}
+          actions={(row) => [
+            {
+              label: "Menu actions",
+              render: () => (
+                <ActionMenu
+                  label={`Actions for ${row.name}`}
+                  menuClassName="whitespace-nowrap"
+                  items={[
+                    { label: "Edit menu", onClick: () => handleEditMenus(row) },
+                    { label: "View menu", onClick: () => handleViewMenus(row) },
+                    {
+                      label: "Assign items",
+                      onClick: () => openAssignItems(row),
+                    },
+                    {
+                      label: "Assign branches",
+                      onClick: () => openAssignBranches(row),
+                    },
+                    {
+                      label:
+                        row.branch_availability === true
+                          ? "Set unavailable"
+                          : "Set available",
+                      onClick: () => updateAvailability(row),
+                    },
+                    {
+                      label: "Delete menu",
+                      variant: "danger",
+                      onClick: () => handleDeleteMenus(row),
+                    },
+                  ]}
+                />
+              ),
+            },
+          ]}
         />
       </div>
 
@@ -715,7 +795,11 @@ export const Menus = () => {
         onSecondaryButtonClick={() => setMenuToDelete(null)}
       >
         <p className="text-sm text-slate-600 dark:text-[#A0A6B0]">
-          Are you sure you want to delete <span className="font-semibold text-slate-900 dark:text-[#F7F8F8]">{menuToDelete?.name}</span>? This action cannot be undone.
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-slate-900 dark:text-[#F7F8F8]">
+            {menuToDelete?.name}
+          </span>
+          ? This action cannot be undone.
         </p>
       </Dialog>
 
@@ -734,11 +818,19 @@ export const Menus = () => {
         {branchAssignMenu && (
           <div className="space-y-4">
             <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#30343A] dark:bg-[#161719] sm:grid-cols-2">
-              <DetailItem label="Menu" value={branchAssignMenu.details?.name || branchAssignMenu.name} />
-              <DetailItem label="Code" value={branchAssignMenu.details?.code || branchAssignMenu.code} />
+              <DetailItem
+                label="Menu"
+                value={branchAssignMenu.details?.name || branchAssignMenu.name}
+              />
+              <DetailItem
+                label="Code"
+                value={branchAssignMenu.details?.code || branchAssignMenu.code}
+              />
             </div>
             {isLoadingBranches ? (
-              <p className="py-8 text-center text-sm text-slate-500">Loading branches...</p>
+              <p className="py-8 text-center text-sm text-slate-500">
+                Loading branches...
+              </p>
             ) : (
               <ImageSelectListField
                 label="Branches assigned to this menu"
@@ -750,7 +842,14 @@ export const Menus = () => {
                 emptyMessage="No branches are assigned to this menu."
               />
             )}
-            {branchAssignmentError && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{branchAssignmentError}</p>}
+            {branchAssignmentError && (
+              <p
+                role="alert"
+                className="text-sm text-rose-600 dark:text-rose-400"
+              >
+                {branchAssignmentError}
+              </p>
+            )}
           </div>
         )}
       </Dialog>
@@ -770,23 +869,64 @@ export const Menus = () => {
         {assignMenu && (
           <div className="space-y-4">
             <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-[#30343A] dark:bg-[#161719] sm:grid-cols-3">
-              <DetailItem label="Menu" value={assignMenu.details?.name || assignMenu.name} />
-              <DetailItem label="Code" value={assignMenu.details?.code || assignMenu.code} />
-              <DetailItem label="Branch" value={assignMenu.branch_name || "Logged-in branch"} />
+              <DetailItem
+                label="Menu"
+                value={assignMenu.details?.name || assignMenu.name}
+              />
+              <DetailItem
+                label="Code"
+                value={assignMenu.details?.code || assignMenu.code}
+              />
+              <DetailItem
+                label="Branch"
+                value={assignMenu.branch_name || "Logged-in branch"}
+              />
             </div>
             {isLoadingAssignments ? (
-              <p className="py-8 text-center text-sm text-slate-500">Loading branch menu items...</p>
+              <p className="py-8 text-center text-sm text-slate-500">
+                Loading branch menu items...
+              </p>
             ) : (
-              <ImageSelectListField
-                label="Items assigned to this menu at this branch"
-                options={assignmentOptions}
-                value={assignedItemIds}
-                onChange={setAssignedItemIds}
-                addLabel="Add item"
-                emptyMessage="No items are assigned to this menu at this branch."
-              />
+              <>
+                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3.5 dark:border-[#30343A] dark:bg-[#161719]">
+                  <input
+                    type="checkbox"
+                    checked={assignItemsToAllBranches}
+                    onChange={(event) =>
+                      setAssignItemsToAllBranches(event.target.checked)
+                    }
+                    disabled={isSavingAssignments}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-[#454A52] dark:bg-[#121314]"
+                  />
+                  <span>
+                    <span className="block text-sm font-semibold text-slate-800 dark:text-[#D0D6E0]">
+                      Apply these items to all assigned branches
+                    </span>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-[#8A8F98]">
+                      When enabled, saving replaces the item list for every
+                      branch assigned to this menu. Selected items must be
+                      available at each branch.
+                    </span>
+                  </span>
+                </label>
+                <ImageSelectListField
+                  label="Items assigned to this menu at this branch"
+                  options={assignmentOptions}
+                  value={assignedItemIds}
+                  onChange={setAssignedItemIds}
+                  addLabel="Add item"
+                  emptyMessage="No items are assigned to this menu at this branch."
+                />
+              </>
             )}
-            {assignmentError && <p role="alert" className="text-sm text-rose-600 dark:text-rose-400">{assignmentError}</p>}
+            {assignmentError && (
+              <p
+                role="alert"
+                className="text-sm text-rose-600 dark:text-rose-400"
+              >
+                {assignmentError}
+              </p>
+            )}
           </div>
         )}
       </Dialog>
@@ -803,98 +943,209 @@ export const Menus = () => {
             <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 dark:border-[#1F2226] dark:from-[#161719] dark:to-[#121314]">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-[#8A8F98]">{viewMenus.code || "Menu"}</p>
-                  <h3 className="mt-1 text-2xl font-semibold text-gray-950 dark:text-[#F7F8F8]">{viewMenus.name || "Untitled menu"}</h3>
-                  <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">{formatChoice(menuTypeOptions, viewMenus.menu_type)} menu</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-[#8A8F98]">
+                    {viewMenus.code || "Menu"}
+                  </p>
+                  <h3 className="mt-1 text-2xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
+                    {viewMenus.name || "Untitled menu"}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
+                    {formatChoice(menuTypeOptions, viewMenus.menu_type)} menu
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${viewMenus.is_active ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30" : "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30"}`}>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ${viewMenus.is_active ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30" : "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-500/30"}`}
+                  >
                     {viewMenus.is_active ? "Active" : "Inactive"}
                   </span>
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30">
-                    {(viewMenus.menu_items || viewMenus.menuItems || []).length} items here
+                    {(viewMenus.menu_items || viewMenus.menuItems || []).length}{" "}
+                    items here
                   </span>
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button size="small" variant="secondary" onClick={() => { setShowViewMenus(false); openAssignItems({ id: viewMenus.id, name: viewMenus.name, code: viewMenus.code }); }}>Manage items</Button>
-                <Button size="small" variant="secondary" onClick={() => { setShowViewMenus(false); openAssignBranches({ id: viewMenus.id, name: viewMenus.name, code: viewMenus.code }); }}>Manage branches</Button>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowViewMenus(false);
+                    openAssignItems({
+                      id: viewMenus.id,
+                      name: viewMenus.name,
+                      code: viewMenus.code,
+                    });
+                  }}
+                >
+                  Manage items
+                </Button>
+                <Button
+                  size="small"
+                  variant="secondary"
+                  onClick={() => {
+                    setShowViewMenus(false);
+                    openAssignBranches({
+                      id: viewMenus.id,
+                      name: viewMenus.name,
+                      code: viewMenus.code,
+                    });
+                  }}
+                >
+                  Manage branches
+                </Button>
               </div>
             </div>
 
             <section className="rounded-xl border border-slate-200 p-4 dark:border-[#1F2226]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">Assigned branches</h4>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8A8F98]">Availability is managed separately for each branch.</p>
+                  <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                    Assigned branches
+                  </h4>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8A8F98]">
+                    Availability is managed separately for each branch.
+                  </p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#A0A6B0]">{(viewMenus.branches || []).length}</span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#A0A6B0]">
+                  {(viewMenus.branches || []).length}
+                </span>
               </div>
               {(viewMenus.branches || []).length ? (
                 <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {viewMenus.branches.map((branch) => (
-                    <li key={branch.id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#30343A] dark:bg-[#161719]">
-                      <span className="min-w-0 truncate text-sm font-medium text-slate-800 dark:text-[#D0D6E0]">{branch.name}</span>
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${branch.pivot?.is_active ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"}`}>
+                    <li
+                      key={branch.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#30343A] dark:bg-[#161719]"
+                    >
+                      <span className="min-w-0 truncate text-sm font-medium text-slate-800 dark:text-[#D0D6E0]">
+                        {branch.name}
+                      </span>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${branch.pivot?.is_active ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" : "bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"}`}
+                      >
                         {branch.pivot?.is_active ? "Available" : "Unavailable"}
                       </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]">No branches assigned yet.</p>
+                <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]">
+                  No branches assigned yet.
+                </p>
               )}
             </section>
 
             <section className="rounded-xl border border-slate-200 p-4 dark:border-[#1F2226]">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">Menu items</h4>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8A8F98]">Items assigned at the logged-in branch.</p>
+                  <h4 className="text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                    Menu items
+                  </h4>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-[#8A8F98]">
+                    Items assigned at the logged-in branch.
+                  </p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#A0A6B0]">{(viewMenus.menu_items || viewMenus.menuItems || []).length}</span>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#A0A6B0]">
+                  {(viewMenus.menu_items || viewMenus.menuItems || []).length}
+                </span>
               </div>
               {(viewMenus.menu_items || viewMenus.menuItems || []).length ? (
                 <ul className="grid gap-3 sm:grid-cols-2">
-                  {(viewMenus.menu_items || viewMenus.menuItems || []).map((item) => {
-                    const primaryImage = item.images?.find((image) => image.is_primary) || item.images?.[0];
-                    const imageUrl = resolveMenuImage(primaryImage?.image_path || item.image_path);
-                    return (
-                      <li key={item.id} className="group flex min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-blue-300 hover:shadow-md dark:border-[#30343A] dark:bg-[#161719] dark:hover:border-[#5E6AD2]">
-                        <div className="h-28 w-28 shrink-0 overflow-hidden bg-slate-100 dark:bg-[#1A1C20]">
-                          {imageUrl ? (
-                            <img src={imageUrl} alt={primaryImage?.alt_text || item.name} className="h-full w-full object-cover transition duration-200 group-hover:scale-105" loading="lazy" />
-                          ) : (
-                            <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">No image</div>
-                          )}
-                        </div>
-                        <div className="flex min-w-0 flex-1 flex-col justify-center p-3">
-                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">{item.name}</p>
-                          <p className="mt-1 truncate text-xs text-slate-500 dark:text-[#8A8F98]">{item.sku || "Menu item"}</p>
-                          <p className="mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300">Rs. {Number(item.base_price || 0).toFixed(2)}</p>
-                        </div>
-                      </li>
-                    );
-                  })}
+                  {(viewMenus.menu_items || viewMenus.menuItems || []).map(
+                    (item) => {
+                      const primaryImage =
+                        item.images?.find((image) => image.is_primary) ||
+                        item.images?.[0];
+                      const imageUrl = resolveMenuImage(
+                        primaryImage?.image_path || item.image_path,
+                      );
+                      return (
+                        <li
+                          key={item.id}
+                          className="group flex min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:border-blue-300 hover:shadow-md dark:border-[#30343A] dark:bg-[#161719] dark:hover:border-[#5E6AD2]"
+                        >
+                          <div className="h-28 w-28 shrink-0 overflow-hidden bg-slate-100 dark:bg-[#1A1C20]">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={primaryImage?.alt_text || item.name}
+                                className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center px-2 text-center text-xs text-slate-400">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex min-w-0 flex-1 flex-col justify-center p-3">
+                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                              {item.name}
+                            </p>
+                            <p className="mt-1 truncate text-xs text-slate-500 dark:text-[#8A8F98]">
+                              {item.sku || "Menu item"}
+                            </p>
+                            <p className="mt-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                              Rs. {Number(item.base_price || 0).toFixed(2)}
+                            </p>
+                          </div>
+                        </li>
+                      );
+                    },
+                  )}
                 </ul>
               ) : (
-                <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]">No items assigned at the logged-in branch.</p>
+                <p className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]">
+                  No items assigned at the logged-in branch.
+                </p>
               )}
             </section>
 
             <section className="rounded-xl border border-slate-200 p-4 dark:border-[#1F2226]">
-              <h4 className="mb-3 text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">Menu details</h4>
+              <h4 className="mb-3 text-sm font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                Menu details
+              </h4>
               <div className="grid gap-2.5 sm:grid-cols-2">
-                <DetailItem label="Availability type" value={formatChoice(availabilityTypeOptions, viewMenus.availability_type)} />
-                <DetailItem label="Service types" value={(viewMenus.service_types || []).map((type) => formatChoice(serviceTypeOptions, type)).join(", ")} />
-                {viewMenus.availability_type === "scheduled" && <>
-                  <DetailItem label="Start time" value={viewMenus.start_time?.slice(0, 5)} />
-                  <DetailItem label="End time" value={viewMenus.end_time?.slice(0, 5)} />
-                  <DetailItem label="Available days" value={(viewMenus.available_days || []).map((day) => formatChoice(availableDayOptions, day)).join(", ")} wide />
-                </>}
+                <DetailItem
+                  label="Availability type"
+                  value={formatChoice(
+                    availabilityTypeOptions,
+                    viewMenus.availability_type,
+                  )}
+                />
+                <DetailItem
+                  label="Service types"
+                  value={(viewMenus.service_types || [])
+                    .map((type) => formatChoice(serviceTypeOptions, type))
+                    .join(", ")}
+                />
+                {viewMenus.availability_type === "scheduled" && (
+                  <>
+                    <DetailItem
+                      label="Start time"
+                      value={viewMenus.start_time?.slice(0, 5)}
+                    />
+                    <DetailItem
+                      label="End time"
+                      value={viewMenus.end_time?.slice(0, 5)}
+                    />
+                    <DetailItem
+                      label="Available days"
+                      value={(viewMenus.available_days || [])
+                        .map((day) => formatChoice(availableDayOptions, day))
+                        .join(", ")}
+                      wide
+                    />
+                  </>
+                )}
                 <DetailItem label="Start date" value={viewMenus.start_date} />
                 <DetailItem label="End date" value={viewMenus.end_date} />
-                <DetailItem label="Description" value={viewMenus.description} wide />
+                <DetailItem
+                  label="Description"
+                  value={viewMenus.description}
+                  wide
+                />
               </div>
             </section>
           </div>

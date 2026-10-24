@@ -11,10 +11,7 @@ class MenuItemSeeder extends Seeder
     public function run(): void
     {
         MenuItem::factory(30)->create()->each(function (MenuItem $item): void {
-            $branchIds = $item->menuCategory->branches()->pluck('branches.id')->all();
-            if (!$branchIds) {
-                $branchIds = Branch::query()->inRandomOrder()->limit(1)->pluck('id')->all();
-            }
+            $branchIds = Branch::query()->inRandomOrder()->limit(3)->pluck('id')->all();
             $item->branches()->syncWithPivotValues($branchIds, [
                 'selling_price' => null,
                 'is_active' => $item->is_active,

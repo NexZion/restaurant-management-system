@@ -58,6 +58,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('branches', BranchController::class);
+    Route::post('/menu-categories/{id}/reassign-items', [MenuCategoryController::class, 'reassignItems']);
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
     Route::apiResource('raw-materials', RawMaterialController::class);

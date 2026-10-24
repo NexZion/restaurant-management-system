@@ -402,6 +402,7 @@ export const ImageGridUploadField = ({
   fullWidth = false,
   accept = "image/jpeg,image/png,image/jpg,image/gif,image/webp",
   aspectRatio = "4/3", // CSS aspect-ratio string, e.g. '1/1', '16/9'
+  imageFit = "cover",
   showRemove = true,
   className = "",
 }) => {
@@ -451,7 +452,7 @@ export const ImageGridUploadField = ({
           <img
             src={previewUrl}
             alt=""
-            className="w-full h-full object-cover"
+            className={`h-full w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
             onError={(e) => {
               e.target.style.display = "none";
             }}
@@ -1425,9 +1426,9 @@ export const Button = ({
 }) => {
   const cssSize = (value) => typeof value === "number" ? `${value}px` : value;
   const sizeStyles = {
-    small: "px-2 py-1 text-xs",
-    medium: "px-3.5 py-1.5 text-[10px]",
-    large: "px-3.5 py-2 text-xs",
+    small: "px-2 py-1 text-[11px]",
+    medium: "px-3.5 py-1.5 text-[9px]",
+    large: "px-3.5 py-2 text-[11px]",
     icon: "p-0 text-sm",
   };
 
