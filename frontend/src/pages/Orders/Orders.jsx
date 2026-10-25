@@ -101,6 +101,7 @@ export const Orders = () => {
     status: "",
     paymentStatus: "unpaid",
     netTotalAmount: "",
+    totalAmount: "",
     CustomerNotes: "",
     InternalNotes: "",
   });
@@ -148,6 +149,9 @@ export const Orders = () => {
   const [isSameAsPhone, setIsSameAsPhone] = useState(false);
   const [isDisabledWhatsapp, setIsDisabledWhatsapp] = useState(false);
   const [selectedImageOptionLarge, setSelectedImageOptionLarge] = useState("")
+  const currentUser = getStoredUser();
+  const canEditUnitPrice =
+    Number(currentUser?.role?.access_level ?? currentUser?.access_level ?? 0) > 70;
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -166,7 +170,8 @@ export const Orders = () => {
         rawDate: String(order.created_at || ""),
         status: formatText(order.status),
         payment: formatText(order.payment_status || "unpaid"),
-        total: formatMoney(order.grand_total),
+        netTotal: formatMoney(order.grand_total),
+        total: formatMoney(order.subtotal),
         CustomerNotes: order.customer_note || "",
         InternalNotes: order.internal_note || "",
         seatCount: order.seatCount || "N/A",
@@ -250,9 +255,9 @@ export const Orders = () => {
         image:
           storageUrl(
             item.images?.[0]?.image_path ||
-              item.image ||
-              item.image_url ||
-              "",
+            item.image ||
+            item.image_url ||
+            "",
           ),
         price: Number(item.base_price ?? item.price ?? 0),
       }));
@@ -374,6 +379,7 @@ export const Orders = () => {
         status: order.status || "",
         paymentStatus: order.payment_status || "unpaid",
         netTotalAmount: order.grand_total || "",
+        totalAmount: order.subtotal ?? order.sub_total ?? "",
         CustomerNotes: order.customer_note || "",
         seatCount: order.seatCount || "",
       });
@@ -429,6 +435,7 @@ export const Orders = () => {
       status: "",
       paymentStatus: "unpaid",
       netTotalAmount: "",
+      TotalAmount: "",
       CustomerNotes: "",
       InternalNotes: "",
     });
@@ -612,7 +619,7 @@ export const Orders = () => {
       discountType: "none",
       discount: "0",
       netTotalAmount: updatedTotal.toFixed(2),
-      totalPrice: updatedTotal.toFixed(2),
+      totalAmount: updatedTotal.toFixed(2),
     }));
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -631,7 +638,7 @@ export const Orders = () => {
       netTotalAmount: updatedOrderItems
         .reduce((sum, item) => sum + Number(item.netPrice || 0), 0)
         .toFixed(2),
-      totalPrice: updatedOrderItems
+      totalAmount: updatedOrderItems
         .reduce((sum, item) => sum + Number(item.totalPrice || 0), 0)
         .toFixed(2),
     }));
@@ -694,7 +701,7 @@ export const Orders = () => {
         total_price: Number(item.totalPrice || 0),
         notes: item.customerNotes || null,
       })),
-      subtotal,
+      subtotal: subtotal,
       discount_total: orderDiscountAmount,
       tax_total: 0,
       service_charge_total: 0,
@@ -847,6 +854,7 @@ export const Orders = () => {
     { key: "status", label: "Status" },
     { key: "payment", label: "Payment" },
     { key: "total", label: "Total" },
+    { key: "netTotal", label: "Net Total" },
     { key: "due", label: "Due" },
   ];
 
@@ -1307,8 +1315,14 @@ export const Orders = () => {
                   label="Unit Price"
                   type="number"
                   value={formData.unitPrice}
-                  disabled={!formData.menuItem}
+                  disabled={!formData.menuItem || !canEditUnitPrice}
+                  helperText={
+                    canEditUnitPrice
+                      ? ""
+                      : "Only roles with access level above 70 can change the unit price."
+                  }
                   onChange={(e) => {
+                    if (!canEditUnitPrice) return;
                     setFormData({ ...formData, unitPrice: e.target.value });
                     setFieldError("unitPrice", "");
                   }}

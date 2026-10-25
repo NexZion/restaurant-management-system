@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
+use App\Models\MenuItem;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
 
@@ -31,6 +32,20 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
         $orderItems = collect($validated['items'] ?? []);
+        $accessLevel = (int) ($request->user()?->role?->access_level ?? 0);
+
+        if ($accessLevel <= 70) {
+            foreach ($orderItems as $itemPayload) {
+                $menuItem = MenuItem::findOrFail($itemPayload['menu_item_id']);
+
+                if (round((float) $itemPayload['unit_price'], 2) !== round((float) $menuItem->base_price, 2)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Your role cannot change menu item unit prices.',
+                    ], 403);
+                }
+            }
+        }
 
         $order = DB::transaction(function () use ($validated, $orderItems, $request) {
             $orderPayload = $validated;
