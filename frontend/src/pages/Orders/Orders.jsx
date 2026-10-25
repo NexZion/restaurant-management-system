@@ -36,18 +36,18 @@ const formatDate = (value) => {
   return Number.isNaN(date.getTime())
     ? value
     : date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 };
 
 const getTodayDate = () => {
-      const today = new Date();
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const day = String(today.getDate()).padStart(2, "0");
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
 
-      return `${today.getFullYear()}-${month}-${day}`;
+  return `${today.getFullYear()}-${month}-${day}`;
 };
 
 const formatMoney = (value) => {
@@ -98,10 +98,11 @@ export const Orders = () => {
     discount: "0",
     overallDiscountType: "none",
     overallDiscountAmount: "0",
-    status: "pending",
+    status: "",
     paymentStatus: "unpaid",
-    totalAmount: "",
-    notes: "",
+    netTotalAmount: "",
+    CustomerNotes: "",
+    InternalNotes: "",
   });
 
   const [showAddOrder, setShowAddOrder] = useState(false);
@@ -146,6 +147,7 @@ export const Orders = () => {
   const [isCustomerSubmitting, setIsCustomerSubmitting] = useState(false);
   const [isSameAsPhone, setIsSameAsPhone] = useState(false);
   const [isDisabledWhatsapp, setIsDisabledWhatsapp] = useState(false);
+  const [selectedImageOptionLarge, setSelectedImageOptionLarge] = useState("")
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -159,17 +161,19 @@ export const Orders = () => {
         customerId: String(order.customer?.id || order.customer_id || ""),
         type: formatText(order.order_type),
         table: order.table?.table_number || order.table?.name || "N/A",
-        waiter: order.waiter?.name || "N/A",
+        waiter: order.assigned_by?.name || order.assignedBy?.name || "N/A",
         date: formatDate(order.created_at),
         rawDate: String(order.created_at || ""),
         status: formatText(order.status),
-        payment: formatText(order.bill?.bill_status || "unpaid"),
-        total: formatMoney(order.bill?.grand_total),
-        note: order.notes || "",
+        payment: formatText(order.payment_status || "unpaid"),
+        total: formatMoney(order.grand_total),
+        CustomerNotes: order.customer_note || "",
+        InternalNotes: order.internal_note || "",
+        seatCount: order.seatCount || "N/A",
         due:
-          order.bill?.bill_status === "paid"
+          order.payment_status === "paid"
             ? formatMoney(0)
-            : formatMoney(order.bill?.grand_total),
+            : formatMoney(order.balance_due ?? order.grand_total),
         rawStatus: order.status || "",
       }));
 
@@ -245,8 +249,6 @@ export const Orders = () => {
         name: item.name || "Unnamed item",
         image:
           item.images?.[0]?.image_path || item.image || item.image_url || "",
-        category:
-          item.menu_category?.name || item.category?.name || "Uncategorized",
         price: Number(item.base_price ?? item.price ?? 0),
       }));
 
@@ -335,7 +337,7 @@ export const Orders = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      totalAmount: orderNetTotal.toFixed(2),
+      netTotalAmount: orderNetTotal.toFixed(2),
     }));
   }, [orderNetTotal]);
 
@@ -364,10 +366,11 @@ export const Orders = () => {
         id: order.id || "",
         customerName: customerName(order.customer) || "",
         orderNumber: order.order_number || "",
-        status: order.status || "pending",
-        paymentStatus: order.bill?.bill_status || "unpaid",
-        totalAmount: order.bill?.grand_total || "",
-        notes: order.notes || "",
+        status: order.status || "",
+        paymentStatus: order.payment_status || "unpaid",
+        netTotalAmount: order.grand_total || "",
+        CustomerNotes: order.customer_note || "",
+        seatCount: order.seatCount || "",
       });
       setFieldErrors({});
       setShowAddOrder(true);
@@ -387,8 +390,8 @@ export const Orders = () => {
     //   errors.orderNumber = "Order number is required.";
     // }
 
-    if (!formData.totalAmount) {
-      errors.totalAmount = "Total amount is required.";
+    if (!formData.netTotalAmount) {
+      errors.netTotalAmount = "Total amount is required.";
     }
 
     if (orderItems.length === 0) {
@@ -413,14 +416,16 @@ export const Orders = () => {
       attributes: "",
       quantity: "1",
       unitPrice: "",
+      totalPrice: "",
       discountType: "none",
       discount: "0",
       overallDiscountType: "none",
       overallDiscountAmount: "0",
-      status: "pending",
+      status: "",
       paymentStatus: "unpaid",
-      totalAmount: "",
-      notes: "",
+      netTotalAmount: "",
+      CustomerNotes: "",
+      InternalNotes: "",
     });
     setOrderItems([]);
     setFieldErrors({});
@@ -544,6 +549,7 @@ export const Orders = () => {
   const handleAddOrderItem = () => {
     const selectedMenuItem = menuItems.find(
       (item) => String(item.id) === String(formData.menuItem),
+      //(item) => String(item.id) === String(selectedImageOptionLarge),
     );
 
     if (!selectedMenuItem) {
@@ -570,13 +576,13 @@ export const Orders = () => {
       formData.discount,
     );
     const netPrice = Math.max(0, unitPrice - discountAppliedPerUnit) * quantity;
-
+    const totalPrice = unitPrice * quantity;
     const newOrderItem = {
       id: `${selectedMenuItem.id}-${Date.now()}`,
       itemId: selectedMenuItem.id,
       image: selectedMenuItem.image,
       name: selectedMenuItem.name,
-      category: selectedMenuItem.category || "Uncategorized",
+      totalPrice,
       quantity,
       unitPrice,
       discountAppliedPerUnit,
@@ -598,7 +604,8 @@ export const Orders = () => {
       unitPrice: "",
       discountType: "none",
       discount: "0",
-      totalAmount: updatedTotal.toFixed(2),
+      netTotalAmount: updatedTotal.toFixed(2),
+      totalPrice: updatedTotal.toFixed(2),
     }));
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -614,8 +621,11 @@ export const Orders = () => {
     setOrderItems(updatedOrderItems);
     setFormData((prev) => ({
       ...prev,
-      totalAmount: updatedOrderItems
+      netTotalAmount: updatedOrderItems
         .reduce((sum, item) => sum + Number(item.netPrice || 0), 0)
+        .toFixed(2),
+      totalPrice: updatedOrderItems
+        .reduce((sum, item) => sum + Number(item.totalPrice || 0), 0)
         .toFixed(2),
     }));
   };
@@ -634,6 +644,7 @@ export const Orders = () => {
     const branchId = currentUser?.branch_id || currentUser?.branch?.id || null;
     console.log("Current User:", currentUser);
     console.log("Branch ID:", branchId);
+    console.log("Order Items Total:", orderItemsTotal);
     const subtotal = Number(orderItemsTotal || 0);
     const orderDiscountAmount =
       formData.overallDiscountType === "percent"
@@ -659,40 +670,41 @@ export const Orders = () => {
       branch_id: branchId,
       customer_id: formData.customerId || null,
       customer_name: formData.customerName || "",
-      order_type:
-        formData.orderType === "dine_in" ? "dining" : formData.orderType,
-      table_id: formData.tableNumber || "",
+      order_type: formData.orderType,
+      table_id:
+        formData.tableNumber && /^\d+$/.test(String(formData.tableNumber))
+          ? Number(formData.tableNumber)
+          : null,
       status: formData.status,
-      is_online: false,
-      notes: formData.notes,
+      customer_note: formData.CustomerNotes,
+      internal_note: formData.InternalNotes,
       items: orderItems.map((item) => ({
         menu_item_id: item.itemId,
         quantity: Number(item.quantity || 1),
         unit_price: Number(item.unitPrice || 0),
         discount: Number(item.discountAppliedPerUnit || 0),
-        total_price: Number(item.netPrice || 0),
-        notes: item.notes || null,
+        net_total_price: Number(item.netPrice || 0),
+        total_price: Number(item.totalPrice || 0),
+        notes: item.customerNotes || null,
       })),
-      bill: {
-        subtotal,
-        discount: orderDiscountAmount,
-        tax: 0,
-        service_charge: 0,
-        grand_total: netTotal,
-        bill_status: formData.paymentStatus || "unpaid",
-      },
+      subtotal,
+      discount_total: orderDiscountAmount,
+      tax_total: 0,
+      service_charge_total: 0,
+      grand_total: netTotal,
+      payment_status: formData.paymentStatus || "unpaid",
+      paid_total: formData.paymentStatus === "paid" ? netTotal : 0,
+      balance_due: formData.paymentStatus === "paid" ? 0 : netTotal,
     };
     console.log("Payload to API:");
     console.log(JSON.stringify(payload, null, 2));
 
     try {
       if (isEditMode && editingOrder?.id) {
-        //await api.put(`/orders/${editingOrder.id}`, payload);
         const response = await api.put(`/orders/${editingOrder.id}`, payload);
         console.log("Update Response:", response);
         console.log("Update Response Data:", response.data);
       } else {
-        //await api.post("/orders", payload);
         const response = await api.post("/orders", payload);
         console.log("API Response:", response);
         console.log("Response Data:", response.data);
@@ -703,17 +715,25 @@ export const Orders = () => {
       fetchOrders();
       setShowAddOrder(false);
     } catch (error) {
-      //console.error("Error saving order:", error);
       console.error("Error saving order:", error);
 
       if (error.response) {
         console.log("Status:", error.response.status);
         console.log("Response Data:", error.response.data);
         console.log("Headers:", error.response.headers);
+        window.alert(
+          error.response.data?.message ||
+          Object.values(error.response.data?.errors || {})
+            .flat()
+            .join("\n") ||
+          "Unable to save order.",
+        );
       } else if (error.request) {
         console.log("Request sent but no response:", error.request);
+        window.alert("Unable to save order. Please check the server connection.");
       } else {
         console.log("Error Message:", error.message);
+        window.alert("Unable to save order.");
       }
     } finally {
       setIsSubmitting(false);
@@ -833,30 +853,32 @@ export const Orders = () => {
 
   const orderSummary = viewOrder
     ? [
-        { label: "Order Type", value: formatText(viewOrder.order_type) },
-        { label: "Date", value: formatDate(viewOrder.created_at) },
-        { label: "Branch", value: viewOrder.branch?.name },
-        {
-          label: "Table",
-          value: viewOrder.table?.table_number || viewOrder.table?.name,
-        },
-        { label: "Waiter", value: viewOrder.waiter?.name },
-        { label: "Created By", value: viewOrder.creator?.name },
-        { label: "Notes", value: viewOrder.notes, wide: true },
-      ]
+      { label: "Order Type", value: formatText(viewOrder.order_type) },
+      { label: "Date", value: formatDate(viewOrder.created_at) },
+      { label: "Branch", value: viewOrder.branch?.name },
+      {
+        label: "Table",
+        value: viewOrder.table?.table_number || viewOrder.table?.name,
+      },
+      { label: "Assigned By", value: viewOrder.assignedBy?.name },
+      { label: "Created By", value: viewOrder.creator?.name },
+      { label: "Customer Notes", value: viewOrder.customer_note || "N/A" },
+      { label: "Internal Notes", value: viewOrder.internal_note || "N/A" },
+      { label: "Seat Count", value: viewOrder.seatCount || "N/A" },
+    ]
     : [];
 
-  const billSummary = viewOrder
+  const paymentSummary = viewOrder
     ? [
-        {
-          label: "Payment Status",
-          value: formatText(viewOrder.bill?.bill_status || "unpaid"),
-        },
-        {
-          label: "Grand Total",
-          value: formatMoney(viewOrder.bill?.grand_total),
-        },
-      ]
+      {
+        label: "Payment Status",
+        value: formatText(viewOrder.payment_status || "unpaid"),
+      },
+      {
+        label: "Grand Total",
+        value: formatMoney(viewOrder.grand_total),
+      },
+    ]
     : [];
 
   return (
@@ -1079,344 +1101,387 @@ export const Orders = () => {
           isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
         }
         secondaryButtonText="Cancel"
+        thirdButtonText="Draft"
         primaryButtonDisabled={isSubmitting}
         secondaryButtonDisabled={isSubmitting}
+        thirdButtonDisabled={isSubmitting}
         onPrimaryButtonClick={handleSubmitOrder}
         onSecondaryButtonClick={handleCloseAddOrder}
       >
-        <Accordion
-          items={[
-            {
-              title: "Order Details",
-              content: (
-                <div className="space-y-3.5">
-                  {/* Row 1 */}
-                  <div className="grid gap-3.5 md:grid-cols-2">
-                    <TextField
-                      floatLabel = {true}
-                      label="Order Date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => {
-                        setFormData({ ...formData, date: e.target.value });
-                        setFieldError("date", "");
-                      }}
-                      helperText={fieldErrors.date || ""}
-                      error={!!fieldErrors.date}
-                    />
+        <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
 
-                    <SelectField
-                      label="Order Type"
-                      value={formData.orderType}
-                      options={orderTypes}
-                      onChange={(e) => {
-                        const orderType = e.target.value;
-                        setFormData((prev) => ({
-                          ...prev,
-                          orderType,
-                          tableNumber:
-                            orderType === "dine_in" ? prev.tableNumber : "",
-                        }));
-                        setFieldError("tableNumber", "");
-                      }}
-                    />
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+            Order Details
+          </h4>
 
-                    <TextField
-                      label="Note"
-                      type="text"
-                      value={formData.note}
-                      onChange={(e) => {
-                        setFormData({ ...formData, note: e.target.value });
-                        setFieldError("note", "");
-                      }}
-                      helperText={fieldErrors.note || ""}
-                      error={!!fieldErrors.note}
-                    />
-                  </div>
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
+            <div className="space-y-3.5">
+              {/* Row 1 */}
+              <div className="grid gap-3.5 md:grid-cols-3">
+                <TextField
+                  floatLabel={true}
+                  label="Order Date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => {
+                    setFormData({ ...formData, date: e.target.value });
+                    setFieldError("date", "");
+                  }}
+                  helperText={fieldErrors.date || ""}
+                  error={!!fieldErrors.date}
+                />
 
-                  {/* Row 2 */}
-                  <div className="grid gap-3.5 md:grid-cols-[2fr_auto_1fr] items-end">
-                    <SelectField
-                      label="Customer"
-                      //placeholder="Search Customer..."
-                      searchable
-                      value={formData.customerId || ""}
-                      options={customers.map((customer) => ({
-                        value: customer.id,
-                        label: `${customer.name}${customer.phone ? ` (${customer.phone})` : ""}`,
-                      }))}
-                      helperText={fieldErrors.customerId || ""}
-                      error={!!fieldErrors.customerId}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          customerId: e.target.value,
-                        })
-                      }
-                    />
+                <SelectField
+                  label="Order Type"
+                  value={formData.orderType}
+                  options={orderTypes}
+                  onChange={(e) => {
+                    const orderType = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      orderType,
+                      tableNumber:
+                        orderType === "dine_in" ? prev.tableNumber : "",
+                    }));
+                    setFieldError("tableNumber", "");
+                  }}
+                />
 
-                    <Button
-                      variant="secondary"
-                      className="h-[42px] px-3.5 whitespace-nowrap"
-                      onClick={() => {
-                        resetAddCustomerDialogForm();
-                        setShowAddCustomerDialog(true);
-                      }}
-                    >
-                      Add Customer
-                    </Button>
+                <TextField
+                  label="Seat Count"
+                  type="number" min="0"
+                  value={formData.seatCount}
+                  onChange={(e) => {
+                    setFormData({ ...formData, seatCount: e.target.value });
+                    setFieldError("seatCount", "");
+                  }}
+                  helperText={fieldErrors.seatCount || ""}
+                  error={!!fieldErrors.seatCount}
+                />
+              </div>
+            </div>
+            {/* row 2 */}
+            <div className="grid gap-3.5 md:grid-cols-2 mt-3.5">
+              <TextField
+                label="Customer Note"
+                value={formData.CustomerNotes}
+                onChange={(e) => {
+                  setFormData({ ...formData, CustomerNotes: e.target.value });
+                  setFieldError("customerNotes", "");
+                }}
+                helperText={fieldErrors.customerNotes || ""}
+                error={!!fieldErrors.customerNotes}
+              />
 
-                    {formData.orderType === "dine_in" && (
-                      <SelectField
-                        label="Table"
-                        searchable
-                        value={formData.tableNumber || ""}
-                        options={tables
-                          .filter((table) => table.status === "available")
-                          .map((table) => ({
-                            value: table.id,
-                            label: `Table ${table.table_number} (${table.capacity} seats)`,
-                          }))}
-                        helperText={fieldErrors.tableNumber || ""}
-                        error={!!fieldErrors.tableNumber}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            tableNumber: e.target.value,
-                          }))
-                        }
-                      />
-                    )}
-                  </div>
+              <TextField
+                label="Internal Note"
+                value={formData.InternalNotes}
+                onChange={(e) => {
+                  setFormData({ ...formData, InternalNotes: e.target.value });
+                  setFieldError("internalNotes", "");
+                }}
+                helperText={fieldErrors.internalNotes || ""}
+                error={!!fieldErrors.internalNotes}
+              />
+            </div>
+
+            {/* Row 3 */}
+            <div className="grid gap-3.5 md:grid-cols-[2fr_auto_1fr] mt-3.5 items-end">
+              <SelectField
+                label="Customer"
+                //placeholder="Search Customer..."
+                searchable
+                value={formData.customerId || ""}
+                options={customers.map((customer) => ({
+                  value: customer.id,
+                  label: `${customer.name}${customer.phone ? ` (${customer.phone})` : ""}`,
+                }))}
+                helperText={fieldErrors.customerId || ""}
+                error={!!fieldErrors.customerId}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    customerId: e.target.value,
+                  })
+                }
+              />
+
+              <Button
+                variant="secondary"
+                className="h-[42px] px-3.5 whitespace-nowrap"
+                onClick={() => {
+                  resetAddCustomerDialogForm();
+                  setShowAddCustomerDialog(true);
+                }}
+              >
+                Add Customer
+              </Button>
+
+              {formData.orderType === "dine_in" && (
+                <SelectField
+                  label="Table"
+                  searchable
+                  value={formData.tableNumber || ""}
+                  options={tables
+                    .filter((table) => table.status === "available")
+                    .map((table) => ({
+                      value: table.id,
+                      label: `Table ${table.table_number} (${table.capacity} seats)`,
+                    }))}
+                  helperText={fieldErrors.tableNumber || ""}
+                  error={!!fieldErrors.tableNumber}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tableNumber: e.target.value,
+                    }))
+                  }
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
+
+          <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
+            <div className="space-y-3.5">
+              <SelectField
+                label="Menu Item "
+                value={selectedImageOptionLarge}
+                options={menuItems.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                  image: item.image,
+                }))}
+                searchable={true}
+                optionImageSize="large"
+                onChange={(e) => setSelectedImageOptionLarge(e.target.value)}
+              />
+
+              <MenuItemSearch
+                label="Menu Item"
+                items={menuItems}
+                value={formData.menuItem}
+                onChange={(item) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    menuItem: item?.id ?? "",
+                    unitPrice: item?.price ? String(item.price) : "",
+                  }))
+                }
+              />
+              <div className="rounded border border-dashed border-slate-200 p-3.5 dark:border-[#1F2226]">
+                <p className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+                  Attributes Loader
+                </p>
+                <p className="mt-2 text-sm text-gray-600 dark:text-[#8A8F98]">
+                  Select a menu item to load its available attributes here.
+                </p>
+              </div>
+              <div className="grid w-full gap-3.5 md:grid-cols-2">
+                <TextField
+                  label="Quantity"
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => {
+                    setFormData({ ...formData, quantity: e.target.value });
+                    setFieldError("quantity", "");
+                  }}
+                />
+                <TextField
+                  label="Unit Price"
+                  type="number"
+                  value={formData.unitPrice}
+                  disabled={!formData.menuItem}
+                  onChange={(e) => {
+                    setFormData({ ...formData, unitPrice: e.target.value });
+                    setFieldError("unitPrice", "");
+                  }}
+                />
+                <SelectField
+                  label="Item Discount Type"
+                  value={formData.discountType}
+                  options={discountTypes}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      discountType: e.target.value,
+                    })
+                  }
+                />
+                <TextField
+                  label="Item Discount Amount"
+                  type="number"
+                  value={formData.discount}
+                  onChange={(e) =>
+                    setFormData({ ...formData, discount: e.target.value })
+                  }
+                />
+                <div className="flex items-end justify-end md:col-span-2">
+                  <Button variant="primary" onClick={handleAddOrderItem}>
+                    Add
+                  </Button>
                 </div>
-              ),
-            },
-            {
-              title: "Menu & Attributes",
-              content: (
-                <div className="space-y-3.5">
-                  <MenuItemSearch
-                    label="Menu Item"
-                    items={menuItems}
-                    value={formData.menuItem}
-                    onChange={(item) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        menuItem: item?.id ?? "",
-                        unitPrice: item?.price ? String(item.price) : "",
-                      }))
-                    }
-                  />
-                  <div className="rounded border border-dashed border-slate-200 p-3.5 dark:border-[#1F2226]">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                      Attributes Loader
-                    </p>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-[#8A8F98]">
-                      Select a menu item to load its available attributes here.
-                    </p>
-                  </div>
-                  <div className="grid w-full gap-3.5 md:grid-cols-2">
-                    <TextField
-                      label="Quantity"
-                      type="number"
-                      value={formData.quantity}
-                      onChange={(e) => {
-                        setFormData({ ...formData, quantity: e.target.value });
-                        setFieldError("quantity", "");
-                      }}
-                    />
-                    <TextField
-                      label="Unit Price"
-                      type="number"
-                      value={formData.unitPrice}
-                      disabled={!formData.menuItem}
-                      onChange={(e) => {
-                        setFormData({ ...formData, unitPrice: e.target.value });
-                        setFieldError("unitPrice", "");
-                      }}
-                    />
-                    <SelectField
-                      label="Item Discount Type"
-                      value={formData.discountType}
-                      options={discountTypes}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          discountType: e.target.value,
-                        })
-                      }
-                    />
-                    <TextField
-                      label="Item Discount Amount"
-                      type="number"
-                      value={formData.discount}
-                      onChange={(e) =>
-                        setFormData({ ...formData, discount: e.target.value })
-                      }
-                    />
-                    <div className="flex items-end justify-end md:col-span-2">
-                      <Button variant="primary" onClick={handleAddOrderItem}>
-                        Add
-                      </Button>
-                    </div>
-                  </div>
+              </div>
+            </div>
+          </div>
 
-                  <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
-                    <div className="mb-3 flex items-center justify-between gap-2.5">
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                          Order Items
-                        </h4>
-                        <p className="text-xs text-gray-500 dark:text-[#8A8F98]">
-                          Added items appear here instantly.
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-[#121314] dark:text-[#D0D6E0]">
-                        {orderItems.length} item
-                        {orderItems.length === 1 ? "" : "s"}
-                      </span>
-                    </div>
 
-                    {orderItems.length === 0 ? (
-                      <div className="rounded border border-dashed border-slate-200 px-3.5 py-5 text-center text-sm text-gray-500 dark:border-[#1F2226] dark:text-[#8A8F98]">
-                        No menu items added yet.
-                      </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full border-separate border-spacing-y-2 text-sm">
-                          <thead>
-                            <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-[#8A8F98]">
-                              <th className="px-2 py-1">Item</th>
-                              <th className="px-2 py-1">Category</th>
-                              <th className="px-2 py-1">Quantity</th>
-                              <th className="px-2 py-1">Unit Price</th>
-                              <th className="px-2 py-1">Discount / Unit</th>
-                              <th className="px-2 py-1">Net Price</th>
-                              <th className="px-2 py-1 text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {orderItems.map((item) => (
-                              <tr
-                                key={item.id}
-                                className="rounded-lg bg-white text-gray-900 shadow-sm dark:bg-[#121314] dark:text-[#F7F8F8]"
-                              >
-                                <td className="rounded-l-lg px-2 py-1.5">
-                                  <div className="flex items-center gap-2.5">
-                                    {item.image ? (
-                                      <img
-                                        src={item.image}
-                                        alt={item.name}
-                                        className="h-10 w-10 rounded-lg object-cover"
-                                      />
-                                    ) : (
-                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
-                                        {item.name
-                                          ?.slice(0, 2)
-                                          ?.toUpperCase() || "IT"}
-                                      </div>
-                                    )}
-                                    <div>
-                                      <div className="font-semibold">
-                                        {item.name}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                                  {item.category}
-                                </td>
-                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                                  {item.quantity}
-                                </td>
-                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                                  {formatMoney(item.unitPrice)}
-                                </td>
-                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                                  {formatMoney(item.discountAppliedPerUnit)}
-                                </td>
-                                <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                                  {formatMoney(item.netPrice)}
-                                </td>
-                                <td className="rounded-r-lg px-2 py-1.5 text-right">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleRemoveOrderItem(item.id)
-                                    }
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
-                                    aria-label="Remove item"
-                                  >
-                                    ×
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
 
-                    <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
-                      <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
-                        Order Items Total
-                      </span>
-                      <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                        {formatMoney(orderItemsTotal)}
-                      </span>
-                    </div>
 
-                    <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
-                      <div className="mb-3">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                          Apply Order Discount
-                        </h4>
-                      </div>
+          <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
+            <div className="mb-3 flex items-center justify-between gap-2.5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+                  Order Items
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-[#8A8F98]">
+                  Added items appear here instantly.
+                </p>
+              </div>
+              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-[#121314] dark:text-[#D0D6E0]">
+                {orderItems.length} item
+                {orderItems.length === 1 ? "" : "s"}
+              </span>
+            </div>
 
-                      <div className="grid w-full gap-3.5 md:grid-cols-2">
-                        <SelectField
-                          label="Discount Type"
-                          value={formData.overallDiscountType}
-                          options={discountTypes}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              overallDiscountType: e.target.value,
-                            })
-                          }
-                        />
-                        <TextField
-                          label="Discount Amount"
-                          type="number"
-                          value={formData.overallDiscountAmount}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              overallDiscountAmount: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
+            {orderItems.length === 0 ? (
+              <div className="rounded border border-dashed border-slate-200 px-3.5 py-5 text-center text-sm text-gray-500 dark:border-[#1F2226] dark:text-[#8A8F98]">
+                No menu items added yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full border-separate border-spacing-y-2 text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-[#8A8F98]">
+                      <th className="px-2 py-1">Item</th>
+                      <th className="px-2 py-1">Quantity</th>
+                      <th className="px-2 py-1">Unit Price</th>
+                      <th className="px-2 py-1">Total Price</th>
+                      <th className="px-2 py-1">Discount / Unit</th>
+                      <th className="px-2 py-1">Net Price</th>
+                      <th className="px-2 py-1 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="rounded-lg bg-white text-gray-900 shadow-sm dark:bg-[#121314] dark:text-[#F7F8F8]"
+                      >
+                        <td className="rounded-l-lg px-2 py-1.5">
+                          <div className="flex items-center gap-2.5">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="h-10 w-10 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
+                                {item.name
+                                  ?.slice(0, 2)
+                                  ?.toUpperCase() || "IT"}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-semibold">
+                                {item.name}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
+                          {item.quantity}
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
+                          {formatMoney(item.unitPrice)}
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
+                          {formatMoney(item.totalPrice)}
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
+                          {formatMoney(item.discountAppliedPerUnit)}
+                        </td>
+                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
+                          {formatMoney(item.netPrice)}
+                        </td>
+                        <td className="rounded-r-lg px-2 py-1.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleRemoveOrderItem(item.id)
+                            }
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
+                            aria-label="Remove item"
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
 
-                      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
-                        <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
-                          Net Total
-                        </span>
-                        <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                          {formatMoney(orderNetTotal)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ),
-            },
-          ]}
-          allowMultiple={true}
-          iconPosition="right"
-          defaultExpanded={[0, 1, 2]}
-          variant="filled"
-        />
+            <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
+              <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
+                Order Items Total
+              </span>
+              <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
+                {formatMoney(orderItemsTotal)}
+              </span>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-slate-200 bg-white p-3.5 dark:border-[#1F2226] dark:bg-[#121314]">
+              <div className="mb-3">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+                  Apply Order Discount
+                </h4>
+              </div>
+
+              <div className="grid w-full gap-3.5 md:grid-cols-2">
+                <SelectField
+                  label="Discount Type"
+                  value={formData.overallDiscountType}
+                  options={discountTypes}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      overallDiscountType: e.target.value,
+                    })
+                  }
+                />
+                <TextField
+                  label="Discount Amount"
+                  type="number"
+                  value={formData.overallDiscountAmount}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      overallDiscountAmount: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
+                <span className="font-medium text-gray-700 dark:text-[#D0D6E0]">
+                  Net Total
+                </span>
+                <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(orderNetTotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
       </Dialog>
 
       <Dialog
@@ -1743,9 +1808,8 @@ export const Orders = () => {
                 {orderSummary.map((item) => (
                   <div
                     key={item.label}
-                    className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
-                      item.wide ? "sm:col-span-2" : ""
-                    }`}
+                    className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${item.wide ? "sm:col-span-2" : ""
+                      }`}
                   >
                     <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
                       {item.label}
@@ -1763,7 +1827,7 @@ export const Orders = () => {
                 Bill
               </h4>
               <div className="grid gap-2.5 sm:grid-cols-2">
-                {billSummary.map((item) => (
+                {paymentSummary.map((item) => (
                   <div
                     key={item.label}
                     className="rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719]"

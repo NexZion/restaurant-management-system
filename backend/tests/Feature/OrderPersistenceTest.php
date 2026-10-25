@@ -5,7 +5,6 @@ use App\Models\Customer;
 use App\Models\MenuCategory;
 use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\OrderBill;
 use App\Models\OrderItem;
 use App\Models\Role;
 use App\Models\User;
@@ -13,7 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-test('it persists the full order with items and bill in a transaction', function () {
+test('it persists the full order with items in a transaction', function () {
     $role = Role::factory()->create();
     $branch = Branch::factory()->create();
     $user = User::factory()->create([
@@ -31,9 +30,9 @@ test('it persists the full order with items and bill in a transaction', function
     $response = $this->actingAs($user, 'api')->postJson('/api/orders', [
         'branch_id' => $branch->id,
         'customer_id' => $customer->id,
-        'order_type' => 'dining',
-        'status' => 'pending',
-        'notes' => 'VIP table',
+        'order_type' => 'dine_in',
+        'status' => 'draft',
+        'customer_note' => 'VIP table',
         'items' => [
             [
                 'menu_item_id' => $menuItem->id,
@@ -44,14 +43,12 @@ test('it persists the full order with items and bill in a transaction', function
                 'notes' => 'No sauce',
             ],
         ],
-        'bill' => [
-            'subtotal' => 3000,
-            'discount' => 200,
-            'tax' => 420,
-            'service_charge' => 300,
-            'grand_total' => 3520,
-            'bill_status' => 'unpaid',
-        ],
+        'subtotal' => 3000,
+        'discount_total' => 200,
+        'tax_total' => 420,
+        'service_charge_total' => 300,
+        'grand_total' => 3520,
+        'payment_status' => 'unpaid',
     ]);
 
     $response->assertStatus(201);
@@ -61,8 +58,8 @@ test('it persists the full order with items and bill in a transaction', function
     $this->assertMatchesRegularExpression('/^ORD - \d{6}$/', $order->order_number);
     $this->assertEquals($customer->id, $order->customer_id);
     $this->assertEquals($branch->id, $order->branch_id);
-    $this->assertEquals('pending', $order->status);
-    $this->assertEquals('VIP table', $order->notes);
+    $this->assertEquals('draft', $order->status);
+    $this->assertEquals('VIP table', $order->customer_note);
 
     $this->assertCount(1, $order->items);
     $this->assertDatabaseHas('order_items', [
@@ -74,13 +71,13 @@ test('it persists the full order with items and bill in a transaction', function
         'notes' => 'No sauce',
     ]);
 
-    $this->assertDatabaseHas('order_bills', [
-        'order_id' => $order->id,
+    $this->assertDatabaseHas('orders', [
+        'id' => $order->id,
         'subtotal' => '3000.00',
-        'discount' => '200.00',
-        'tax' => '420.00',
-        'service_charge' => '300.00',
+        'discount_total' => '200.00',
+        'tax_total' => '420.00',
+        'service_charge_total' => '300.00',
         'grand_total' => '3520.00',
-        'bill_status' => 'unpaid',
+        'payment_status' => 'unpaid',
     ]);
 });

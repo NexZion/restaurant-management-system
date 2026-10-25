@@ -30,15 +30,22 @@ class StoreOrderRequest extends FormRequest
 
         'customer_id' => 'nullable|exists:customers,id',
 
-        'waiter_id' => 'nullable|exists:users,id',
+        'assigned_by' => 'nullable|exists:users,id',
 
-        'order_type' => 'nullable|in:dining,takeaway,delivery',
+        'order_type' => 'required|in:dine_in,takeaway,delivery',
 
-        'status' => 'nullable|in:pending,accepted,preparing,ready,served,completed,cancelled',
+        'status' => 'nullable|in:draft,confirmed,preparing,ready,served,completed,cancelled',
 
-        'is_online' => 'nullable|boolean',
-
-        'notes' => 'nullable|string|max:1000',
+        'payment_status' => 'nullable|in:unpaid,partial,paid,partially_refunded,refunded',
+        'subtotal' => 'nullable|numeric|min:0',
+        'discount_total' => 'nullable|numeric|min:0',
+        'tax_total' => 'nullable|numeric|min:0',
+        'service_charge_total' => 'nullable|numeric|min:0',
+        'grand_total' => 'nullable|numeric|min:0',
+        'paid_total' => 'nullable|numeric|min:0',
+        'balance_due' => 'nullable|numeric|min:0',
+        'customer_note' => 'nullable|string',
+        'internal_note' => 'nullable|string',
 
         'items' => 'required|array',
         'items.*.menu_item_id' => 'required|exists:menu_items,id',
@@ -48,13 +55,6 @@ class StoreOrderRequest extends FormRequest
         'items.*.total_price' => 'nullable|numeric|min:0',
         'items.*.notes' => 'nullable|string|max:500',
 
-        'bill' => 'nullable|array',
-        'bill.subtotal' => 'nullable|numeric|min:0',
-        'bill.discount' => 'nullable|numeric|min:0',
-        'bill.tax' => 'nullable|numeric|min:0',
-        'bill.service_charge' => 'nullable|numeric|min:0',
-        'bill.grand_total' => 'nullable|numeric|min:0',
-        'bill.bill_status' => 'nullable|in:unpaid,partially_paid,paid,refunded'
     ];
 }
 }

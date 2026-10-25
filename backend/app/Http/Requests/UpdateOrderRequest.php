@@ -21,15 +21,17 @@ class UpdateOrderRequest extends FormRequest
 
             'customer_id' => 'nullable|exists:customers,id',
 
-            'waiter_id' => 'nullable|exists:users,id',
+            'assigned_by' => 'nullable|exists:users,id',
 
-            'order_type' => 'required|in:dining,takeaway,delivery',
+            'order_type' => 'required|in:dine_in,takeaway,delivery',
 
-            'status' => 'required|in:pending,accepted,preparing,ready,served,completed,cancelled',
-
-            'is_online' => 'required|boolean',
-
-            'notes' => 'nullable|string|max:1000'
+            'status' => 'required|in:draft,confirmed,preparing,ready,served,completed,cancelled',
+            'payment_status' => 'required|in:unpaid,partial,paid,partially_refunded,refunded',
+            'customer_note' => 'nullable|string',
+            'internal_note' => 'nullable|string',
+            'grand_total' => 'nullable|numeric|min:0',
+            'paid_total' => 'nullable|numeric|min:0',
+            'balance_due' => 'nullable|numeric|min:0'
         ];
     }
 }

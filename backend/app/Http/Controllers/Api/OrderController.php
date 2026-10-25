@@ -18,8 +18,8 @@ class OrderController extends Controller
             'table',
             'customer',
             'creator',
-            'waiter',
-            'bill'
+            'assignedBy',
+            'items'
         ])->latest()->get();
 
         return response()->json([
@@ -31,24 +31,33 @@ class OrderController extends Controller
     {
         $validated = $request->validated();
         $orderItems = collect($validated['items'] ?? []);
-        $billPayload = $validated['bill'] ?? [];
 
-        $order = DB::transaction(function () use ($validated, $orderItems, $billPayload, $request) {
+        $order = DB::transaction(function () use ($validated, $orderItems, $request) {
             $orderPayload = $validated;
-            unset($orderPayload['items'], $orderPayload['bill']);
+            unset($orderPayload['items']);
 
             $orderNumber = $orderPayload['order_number'] ?? $this->generateOrderNumber();
             $orderPayload['branch_id'] =
                 $request->user()?->branch_id ?? $orderPayload['branch_id'] ?? null;
+            $subtotal = $orderItems->sum(function ($itemPayload) {
+                return $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']);
+            });
+            $discount = $orderPayload['discount_total'] ?? 0;
+            $grandTotal = $orderPayload['grand_total'] ?? max(0, $subtotal - $discount);
 
             $order = Order::create(array_merge($orderPayload, [
                 'order_number' => $orderNumber,
                 'created_by' => $request->user()?->id,
-                'waiter_id' => $orderPayload['waiter_id'] ?? null,
-                'status' => $orderPayload['status'] ?? 'pending',
-                'notes' => $orderPayload['notes'] ?? null,
-                'order_type' => $orderPayload['order_type'] ?? 'dining',
-                'is_online' => $orderPayload['is_online'] ?? false,
+                'status' => $orderPayload['status'] ?? 'draft',
+                'payment_status' => $orderPayload['payment_status'] ?? 'unpaid',
+                'subtotal' => $orderPayload['subtotal'] ?? $subtotal,
+                'discount_total' => $discount,
+                'tax_total' => $orderPayload['tax_total'] ?? 0,
+                'service_charge_total' => $orderPayload['service_charge_total'] ?? 0,
+                'grand_total' => $grandTotal,
+                'paid_total' => $orderPayload['paid_total'] ?? 0,
+                'balance_due' => $orderPayload['balance_due'] ?? $grandTotal,
+                'ordered_at' => $orderPayload['ordered_at'] ?? now(),
             ]));
 
             foreach ($orderItems as $itemPayload) {
@@ -63,28 +72,13 @@ class OrderController extends Controller
                 ]);
             }
 
-            if ($orderItems->isNotEmpty() || !empty($billPayload)) {
-                $subtotal = $orderItems->sum(function ($itemPayload) {
-                    return $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']);
-                });
-
-                $order->bill()->create([
-                    'subtotal' => $billPayload['subtotal'] ?? $subtotal,
-                    'discount' => $billPayload['discount'] ?? 0,
-                    'tax' => $billPayload['tax'] ?? 0,
-                    'service_charge' => $billPayload['service_charge'] ?? 0,
-                    'grand_total' => $billPayload['grand_total'] ?? max(0, ($billPayload['subtotal'] ?? $subtotal) - ($billPayload['discount'] ?? 0) + ($billPayload['tax'] ?? 0) + ($billPayload['service_charge'] ?? 0)),
-                    'bill_status' => $billPayload['bill_status'] ?? 'unpaid',
-                ]);
-            }
-
             return $order;
         });
 
         return response()->json([
             'success' => true,
             'message' => 'Order created successfully',
-            'data' => $order->load(['items', 'bill'])
+            'data' => $order->load('items')
         ], 201);
     }
 
@@ -104,8 +98,8 @@ class OrderController extends Controller
             'table',
             'customer',
             'creator',
-            'waiter',
-            'bill'
+            'assignedBy',
+            'items'
         ])->find($id);
 
         if (!$order) {
