@@ -16,9 +16,9 @@ import {
 import { Table } from "../../components/Tables";
 import { Accordion } from "../../components/Accordion";
 import { Dialog } from "../../components/Popups";
-import MenuItemSearch from "../../components/MenuItemSearch";
 import api from "../../axiosClient";
 import { getStoredUser } from "../../utils/authStorage";
+import { storageUrl } from "../../utils/storageUrl";
 
 const formatText = (value) => {
   if (!value) return "N/A";
@@ -248,7 +248,12 @@ export const Orders = () => {
         id: item.id,
         name: item.name || "Unnamed item",
         image:
-          item.images?.[0]?.image_path || item.image || item.image_url || "",
+          storageUrl(
+            item.images?.[0]?.image_path ||
+              item.image ||
+              item.image_url ||
+              "",
+          ),
         price: Number(item.base_price ?? item.price ?? 0),
       }));
 
@@ -428,6 +433,7 @@ export const Orders = () => {
       InternalNotes: "",
     });
     setOrderItems([]);
+    setSelectedImageOptionLarge("");
     setFieldErrors({});
   };
 
@@ -596,6 +602,7 @@ export const Orders = () => {
     );
 
     setOrderItems(updatedOrderItems);
+    setSelectedImageOptionLarge("");
     setFormData((prev) => ({
       ...prev,
       menuItem: "",
@@ -1250,27 +1257,34 @@ export const Orders = () => {
                 label="Menu Item "
                 value={selectedImageOptionLarge}
                 options={menuItems.map((item) => ({
-                  value: item.id,
+                  value: String(item.id),
                   label: item.name,
                   image: item.image,
                 }))}
                 searchable={true}
                 optionImageSize="large"
-                onChange={(e) => setSelectedImageOptionLarge(e.target.value)}
-              />
+                onChange={(e) => {
+                  const selectedItemId = e.target.value;
+                  const selectedItem = menuItems.find(
+                    (item) => String(item.id) === String(selectedItemId),
+                  );
 
-              <MenuItemSearch
-                label="Menu Item"
-                items={menuItems}
-                value={formData.menuItem}
-                onChange={(item) =>
+                  setSelectedImageOptionLarge(selectedItemId);
                   setFormData((prev) => ({
                     ...prev,
-                    menuItem: item?.id ?? "",
-                    unitPrice: item?.price ? String(item.price) : "",
-                  }))
-                }
+                    menuItem: selectedItemId,
+                    unitPrice:
+                      selectedItem?.price !== undefined
+                        ? String(selectedItem.price)
+                        : "",
+                  }));
+                  setFieldError("menuItem", "");
+                  setFieldError("unitPrice", "");
+                }}
+                helperText={fieldErrors.menuItem || ""}
+                error={!!fieldErrors.menuItem}
               />
+
               <div className="rounded border border-dashed border-slate-200 p-3.5 dark:border-[#1F2226]">
                 <p className="text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
                   Attributes Loader

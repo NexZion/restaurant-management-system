@@ -22,6 +22,18 @@ class MenuItemListResource extends JsonResource
             'description' => $this->short_description,
             'price' => $this->base_price,
             'available' => $this->status === 'available' ? true : false,
+            'images' => $this->whenLoaded('images', fn() => $this->images
+                ->sortBy([
+                    ['is_primary', 'desc'],
+                    ['display_order', 'asc'],
+                ])
+                ->values()
+                ->map(fn($image) => [
+                    'id' => $image->id,
+                    'image_path' => $image->image_path,
+                    'is_primary' => $image->is_primary,
+                    'display_order' => $image->display_order,
+                ])),
         ];
     }
 }
