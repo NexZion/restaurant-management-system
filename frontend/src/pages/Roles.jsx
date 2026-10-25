@@ -213,6 +213,7 @@ export const Roles = () => {
                 <div className="flex flex-col gap-4 py-2">
                     <TextField
                         label="Role Name"
+                        floatLabel={true}
                         required
                         fullWidth
                         value={formData.name}

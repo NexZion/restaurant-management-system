@@ -21,12 +21,13 @@ class UpdateBranchRequest extends FormRequest
      */
     public function rules(): array
     {
-        $branchId = $this->route('id');
+        $branch = $this->route('branch') ?? $this->route('id');
+        $branchId = is_numeric($branch) ? $branch : ($branch?->id ?? $branch);
 
         return [
-            'code' => 'nullable|string|max:50|unique:branches,code,' . $branchId,
+            'code' => 'required|string|max:50|unique:branches,code,' . $branchId . ',id,deleted_at,NULL',
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:branches,slug,' . $branchId,
+            'slug' => 'nullable|string|max:255|unique:branches,slug,' . $branchId . ',id,deleted_at,NULL',
             'address_line1' => 'required|string|max:255',
             'address_line2' => 'nullable|string|max:255',
             'city' => 'required|string|max:100',
@@ -38,10 +39,15 @@ class UpdateBranchRequest extends FormRequest
             'phone' => 'required|string|max:20',
             'email' => 'nullable|email|max:255',
             'whatsapp' => 'nullable|string|max:20',
+            'manager_name' => 'nullable|string|max:255',
+            'contact_person_phone' => 'nullable|string|max:20',
+            'opening_time' => 'nullable',
+            'closing_time' => 'nullable',
             'branch_type' => 'nullable|in:restaurant,hotel,cafe,resort',
             'has_dining' => 'nullable|boolean',
             'has_rooms' => 'nullable|boolean',
-            'has_delivery' => 'nullable|boolean'
+            'has_delivery' => 'nullable|boolean',
+            'status' => 'nullable|in:active,inactive',
         ];
     }
 
@@ -53,14 +59,16 @@ class UpdateBranchRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'code.required' => 'Branch code is required',
             'code.unique' => 'This branch code already exists',
             'name.required' => 'Branch name is required',
             'slug.unique' => 'This branch slug already exists',
             'address_line1.required' => 'Address line 1 is required',
             'city.required' => 'City is required',
             'phone.required' => 'Phone number is required',
+            'email.email' => 'Please provide a valid email address',
             'latitude.between' => 'Latitude must be between -90 and 90',
-            'longitude.between' => 'Longitude must be between -180 and 180'
+            'longitude.between' => 'Longitude must be between -180 and 180',
         ];
     }
 }
