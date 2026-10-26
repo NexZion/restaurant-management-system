@@ -14,8 +14,10 @@ import {
   PhoneField,
 } from "../../components/DataFields";
 import { Table } from "../../components/Tables";
+import { ActionMenu } from "../../components/ActionMenu";
 import { Accordion } from "../../components/Accordion";
 import { Dialog } from "../../components/Popups";
+import { Chip } from "../../components/Chip";
 import api from "../../axiosClient";
 import { getStoredUser } from "../../utils/authStorage";
 import { storageUrl } from "../../utils/storageUrl";
@@ -111,7 +113,7 @@ export const Orders = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortDirection, setSortDirection] = useState("desc");
   const [filters, setFilters] = useState({
     date: "",
     status: "all",
@@ -169,6 +171,7 @@ export const Orders = () => {
         date: formatDate(order.created_at),
         rawDate: String(order.created_at || ""),
         status: formatText(order.status),
+        statusChip: <Chip status={order.status || "draft"} size="small" />,
         payment: formatText(order.payment_status || "unpaid"),
         netTotal: formatMoney(order.grand_total),
         total: formatMoney(order.subtotal),
@@ -295,12 +298,10 @@ export const Orders = () => {
     });
 
     return [...list].sort((a, b) => {
-      const left = (a.orderNo || "").toLowerCase();
-      const right = (b.orderNo || "").toLowerCase();
+      const left = Date.parse(a.rawDate) || 0;
+      const right = Date.parse(b.rawDate) || 0;
 
-      if (left < right) return sortDirection === "asc" ? -1 : 1;
-      if (left > right) return sortDirection === "asc" ? 1 : -1;
-      return 0;
+      return sortDirection === "asc" ? left - right : right - left;
     });
   }, [filters, orders, sortDirection]);
 
@@ -644,7 +645,7 @@ export const Orders = () => {
     }));
   };
 
-  const handleSubmitOrder = async () => {
+  const handleSubmitOrder = async (status = "confirmed") => {
     console.log("===== handleSubmitOrder called =====");
     //if (!validateSubmit()) return;
     const isValid = validateSubmit();
@@ -689,7 +690,7 @@ export const Orders = () => {
         formData.tableNumber && /^\d+$/.test(String(formData.tableNumber))
           ? Number(formData.tableNumber)
           : null,
-      status: formData.status,
+      status,
       customer_note: formData.CustomerNotes,
       internal_note: formData.InternalNotes,
       items: orderItems.map((item) => ({
@@ -773,10 +774,52 @@ export const Orders = () => {
     }
   };
 
+  const updateOrder = async (row, updates = {}) => {
+    try {
+      const response = await api.get(`/orders/${row.id}`);
+      const order = response.data.data;
+
+      await api.put(`/orders/${row.id}`, {
+        branch_id: order.branch_id,
+        table_id: order.table_id,
+        customer_id: order.customer_id,
+        assigned_by: order.assigned_by,
+        order_type: order.order_type,
+        status: updates.status || order.status,
+        payment_status: updates.payment_status || order.payment_status || "unpaid",
+        customer_note: order.customer_note,
+        internal_note: order.internal_note,
+        grand_total: order.grand_total,
+        paid_total: updates.paid_total ?? order.paid_total ?? 0,
+        balance_due: updates.balance_due ?? order.balance_due ?? 0,
+      });
+      fetchOrders();
+    } catch (error) {
+      console.error("Failed to update order:", error);
+      window.alert(error.response?.data?.message || "Unable to update order.");
+    }
+  };
+
+  const handleCancelOrder = async (row) => {
+    if (!window.confirm(`Cancel order ${row.orderNo || ""}?`)) return;
+    await updateOrder(row, { status: "cancelled" });
+  };
+
+  const handlePayOrder = async (row) => {
+    if (!window.confirm(`Mark order ${row.orderNo || ""} as paid?`)) return;
+    const response = await api.get(`/orders/${row.id}`);
+    const order = response.data.data;
+    await updateOrder(row, {
+      payment_status: "paid",
+      paid_total: order.grand_total,
+      balance_due: 0,
+    });
+  };
+
   const status = [
     { value: "all", label: "All Statuses" },
-    { value: "pending", label: "Pending" },
-    { value: "accepted", label: "Accepted" },
+    { value: "draft", label: "Draft" },
+    { value: "confirmed", label: "Confirmed" },
     { value: "preparing", label: "Preparing" },
     { value: "ready", label: "Ready" },
     { value: "served", label: "Served" },
@@ -851,7 +894,7 @@ export const Orders = () => {
     { key: "orderNo", label: "Order No", sortable: true },
     { key: "customer", label: "Customer", sortable: true },
     { key: "date", label: "Date", sortable: true },
-    { key: "status", label: "Status" },
+    { key: "statusChip", label: "Status" },
     { key: "payment", label: "Payment" },
     { key: "total", label: "Total" },
     { key: "netTotal", label: "Net Total" },
@@ -1035,29 +1078,46 @@ export const Orders = () => {
                   d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"
                 />
               </svg>
-              {sortDirection === "asc" ? "Sort A-Z" : "Sort Z-A"}
+              {sortDirection === "desc" ? "Newest first" : "Oldest first"}
             </button>,
           ]}
           pagination={true}
-          actions={[
+          actionsAlign="right"
+          showActionsHeader={false}
+          actions={(row) => [
             {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
+              label: "Order actions",
+              render: () => (
+                <ActionMenu
+                  label={`Actions for ${row.orderNo || "order"}`}
+                  items={[
+                    { label: "View order", onClick: () => handleViewOrder(row) },
+                    { label: "Change items", onClick: () => handleEditOrder(row) },
+                    {
+                      label: "Cancel order",
+                      variant: "danger",
+                      onClick: () => handleCancelOrder(row),
+                    },
+                    { label: "Pay for payment", onClick: () => handlePayOrder(row) },
+                  ].filter((item) => {
+                    const orderStatus = String(row.rawStatus || "").toLowerCase();
+
+                    if (orderStatus === "draft") {
+                      return ["View order", "Cancel order"].includes(item.label);
+                    }
+
+                    if (orderStatus === "confirmed") {
+                      return ["View order", "Change items", "Pay for payment"].includes(item.label);
+                    }
+
+                    if (orderStatus === "cancelled") {
+                      return item.label === "View order";
+                    }
+
+                    return ["View order", "Pay for payment"].includes(item.label);
+                  })}
+                />
               ),
-              label: "Edit",
-              onClick: handleEditOrder,
             },
             {
               icon: (
@@ -1103,7 +1163,7 @@ export const Orders = () => {
               label: "View",
               onClick: handleViewOrder,
             },
-          ]}
+          ].slice(0, 1)}
         />
       </div>
 
@@ -1117,11 +1177,13 @@ export const Orders = () => {
         }
         secondaryButtonText="Cancel"
         thirdButtonText="Draft"
+        showThirdButton={true}
         primaryButtonDisabled={isSubmitting}
         secondaryButtonDisabled={isSubmitting}
         thirdButtonDisabled={isSubmitting}
         onPrimaryButtonClick={handleSubmitOrder}
         onSecondaryButtonClick={handleCloseAddOrder}
+        onThirdButtonClick={() => handleSubmitOrder("draft")}
       >
         <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
 
@@ -1354,9 +1416,9 @@ export const Orders = () => {
               </div>
             </div>
           </div>
+        </div>
 
-
-
+        <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
 
           <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
             <div className="mb-3 flex items-center justify-between gap-2.5">
@@ -1379,81 +1441,67 @@ export const Orders = () => {
                 No menu items added yet.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full border-separate border-spacing-y-2 text-sm">
-                  <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-[#8A8F98]">
-                      <th className="px-2 py-1">Item</th>
-                      <th className="px-2 py-1">Quantity</th>
-                      <th className="px-2 py-1">Unit Price</th>
-                      <th className="px-2 py-1">Total Price</th>
-                      <th className="px-2 py-1">Discount / Unit</th>
-                      <th className="px-2 py-1">Net Price</th>
-                      <th className="px-2 py-1 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orderItems.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="rounded-lg bg-white text-gray-900 shadow-sm dark:bg-[#121314] dark:text-[#F7F8F8]"
+              <Table
+                columns={[
+                  { key: "item", label: "Item" },
+                  { key: "quantity", label: "Quantity" },
+                  { key: "unitPrice", label: "Unit Price" },
+                  { key: "totalPrice", label: "Total Price" },
+                  { key: "discount", label: "Discount / Unit" },
+                  { key: "netPrice", label: "Net Price" },
+                ]}
+                data={orderItems.map((item) => ({
+                  id: item.id,
+                  item: (
+                    <div className="flex items-center gap-2.5">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-10 w-10 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
+                          {item.name?.slice(0, 2)?.toUpperCase() || "IT"}
+                        </div>
+                      )}
+                      <span className="font-semibold">{item.name}</span>
+                    </div>
+                  ),
+                  quantity: item.quantity,
+                  unitPrice: formatMoney(item.unitPrice),
+                  totalPrice: formatMoney(item.totalPrice),
+                  discount: formatMoney(item.discountAppliedPerUnit),
+                  netPrice: formatMoney(item.netPrice),
+                }))}
+                pagination={false}
+                actionsAlign="right"
+                actions={() => [
+                  {
+                    label: "Remove item",
+                    onClick: (item) => handleRemoveOrderItem(item.id),
+                    icon: (
+                      <svg
+                        className="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <td className="rounded-l-lg px-2 py-1.5">
-                          <div className="flex items-center gap-2.5">
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-10 w-10 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
-                                {item.name
-                                  ?.slice(0, 2)
-                                  ?.toUpperCase() || "IT"}
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-semibold">
-                                {item.name}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                          {item.quantity}
-                        </td>
-                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                          {formatMoney(item.unitPrice)}
-                        </td>
-                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                          {formatMoney(item.totalPrice)}
-                        </td>
-                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                          {formatMoney(item.discountAppliedPerUnit)}
-                        </td>
-                        <td className="px-2 py-1.5 text-gray-700 dark:text-[#D0D6E0]">
-                          {formatMoney(item.netPrice)}
-                        </td>
-                        <td className="rounded-r-lg px-2 py-1.5 text-right">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleRemoveOrderItem(item.id)
-                            }
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-lg font-semibold text-red-600 transition-colors hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
-                            aria-label="Remove item"
-                          >
-                            ×
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    ),
+                  },
+                ]}
+              />
             )}
           </div>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
           <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
 
             <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3 text-sm dark:border-[#1F2226]">
@@ -1808,7 +1856,29 @@ export const Orders = () => {
         onClose={() => setShowViewOrder(false)}
         title="Order Details"
         size="medium"
-        showFooter={false}
+        showFooter={viewOrder?.status === "draft"}
+        primaryButtonText="Confirm"
+        secondaryButtonText="Cancel"
+        onPrimaryButtonClick={async () => {
+          await updateOrder(viewOrder, { status: "confirmed" });
+          setShowViewOrder(false);
+        }}
+        onSecondaryButtonClick={async () => {
+          if (!window.confirm("Cancel and delete this draft order?")) return;
+
+          try {
+            await api.delete(`/orders/${viewOrder.id}`);
+            setShowViewOrder(false);
+            setViewOrder(null);
+            fetchOrders();
+          } catch (error) {
+            console.error("Failed to delete draft order:", error);
+            window.alert(
+              error.response?.data?.message ||
+              "Unable to cancel draft order.",
+            );
+          }
+        }}
       >
         {viewOrder && (
           <div className="space-y-5">
