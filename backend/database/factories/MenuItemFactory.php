@@ -2,10 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Branch;
 use App\Models\MenuCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 class MenuItemFactory extends Factory
 {
@@ -30,23 +28,19 @@ class MenuItemFactory extends Factory
 
             'name' => $name,
 
-            'slug' => Str::slug($name . '-' . fake()->unique()->numberBetween(1, 9999)),
-
-            'short_description' => fake()->sentence(),
-
-            'long_description' => fake()->paragraph(),
+            'description' => fake()->paragraph(),
 
             'base_price' => fake()->randomFloat(2, 500, 5000),
+
+            'base_cost' => fake()->randomFloat(2, 100, 2500),
 
             'preparation_time' => fake()->numberBetween(5, 30),
 
             'display_order' => fake()->numberBetween(1, 20),
 
-            'status' => fake()->randomElement([
-                'available',
-                'unavailable',
-                'out_of_stock'
-            ])
+            'is_active' => true,
+
+            'is_available' => fake()->boolean(90),
         ];
     }
 }

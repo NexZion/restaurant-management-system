@@ -76,15 +76,7 @@ class OrderController extends Controller
             ]));
 
             foreach ($orderItems as $itemPayload) {
-                $order->items()->create([
-                    'menu_item_id' => $itemPayload['menu_item_id'],
-                    'quantity' => $itemPayload['quantity'],
-                    'unit_price' => $itemPayload['unit_price'],
-                    'discount' => $itemPayload['discount'] ?? 0,
-                    'total_price' => $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']),
-                    'notes' => $itemPayload['notes'] ?? null,
-                    'status' => 'pending',
-                ]);
+                $order->items()->create($itemPayload);
             }
 
             return $order;
