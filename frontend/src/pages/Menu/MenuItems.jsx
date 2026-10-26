@@ -162,18 +162,18 @@ export const MenuItems = () => {
       ...current,
       variant_option_assignments: checked
         ? [
-          ...current.variant_option_assignments,
-          {
-            variant_option_id: option.id,
-            additional_price: String(option.default_additional_price ?? 0),
-            is_default: false,
-            is_active: true,
-            display_order: String(option.display_order ?? 0),
-          },
-        ]
+            ...current.variant_option_assignments,
+            {
+              variant_option_id: option.id,
+              additional_price: String(option.default_additional_price ?? 0),
+              is_default: false,
+              is_active: true,
+              display_order: String(option.display_order ?? 0),
+            },
+          ]
         : current.variant_option_assignments.filter(
-          (assignment) => assignment.variant_option_id !== option.id,
-        ),
+            (assignment) => assignment.variant_option_id !== option.id,
+          ),
     }));
   };
 
