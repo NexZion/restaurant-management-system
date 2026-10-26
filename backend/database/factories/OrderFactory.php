@@ -13,7 +13,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         $orderType = fake()->randomElement([
-            'dining',
+            'dine_in',
             'takeaway',
             'delivery',
         ]);
@@ -29,13 +29,13 @@ class OrderFactory extends Factory
 
             'created_by' => User::factory(),
 
-            'waiter_id' => fake()->boolean(50) ? User::factory() : null,
+            'assigned_by' => fake()->boolean(50) ? User::factory() : null,
 
             'order_type' => $orderType,
 
             'status' => fake()->randomElement([
-                'pending',
-                'accepted',
+                'draft',
+                'confirmed',
                 'preparing',
                 'ready',
                 'served',
@@ -43,9 +43,17 @@ class OrderFactory extends Factory
                 'cancelled',
             ]),
 
-            'is_online' => fake()->boolean(25),
-
-            'notes' => fake()->optional()->sentence(),
+            'payment_status' => 'unpaid',
+            'subtotal' => 0,
+            'discount_total' => 0,
+            'tax_total' => 0,
+            'service_charge_total' => 0,
+            'grand_total' => 0,
+            'paid_total' => 0,
+            'balance_due' => 0,
+            'customer_note' => fake()->optional()->sentence(),
+            'internal_note' => fake()->optional()->sentence(),
+            'ordered_at' => now(),
         ];
     }
 }

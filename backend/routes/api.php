@@ -86,12 +86,4 @@ Route::middleware('auth:api')->group(function () {
     Route::patch('/orders/{order}/items/{item}/status', [OrderItemController::class, 'updateStatus']);
     Route::get('/orders/{order}/items/{item}', [OrderItemController::class, 'show']);
 
-    Route::post('/orders/{order}/bill', [OrderBillController::class, 'generateBill']);
-    Route::get('/orders/{order}/bill', [OrderBillController::class, 'show']);
-    Route::delete('/orders/{order}/bill', [OrderBillController::class, 'destroy']);
-
-    Route::post('/bills/{bill}/pay', [PaymentController::class, 'pay']);
-    Route::get('/bills/{bill}/payment', [PaymentController::class, 'show']);
-    Route::put('/bills/{bill}/payment', [PaymentController::class, 'update']);
-    Route::delete('/bills/{bill}/payment', [PaymentController::class, 'destroy']);
 });

@@ -51,25 +51,18 @@ export const Users = () => {
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
-  const [isFormRole, setIsFormRole] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [showViewUser, setShowViewUser] = useState(false);
   const [viewUser, setViewUser] = useState(null);
+  const [deleteUserCandidate, setDeleteUserCandidate] = useState(null);
 
   const status = [
     { value: "active", label: "Active" },
     { value: "inactive", label: "Inactive" },
     { value: "blocked", label: "Blocked" },
   ];
-
-  const accessLevels = [
-    { value: "1", label: "1" },
-    { value: "2", label: "2" },
-    { value: "3", label: "3" },
-    { value: "4", label: "4" },
-    { value: "5", label: "5" },
-  ];
+  const filterStatus = [{ value: "", label: "All Status" }, ...status];
 
   const columns = [
     { key: "profileImage", label: "Image" },
@@ -94,17 +87,10 @@ export const Users = () => {
   useEffect(() => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
-      const formattedRoles = !isFormRole
-        ? [{ value: "0", label: "All Roles" }]
-        : "";
-      formattedRoles.push(
-        ...rolesData.map((role) => ({
+      const formattedRoles = rolesData.map((role) => ({
           value: role.id,
           label: role.name,
-        })),
-      );
-
-      console.log(formattedRoles);
+        }));
       setRoles(formattedRoles);
     });
   }, []);
@@ -112,7 +98,6 @@ export const Users = () => {
   useEffect(() => {
     api.get("/branches").then((response) => {
       const branchesData = response.data.data.data;
-      console.log(branchesData);
       const formattedBranches = branchesData.map((branch) => ({
         value: branch.id,
         label: branch.name,
@@ -121,10 +106,13 @@ export const Users = () => {
     });
   }, []);
 
+  const filterRoles = [{ value: "", label: "All Roles" }, ...roles];
+  const filterBranches = [{ value: "", label: "All Branches" }, ...branches];
+
   const [filters, setFilters] = useState({
     role: "",
     branch: "",
-    status: "",
+    status: "active",
   });
 
   useEffect(() => {
@@ -135,11 +123,7 @@ export const Users = () => {
     setIsUsersLoading(true);
     try {
       const response = await api.get("/users", {
-        // params: {
-        //   role: filters.role,
-        //   branch: filters.branch,
-        //   status: filters.status,
-        // },
+        params: filters,
       });
 
       const usersData = response.data.data.map((user) => {
@@ -210,7 +194,6 @@ export const Users = () => {
         roleOption: user.role_id || "",
         branchOption: user.branch_id || "",
         statusOption: (user.status || "active").toLowerCase(),
-        accessLevel: user.accessLevel || "5",
         uploadedImage: user.image || user.profileImage || null,
       });
 
@@ -238,12 +221,18 @@ export const Users = () => {
   };
 
   const handleRoleChange = (value) => {
-    setFormData({ ...formData, roleOption: value });
+    const selectedRole = roles
+      .find((role) => String(role.value) === String(value))
+      ?.label?.toLowerCase();
+    const shouldKeepPin = pinRoles.includes(selectedRole);
 
-    setFormData({ ...formData, password: "", confirmPassword: "" });
-    if (!pinRoles.includes(selectedRoleName)) {
-      setFormData({ ...formData, pin: "", confirmPin: "" });
-    }
+    setFormData((prev) => ({
+      ...prev,
+      roleOption: value,
+      password: "",
+      confirmPassword: "",
+      ...(shouldKeepPin ? {} : { pin: "", confirmPin: "" }),
+    }));
 
     setFieldErrors((prev) => {
       const next = { ...prev };
@@ -347,13 +336,11 @@ export const Users = () => {
       roleOption: "",
       branchOption: "",
       statusOption: "active",
-      accessLevel: "5",
     });
     setFieldErrors({});
   };
 
   const handleCloseAddUser = () => {
-    setIsFormRole(false);
     resetAddUserForm();
     setShowAddUser(false);
     setIsEditMode(false);
@@ -427,16 +414,18 @@ export const Users = () => {
     }
   };
 
-  const handleDeleteUser = async (row) => {
+  const handleDeleteUser = (row) => {
+    setDeleteUserCandidate(row);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteUserCandidate) return;
+
     try {
-      await api.delete(`/users/${row.id}`);
+      await api.delete(`/users/${deleteUserCandidate.id}`);
 
-      //      const user = response.data.data;
-
-      // Refresh the table
       fetchUsers();
-
-      console.log("User deleted successfully.");
+      setDeleteUserCandidate(null);
     } catch (error) {
       console.error("Failed to delete user:", error);
     }
@@ -496,10 +485,7 @@ export const Users = () => {
 
         <Button
           variant="primary"
-          onClick={() => {
-            setIsFormRole(true);
-            setShowAddUser(true);
-          }}
+          onClick={() => setShowAddUser(true)}
           startIcon={
             <svg
               className="w-4 h-4"
@@ -566,14 +552,6 @@ export const Users = () => {
                 onChange={(e) => handleUsernameChange(e.target.value)}
                 helperText={fieldErrors.username || ""}
                 error={!!fieldErrors.username}
-              />
-              <SelectField
-                label="Access Level"
-                value={formData.accessLevel}
-                options={accessLevels}
-                onChange={(e) => {
-                  setFormData({ ...formData, accessLevel: e.target.value });
-                }}
               />
               <TextField
                 required
@@ -782,11 +760,13 @@ export const Users = () => {
           {
             title: "Additional Search",
             content: (
-              <div className="grid grid-cols-3 gap-4 w-full">
+              <div className="grid grid-cols-1 items-end gap-3.5 w-full md:grid-cols-7">
                 <SelectField
                   label="Roles"
+                  className="md:col-span-2"
                   value={filters.role}
-                  options={roles}
+                  options={filterRoles}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -796,8 +776,10 @@ export const Users = () => {
                 />
                 <SelectField
                   label="Branch"
+                  className="md:col-span-2"
                   value={filters.branch}
-                  options={branches}
+                  options={filterBranches}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -807,8 +789,10 @@ export const Users = () => {
                 />
                 <SelectField
                   label="Status"
+                  className="md:col-span-2"
                   value={filters.status}
-                  options={status}
+                  options={filterStatus}
+                  fullWidth={true}
                   onChange={(e) =>
                     setFilters((prev) => ({
                       ...prev,
@@ -816,6 +800,19 @@ export const Users = () => {
                     }))
                   }
                 />
+                <Button
+                  variant="secondary"
+                  width="100%"
+                  onClick={() =>
+                    setFilters({
+                      role: "",
+                      branch: "",
+                      status: "",
+                    })
+                  }
+                >
+                  Clear filters
+                </Button>
               </div>
             ),
           },
@@ -849,6 +846,9 @@ export const Users = () => {
                     {
                       label: "Delete user",
                       variant: "danger",
+                      disabled:
+                        Number(row.roleAccessLevel) === 5 ||
+                        row.role?.toLowerCase?.() === "admin",
                       onClick: () => handleDeleteUser(row),
                     },
                   ]}
@@ -915,6 +915,26 @@ export const Users = () => {
             ]}
           />
         )}
+      </Dialog>
+      <Dialog
+        isOpen={Boolean(deleteUserCandidate)}
+        onClose={() => setDeleteUserCandidate(null)}
+        title="Delete User"
+        size="small"
+        primaryButtonText="Delete"
+        secondaryButtonText="Cancel"
+        onPrimaryButtonClick={confirmDeleteUser}
+        onSecondaryButtonClick={() => setDeleteUserCandidate(null)}
+      >
+        <p className="text-sm text-slate-600 dark:text-[#D0D6E0]">
+          Are you sure you want to delete{" "}
+          <strong>
+            {deleteUserCandidate?.fullname ||
+              deleteUserCandidate?.username ||
+              "this user"}
+          </strong>
+          ?
+        </p>
       </Dialog>
     </div>
   );

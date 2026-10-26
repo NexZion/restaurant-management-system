@@ -867,7 +867,9 @@ export const SelectField = ({
   const allOptionsSelected = options.length > 0 && options.every((option) => valueArray.includes(option.value));
 
   // Check if label should float
-  const hasValue = multiple ? valueArray.length > 0 : Boolean(value);
+  const hasValue = multiple
+    ? valueArray.length > 0
+    : Boolean(value) || Boolean(selectedOption);
 
   const handleSelect = (optionValue) => {
     if (multiple) {
