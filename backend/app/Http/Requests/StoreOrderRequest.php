@@ -17,7 +17,7 @@ class StoreOrderRequest extends FormRequest
 {
     return [
 
-        'branch_id' => 'nullable|exists:branches,id',
+        'branch_id' => 'required|exists:branches,id',
 
         'order_number' => [
             'nullable',

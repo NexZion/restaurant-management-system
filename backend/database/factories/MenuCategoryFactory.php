@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class MenuCategoryFactory extends Factory
@@ -22,16 +21,15 @@ class MenuCategoryFactory extends Factory
                 'Breakfast'
             ]),
 
+            'code' => 'CAT-' . strtoupper(fake()->unique()->bothify('###??')),
+
             'description' => fake()->sentence(),
 
-            'image' => fake()->imageUrl(),
+            'image_path' => fake()->imageUrl(),
 
             'display_order' => fake()->numberBetween(1, 20),
 
-            'status' => fake()->randomElement([
-                'active',
-                'inactive'
-            ])
+            'is_active' => true,
         ];
     }
 }

@@ -13,16 +13,17 @@ class MenuCategory extends Model
     protected $fillable = [
 
         'name',
-
+        'code',
         'description',
-
-        'image',
-
+        'image_path',
         'display_order',
-
-        'status'
+        'is_active',
     ];
 
+    protected $casts = [
+        'display_order' => 'integer',
+        'is_active' => 'boolean',
+    ];
 
     public function menuItems()
     {

@@ -18,23 +18,35 @@ class StoreMenuItemRequest extends FormRequest
         
             'menu_category_id' => 'required|exists:menu_categories,id',
 
-            'sku' => 'required|string|max:50|unique:menu_items,sku',
+            'sku' => 'required|string|max:80|unique:menu_items,sku',
 
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:200',
 
-            'slug' => 'required|string|max:255|unique:menu_items,slug',
-
-            'short_description' => 'nullable|string|max:255',
-
-            'long_description' => 'nullable|string',
+            'description' => 'nullable|string',
 
             'base_price' => 'required|numeric|min:0',
 
-            'preparation_time' => 'required|integer|min:1',
+            'base_cost' => 'required|numeric|min:0',
+
+            'preparation_time' => 'nullable|integer|min:0|max:65535',
+
+            'is_active' => 'required|boolean',
+            'is_available' => 'required|boolean',
 
             'display_order' => 'nullable|integer|min:0',
 
-            'status' => 'required|in:available,unavailable,out_of_stock'
+            'branch_assignments' => 'required|array|min:1',
+            'branch_assignments.*.branch_id' => 'required|integer|distinct|exists:branches,id',
+            'branch_assignments.*.selling_price' => 'nullable|numeric|min:0',
+            'branch_assignments.*.is_active' => 'required|boolean',
+            'branch_assignments.*.is_available' => 'required|boolean',
+            'branch_assignments.*.display_order' => 'sometimes|integer|min:0',
+            'variant_option_assignments' => 'sometimes|array',
+            'variant_option_assignments.*.variant_option_id' => 'required|integer|distinct|exists:variant_options,id',
+            'variant_option_assignments.*.additional_price' => 'required|numeric|min:0',
+            'variant_option_assignments.*.is_default' => 'required|boolean',
+            'variant_option_assignments.*.is_active' => 'required|boolean',
+            'variant_option_assignments.*.display_order' => 'required|integer|min:0',
         ];
     }
 }
