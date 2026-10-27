@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Http\Requests\UserIndexRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Branch;
@@ -18,7 +19,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(UserIndexRequest $request)
     {
         $user = $request->user();
 
@@ -36,12 +37,18 @@ class UserController extends Controller
             ], 403);
         }
 
-        $users = User::with(['role', 'branch'])->get();            
+        $filters = $request->validated();
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortDirection = $filters['sort_direction'] ?? 'desc';
 
-        return response()->json([
-            'success' => true,
-            'data' => $users
-        ]);
+        $users = User::with(['role', 'branch'])
+            ->applyFilters($filters)
+            ->orderBy($sortBy, $sortDirection)
+            ->orderByDesc('id')
+            ->paginate($filters['per_page'] ?? 70)
+            ->withQueryString();
+
+        return response()->json($users);
     }
 
     /**
@@ -57,7 +64,7 @@ class UserController extends Controller
                 'message' => 'Please login first'
             ], 401);
         }
-    
+
 
         if ($user->role->access_level != 100) {
             return response()->json([
@@ -148,7 +155,7 @@ class UserController extends Controller
             ], 404);
         }
 
-        $data= $request->validated();
+        $data = $request->validated();
         $oldImage = null;
 
         if ($request->hasFile('image')) {
@@ -203,6 +210,17 @@ class UserController extends Controller
                 'success' => false,
                 'message' => 'User not found'
             ], 404);
+        }
+
+        $isProtectedUser =
+            (int) $selectedUser->role->access_level === 5 ||
+            strtolower($selectedUser->role->name) === 'admin';
+
+        if ($isProtectedUser) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Level 5 and admin users cannot be deleted'
+            ], 403);
         }
 
         $selectedUser->status = 'inactive';

@@ -17,7 +17,10 @@ class UpdateMenuItemImageRequest extends FormRequest
 
             'menu_item_id' => 'required|exists:menu_items,id',
 
-            'image_path' => 'required|string|max:255',
+            'image_path' => 'sometimes|required_without:image|nullable|string|max:500',
+            'image' => 'sometimes|required_without:image_path|nullable|image|max:5120',
+
+            'alt_text' => 'nullable|string|max:255',
 
             'is_primary' => 'nullable|boolean',
 

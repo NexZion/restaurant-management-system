@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
 
@@ -17,11 +16,24 @@ class Order extends Model
         'table_id',
         'customer_id',
         'created_by',
-        'waiter_id',
+        'assigned_by',
         'order_type',
         'status',
-        'is_online',
-        'notes'
+        'payment_status',
+        'subtotal',
+        'discount_total',
+        'tax_total',
+        'service_charge_total',
+        'grand_total',
+        'paid_total',
+        'balance_due',
+        'customer_note',
+        'internal_note',
+        'ordered_at',
+        'confirmed_at',
+        'completed_at',
+        'cancelled_at',
+        'cancellation_reason',
     ];
 
     public function branch()
@@ -50,20 +62,16 @@ class Order extends Model
         );
     }
 
-    public function waiter()
+    public function assignedBy()
     {
         return $this->belongsTo(
             User::class,
-            'waiter_id'
+            'assigned_by'
         );
     }
 
     public function items()
     {
         return $this->hasMany(OrderItem::class);
-    }
-    public function bill()
-    {
-        return $this->hasOne(OrderBill::class);
     }
 }

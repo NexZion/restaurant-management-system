@@ -98,6 +98,7 @@ export const TextField = ({
 
         {/* Input */}
         <input
+          style={{ fontSize: "13px" }}
           type={inputType}
           value={value}
           onChange={onChange}
@@ -109,7 +110,7 @@ export const TextField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full text-sm
+            w-full text-xs
             ${label ? "py-3" : "py-2"}
             ${isPasswordField && showPasswordToggle ? "px-2.5 pr-10" : "px-2.5"}
             bg-white dark:bg-[#121314]
@@ -148,6 +149,7 @@ export const ImageUploadField = ({
   showRemove = true,
   avatarSize = 96, // px
   uploadButtonLabel = "Change",
+  className = "",
   placeholderIcon = (
     <svg
       className="w-12 h-12 text-gray-300"
@@ -196,7 +198,7 @@ export const ImageUploadField = ({
 
   return (
     <div
-      className={`flex flex-col gap-2 items-center ${fullWidth ? "w-full" : ""}`}
+      className={`flex flex-col gap-2 items-center ${fullWidth ? "w-full" : ""} ${className}`}
     >
       {label && (
         <label
@@ -282,6 +284,109 @@ export const ImageUploadField = ({
   );
 };
 
+export const ImageListField = ({
+  label = "Images",
+  value = [],
+  onChange,
+  accept = "image/*",
+  maxImages = 10,
+  disabled = false,
+  error = false,
+  helperText = "",
+  addLabel = "Add images",
+  className = "",
+}) => {
+  const inputRef = useRef(null);
+  const [previewUrls, setPreviewUrls] = useState({});
+
+  useEffect(() => {
+    const createdUrls = [];
+    const previews = {};
+    value.forEach((entry, index) => {
+      const image = entry?.image ?? entry;
+      if (image instanceof Blob) {
+        previews[index] = URL.createObjectURL(image);
+        createdUrls.push(previews[index]);
+      } else if (typeof image === "string") {
+        previews[index] = /^(https?:|blob:|data:)/i.test(image) ? image : storageUrl(image);
+      }
+    });
+    setPreviewUrls(previews);
+    return () => createdUrls.forEach((url) => URL.revokeObjectURL(url));
+  }, [value]);
+
+  const addImages = (files) => {
+    const remaining = Math.max(0, maxImages - value.length);
+    const additions = Array.from(files).slice(0, remaining);
+    if (additions.length) onChange?.([...value, ...additions]);
+    if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const removeImage = (removeIndex) => {
+    onChange?.(value.filter((_, index) => index !== removeIndex));
+  };
+
+  return (
+    <div className={`flex w-full flex-col gap-2 ${className}`}>
+      <div className="flex items-center justify-between gap-3">
+        {label && <span className={`text-sm font-medium ${error ? "text-red-500" : "text-slate-800 dark:text-[#D0D6E0]"}`}>{label}</span>}
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={disabled || value.length >= maxImages}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#30343A] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
+        >
+          {addLabel}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          multiple
+          disabled={disabled || value.length >= maxImages}
+          className="hidden"
+          onChange={(event) => addImages(event.target.files ?? [])}
+        />
+      </div>
+
+      {value.length > 0 ? (
+        <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-[#1F2226] dark:border-[#1F2226]">
+          {value.map((entry, index) => {
+            const image = entry?.image ?? entry;
+            const name = image instanceof File ? image.name : (entry?.name || String(image).split("/").pop());
+            return (
+              <li key={`${name}-${index}`} className="flex items-center gap-3 p-2.5">
+                {previewUrls[index] ? (
+                  <img src={previewUrls[index]} alt={entry?.alt_text || name || `Image ${index + 1}`} className="h-12 w-12 rounded-md border border-slate-200 object-cover dark:border-[#30343A]" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-slate-100 text-slate-400 dark:bg-[#1A1C20] dark:text-[#8A8F98]" aria-hidden="true">IMG</div>
+                )}
+                <span className="min-w-0 flex-1 truncate text-sm text-slate-700 dark:text-[#D0D6E0]">{name || `Image ${index + 1}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  disabled={disabled}
+                  aria-label={`Remove ${name || `image ${index + 1}`}`}
+                  className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                >
+                  Remove
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <div className={`rounded-lg border border-dashed px-4 py-6 text-center text-sm ${error ? "border-red-400 text-red-500" : "border-slate-300 text-slate-500 dark:border-[#30343A] dark:text-[#8A8F98]"}`}>
+          No images added yet.
+        </div>
+      )}
+
+      {helperText && <span className={`text-xs ${error ? "text-red-500" : "text-slate-500 dark:text-[#8A8F98]"}`}>{helperText}</span>}
+      <span className="text-right text-xs text-slate-400 dark:text-[#62666D]">{value.length} / {maxImages}</span>
+    </div>
+  );
+};
+
 // ─── ImageGridUploadField ─────────────────────────────────────────────────────
 // Rectangular (non-round) single-image upload field designed for use inside
 // image grids. Shows a thumbnail preview, hover overlay to change, and a
@@ -297,7 +402,9 @@ export const ImageGridUploadField = ({
   fullWidth = false,
   accept = "image/jpeg,image/png,image/jpg,image/gif,image/webp",
   aspectRatio = "4/3", // CSS aspect-ratio string, e.g. '1/1', '16/9'
+  imageFit = "cover",
   showRemove = true,
+  className = "",
 }) => {
   const inputRef = useRef(null);
   const BASE_URL = import.meta.env.VITE_API_URL + "/storage/";
@@ -323,7 +430,7 @@ export const ImageGridUploadField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       {label && (
         <label
           className={`text-xs font-medium ${error ? "text-red-500" : "text-gray-600 dark:text-[#8A8F98]"}`}
@@ -345,7 +452,7 @@ export const ImageGridUploadField = ({
           <img
             src={previewUrl}
             alt=""
-            className="w-full h-full object-cover"
+            className={`h-full w-full ${imageFit === "contain" ? "object-contain" : "object-cover"}`}
             onError={(e) => {
               e.target.style.display = "none";
             }}
@@ -445,6 +552,7 @@ export const NumberField = ({
   step = 1,
   decimals,
   integerOnly = false,
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -552,7 +660,7 @@ export const NumberField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -613,6 +721,7 @@ export const NumberField = ({
         </div>
         {/* Input - Hide default spinner */}
         <input
+          style={{ fontSize: "13px" }}
           type="number"
           value={value}
           onChange={handleInputChange}
@@ -625,7 +734,7 @@ export const NumberField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={handleBlur}
           className={`
-            w-full pr-10 pl-3 text-sm
+            w-full pr-10 pl-3 text-xs
             ${label ? "py-3" : "py-2"}
             bg-white dark:bg-[#121314]
             text-slate-950 dark:text-[#F7F8F8]
@@ -667,7 +776,10 @@ export const SelectField = ({
   placeholder = "",
   searchable = false, // Enable search functionality
   multiple = false, // Enable multiple selection
+  selectAllOption = false,
+  selectAllLabel = "Select all",
   optionImageSize = "medium", // small, medium, large, xlarge
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -752,9 +864,12 @@ export const SelectField = ({
   const selectedOptions = multiple
     ? options.filter((opt) => valueArray.includes(opt.value))
     : [];
+  const allOptionsSelected = options.length > 0 && options.every((option) => valueArray.includes(option.value));
 
   // Check if label should float
-  const hasValue = multiple ? valueArray.length > 0 : Boolean(value);
+  const hasValue = multiple
+    ? valueArray.length > 0
+    : Boolean(value) || Boolean(selectedOption);
 
   const handleSelect = (optionValue) => {
     if (multiple) {
@@ -779,6 +894,14 @@ export const SelectField = ({
     e.preventDefault();
     const newValue = valueArray.filter((v) => v !== optionValue);
     onChange({ target: { value: newValue } });
+  };
+
+  const handleSelectAll = () => {
+    onChange({
+      target: {
+        value: allOptionsSelected ? [] : options.map((option) => option.value),
+      },
+    });
   };
 
   const updateDropdownPosition = () => {
@@ -824,7 +947,7 @@ export const SelectField = ({
   };
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -843,12 +966,13 @@ export const SelectField = ({
         <button
           ref={selectButtonRef}
           type="button"
+          style={{ fontSize: "13px" }}
           disabled={disabled}
           onClick={handleOpen}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-2.5 text-sm text-left flex items-center justify-between gap-2
+            w-full px-2.5 text-xs text-left flex items-center justify-between gap-2
             ${hasOptionImages ? `${selectImageHeightClass} py-1.5` : label ? "min-h-12 py-1.5" : "py-2"}
             bg-white text-slate-950 dark:bg-[#121314] dark:text-[#F7F8F8]
             outline-none
@@ -992,6 +1116,29 @@ export const SelectField = ({
 
                 {/* Options Container */}
                 <div>
+                  {multiple && selectAllOption && options.length > 0 && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={handleSelectAll}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleSelectAll();
+                        }
+                      }}
+                      className={`flex cursor-pointer items-center gap-2.5 border-b border-slate-100 px-3.5 py-2.5 text-sm font-medium transition-colors dark:border-[#1F2226] ${
+                        allOptionsSelected
+                          ? "bg-blue-50 text-blue-700 dark:bg-[#161719] dark:text-[#F7F8F8]"
+                          : "text-slate-900 hover:bg-slate-50 dark:text-[#F7F8F8] dark:hover:bg-[#1A1C20]"
+                      }`}
+                    >
+                      <div className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${allOptionsSelected ? "border-blue-600 bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"}`}>
+                        {allOptionsSelected && <span className="text-[10px] leading-none text-white">✓</span>}
+                      </div>
+                      <span className="flex-1">{selectAllLabel}</span>
+                    </div>
+                  )}
                   {filteredOptions.length === 0 ? (
                     <div className="px-3.5 py-2.5">
                       <div className="text-sm text-gray-400 dark:text-[#62666D]">
@@ -1072,6 +1219,7 @@ export const CheckboxField = ({
   helperText = "",
   name = "",
   required = false,
+  className = "",
 }) => {
   const checkboxId = `checkbox-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -1082,7 +1230,7 @@ export const CheckboxField = ({
   };
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <div className="flex items-center">
         <div className="flex items-center h-5">
           <input
@@ -1162,9 +1310,10 @@ export const RadioField = ({
   name = "",
   required = false,
   row = false, // Layout: false = vertical (default), true = horizontal
+  className = "",
 }) => {
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       {/* Group Title */}
       {label && (
         <label
@@ -1279,9 +1428,9 @@ export const Button = ({
 }) => {
   const cssSize = (value) => typeof value === "number" ? `${value}px` : value;
   const sizeStyles = {
-    small: "px-2 py-1 text-xs",
-    medium: "px-3.5 py-1.5 text-xs",
-    large: "px-3.5 py-2 text-sm",
+    small: "px-2 py-1 text-[11px]",
+    medium: "px-3.5 py-1.5 text-[9px]",
+    large: "px-3.5 py-2 text-[11px]",
     icon: "p-0 text-sm",
   };
 
@@ -1382,6 +1531,7 @@ export const TextAreaField = ({
   maxLength = null,
   showCharCount = false,
   richText = false, // Enable rich text editor
+  className = "",
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -1433,7 +1583,7 @@ export const TextAreaField = ({
 
   if (richText) {
     return (
-      <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+      <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
         <div className="relative">
           {/* Label */}
           {label && (
@@ -1600,7 +1750,7 @@ export const TextAreaField = ({
             onBlur={() => setIsFocused(false)}
             suppressContentEditableWarning
             className={`
-              w-full px-2.5 py-2 text-sm
+              w-full px-2.5 py-2 text-xs
               bg-white dark:bg-[#121314]
               text-slate-950 dark:text-[#F7F8F8]
               outline-none
@@ -1628,7 +1778,7 @@ export const TextAreaField = ({
 
   // Simple textarea
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Label */}
         {label && (
@@ -1645,6 +1795,7 @@ export const TextAreaField = ({
 
         {/* Textarea */}
         <textarea
+          style={{ fontSize: "13px" }}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -1655,7 +1806,7 @@ export const TextAreaField = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full px-2.5 text-sm
+            w-full px-2.5 text-xs
             ${label ? "pt-5 pb-2.5" : "py-2"}
             bg-white dark:bg-[#121314]
             text-slate-950 dark:text-[#F7F8F8]
@@ -1701,6 +1852,7 @@ export const ToggleSwitch = ({
   helperText = "",
   checkedColor = "#3B82F6",
   uncheckedColor = "#6B7280",
+  className = "",
 }) => {
   const sizeStyles = {
     small: {
@@ -1726,7 +1878,7 @@ export const ToggleSwitch = ({
   const currentSize = sizeStyles[size];
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col gap-2 ${className}`}>
       <div className="flex items-center gap-2.5">
         {/* Left Label */}
         {leftLabel && (
@@ -1830,6 +1982,7 @@ export const CategoryTreeField = ({
   error = false,
   helperText = "",
   required = false,
+  className = "",
 }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -2045,7 +2198,7 @@ export const CategoryTreeField = ({
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}
+      className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}
     >
       <div className="relative">
         {label && (
@@ -2063,7 +2216,7 @@ export const CategoryTreeField = ({
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className={`w-full px-2.5 text-sm text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
+          className={`w-full px-2.5 text-xs text-left flex items-center justify-between gap-2 bg-transparent border rounded transition-colors
             ${label ? "min-h-12 py-1.5" : "py-2"}
             ${
               error
@@ -2800,6 +2953,7 @@ export const PhoneField = ({
   required = false,
   fullWidth = false,
   defaultCode = "+1",
+  className = "",
 }) => {
   // ── Parse stored value into dial code + number ─────────────────────────────
   const parseValue = (v) => {
@@ -2907,7 +3061,7 @@ export const PhoneField = ({
   const hasValue = dialCode || number;
 
   return (
-    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""}`}>
+    <div className={`flex flex-col gap-1 ${fullWidth ? "w-full" : ""} ${className}`}>
       <div className="relative">
         {/* Floating label */}
         {label && (
@@ -2945,7 +3099,7 @@ export const PhoneField = ({
             onBlur={() => setIsFocused(false)}
             className={`flex h-full flex-shrink-0 items-center gap-1.5 border-r border-slate-200 px-2.5 dark:border-[#1F2226]
               ${label ? "py-3" : "py-2"}
-              bg-transparent text-sm text-slate-950 dark:text-[#F7F8F8]
+              bg-transparent text-xs text-slate-950 dark:text-[#F7F8F8]
               ${disabled ? "cursor-not-allowed" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-[#1A1C20]"}
               transition-colors rounded-l-lg
             `}
@@ -2975,6 +3129,7 @@ export const PhoneField = ({
 
           {/* Number input */}
           <input
+            style={{ fontSize: "13px" }}
             type="tel"
             value={number}
             onChange={handleNumberChange}
@@ -2983,7 +3138,7 @@ export const PhoneField = ({
             required={required}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            className={`flex-1 bg-transparent px-2.5 text-sm text-slate-950 dark:text-[#F7F8F8]
+            className={`flex-1 bg-transparent px-2.5 text-xs text-slate-950 dark:text-[#F7F8F8]
               placeholder:text-slate-400 dark:placeholder:text-[#62666D]
               outline-none
               ${label ? "py-3" : "py-2"}

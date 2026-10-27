@@ -53,7 +53,23 @@ class Branch extends Model
 
     public function menus()
     {
-        return $this->hasMany(Menu::class);
+        return $this->belongsToMany(Menu::class, 'branch_menus')
+            ->withPivot(['id', 'is_active', 'display_order'])
+            ->withTimestamps();
+    }
+
+    public function menuItems()
+    {
+        return $this->belongsToMany(MenuItem::class, 'branch_menu_items')
+            ->withPivot(['id', 'selling_price', 'is_active', 'is_available', 'display_order'])
+            ->withTimestamps();
+    }
+
+    public function rawMaterials()
+    {
+        return $this->belongsToMany(RawMaterial::class, 'branch_raw_materials')
+            ->withPivot(['id', 'unit_cost', 'is_active'])
+            ->withTimestamps();
     }
 
     public function orders()

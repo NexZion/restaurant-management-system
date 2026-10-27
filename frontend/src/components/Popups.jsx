@@ -22,7 +22,7 @@ export const Alert = ({
       const timer = setTimeout(() => {
         setVisible(true)
       }, 50)
-      
+
       return () => clearTimeout(timer)
     } else {
       setVisible(false)
@@ -30,7 +30,7 @@ export const Alert = ({
       const timer = setTimeout(() => {
         setMounted(false)
       }, 500)
-      
+
       return () => clearTimeout(timer)
     }
   }, [isOpen])
@@ -40,7 +40,7 @@ export const Alert = ({
       const timer = setTimeout(() => {
         handleClose()
       }, duration)
-      
+
       return () => clearTimeout(timer)
     }
   }, [isOpen, autoClose, duration])
@@ -106,7 +106,7 @@ export const Alert = ({
   const displayIcon = icon || defaultIcons[type]
 
   return (
-    <div 
+    <div
       className={`
         fixed left-1/2 -translate-x-1/2 z-50 
         transition-all duration-500 ease-out
@@ -116,7 +116,7 @@ export const Alert = ({
         [position === 'top' ? 'top' : 'bottom']: visible ? '1rem' : '-6rem'
       }}
     >
-      <div 
+      <div
         className={`
           min-w-[320px] max-w-md px-3.5 py-2.5 rounded-xl border shadow-xl backdrop-blur
           flex items-start gap-2.5
@@ -194,14 +194,19 @@ export const Dialog = ({
   showFooter = true,
   onPrimaryButtonClick = null,
   onSecondaryButtonClick = null,
+  onThirdButtonClick = null,
   primaryButtonText = 'Submit',
   secondaryButtonText = 'Cancel',
+  thirdButtonText = '',
   size = 'medium', // 'small', 'medium', 'large'
   showCloseButton = true,
   showPrimaryButton = true,
   showSecondaryButton = true,
+  showThirdButton = false,
   primaryButtonDisabled = false,
   secondaryButtonDisabled = false,
+  thirdButtonDisabled = false,
+  className = '',
 }) => {
   const [visible, setVisible] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -241,6 +246,10 @@ export const Dialog = ({
     onPrimaryButtonClick?.()
   }
 
+  const handleThirdButtonClick = () => {
+    onThirdButtonClick?.()
+  }
+
   const sizeClasses = {
     extrasmall: 'max-w-xs',
     small: 'max-w-md',
@@ -259,17 +268,19 @@ export const Dialog = ({
           fixed inset-0 z-50 bg-slate-900/45 backdrop-blur-sm transition-opacity duration-300 dark:bg-[#090A0B]/75
           ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `}
+        style={{ zIndex }}
         onClick={handleClose}
       />
 
       {/* Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 pointer-events-none" style={{ zIndex }}>
         <div
           className={`
             ${sizeClasses[size]} w-full rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-950/20 dark:border-[#1F2226] dark:bg-[#121314] dark:shadow-black/50
             flex flex-col max-h-[90vh] pointer-events-auto
             transition-all duration-300 ease-out
             ${visible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+            ${className}
           `}
           onClick={(e) => e.stopPropagation()}
         >
@@ -299,24 +310,33 @@ export const Dialog = ({
             {/* Footer */}
             {showFooter && (
               <div className="-mx-6 -mb-5 mt-5 flex items-center justify-end gap-2.5 border-t border-slate-100 bg-slate-50/70 px-5 py-3.5 dark:border-[#252a35] dark:bg-[#121314]">
-              {showSecondaryButton && (
-                <button
-                  onClick={handleSecondaryButtonClick}
-                  disabled={secondaryButtonDisabled}
-                  className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#1F2226] dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
-                >
-                  {secondaryButtonText}
-                </button>)
-              }
-              {showPrimaryButton && (
-                <button
-                  onClick={handlePrimaryButtonClick}
-                  disabled={primaryButtonDisabled}
-                  className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2] dark:text-white dark:hover:bg-[#7170FF] dark:disabled:bg-[#5E6AD2]/50"
-                >
-                  {primaryButtonText}
-                </button>)
-              }
+                {showSecondaryButton && (
+                  <button
+                    onClick={handleSecondaryButtonClick}
+                    disabled={secondaryButtonDisabled}
+                    className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#1F2226] dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
+                  >
+                    {secondaryButtonText}
+                  </button>)
+                }
+                {showThirdButton && (
+                  <button
+                    onClick={handleThirdButtonClick}
+                    disabled={thirdButtonDisabled}
+                    className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#1F2226] dark:bg-[#161719] dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"
+                  >
+                    {thirdButtonText}
+                  </button>
+                )}
+                {showPrimaryButton && (
+                  <button
+                    onClick={handlePrimaryButtonClick}
+                    disabled={primaryButtonDisabled}
+                    className="inline-flex h-10 w-[100px] shrink-0 items-center justify-center rounded-full border border-slate-200 bg-blue-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600 dark:border-[#5E6AD2] dark:bg-[#5E6AD2] dark:text-white dark:hover:bg-[#7170FF] dark:disabled:bg-[#5E6AD2]/50"
+                  >
+                    {primaryButtonText}
+                  </button>)
+                }
               </div>
             )}
           </div>
@@ -346,14 +366,14 @@ export const Snackbar = ({
       const timer = setTimeout(() => {
         setVisible(true)
       }, 50)
-      
+
       return () => clearTimeout(timer)
     } else {
       setVisible(false)
       const timer = setTimeout(() => {
         setMounted(false)
       }, 400)
-      
+
       return () => clearTimeout(timer)
     }
   }, [isOpen])
@@ -363,7 +383,7 @@ export const Snackbar = ({
       const timer = setTimeout(() => {
         handleClose()
       }, duration)
-      
+
       return () => clearTimeout(timer)
     }
   }, [isOpen, autoClose, duration])
@@ -400,7 +420,7 @@ export const Snackbar = ({
   if (!mounted) return null
 
   return (
-    <div 
+    <div
       className={`
         fixed z-50 transition-all duration-400 ease-out
         ${positionStyle.container}
@@ -408,7 +428,7 @@ export const Snackbar = ({
         ${visible ? 'opacity-100' : 'opacity-0'}
       `}
     >
-      <div 
+      <div
         className="
           min-w-[320px] max-w-md px-3.5 py-2.5 rounded-xl shadow-xl
           flex items-center gap-2.5
@@ -581,7 +601,7 @@ export const Drawer = ({
                   </svg>
                 )}
               </button>
-              
+
               {/* Close Button */}
               {showCloseButton && (
                 <button

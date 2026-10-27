@@ -7,11 +7,16 @@ export const ActionMenu = ({
   label = "Actions",
   className = "",
   menuClassName = "",
+  menuWidth = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
+  const contentWidth = menuWidth ?? Math.max(
+    144,
+    ...items.map((item) => String(item.label ?? "").length * 7 + 24),
+  );
 
   const closeMenu = () => {
     setIsOpen(false);
@@ -26,16 +31,19 @@ export const ActionMenu = ({
       if (!trigger) return;
 
       const rect = trigger.getBoundingClientRect();
-      const menuHeight = Math.min(items.length * 36 + 10, window.innerHeight - 16);
-      const menuWidth = 144;
-      const maxLeft = Math.max(8, window.innerWidth - menuWidth - 8);
-      const left = Math.min(maxLeft, Math.max(8, rect.right - menuWidth));
+      const viewportHeight = window.innerHeight;
+      const maxHeight = Math.max(0, viewportHeight - 16);
+      const menuHeight = Math.min(items.length * 28 + 10, maxHeight);
+      const availableWidth = Math.max(0, window.innerWidth - 16);
+      const width = Math.min(contentWidth, availableWidth);
+      const maxLeft = Math.max(8, window.innerWidth - width - 8);
+      const left = Math.min(maxLeft, Math.max(8, rect.right - width));
       const belowTop = rect.bottom + 4;
-      const top = belowTop + menuHeight <= window.innerHeight - 8
+      const top = belowTop + menuHeight <= viewportHeight - 8
         ? belowTop
-        : Math.max(8, rect.top - menuHeight - 4);
+        : Math.max(8, Math.min(rect.top - menuHeight - 4, viewportHeight - menuHeight - 8));
 
-      setMenuPosition({ top, left, maxHeight: window.innerHeight - 16 });
+      setMenuPosition({ top, left, width, maxHeight });
     };
 
     const closeOnOutsideClick = (event) => {
@@ -59,7 +67,7 @@ export const ActionMenu = ({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [isOpen, items.length]);
+  }, [isOpen, items, contentWidth]);
 
   return (
     <div
@@ -90,9 +98,10 @@ export const ActionMenu = ({
             position: "fixed",
             top: menuPosition.top,
             left: menuPosition.left,
+            width: menuPosition.width,
             maxHeight: menuPosition.maxHeight,
           }}
-          className={`z-[9999] w-36 overflow-y-auto overflow-x-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-[#1F2226] dark:bg-[#121314] ${menuClassName}`}
+          className={`z-[9999] flex flex-col overflow-y-auto overflow-x-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-[#1F2226] dark:bg-[#121314] ${menuClassName}`}
         >
           {items.map((item, index) => (
             <button
@@ -104,7 +113,7 @@ export const ActionMenu = ({
                 closeMenu();
                 item.onClick?.();
               }}
-              className={`w-full px-3 py-1.5 text-left text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+              className={`block w-full shrink-0 whitespace-nowrap px-3 py-1.5 text-left text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                 item.variant === "danger"
                   ? "text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                   : "text-slate-700 hover:bg-slate-50 dark:text-[#D0D6E0] dark:hover:bg-[#1A1C20]"

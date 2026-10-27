@@ -1,508 +1,694 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ActionMenu } from "../../components/ActionMenu";
 import {
-  SelectField,
-  TextField,
-  NumberField,
-  CheckboxField,
-  RadioField,
   Button,
+  ImageGridUploadField,
+  NumberField,
+  SelectField,
   TextAreaField,
-  ToggleSwitch,
-  ImageUploadField,
-  CategoryTreeField,
-  PhoneField,
+  TextField,
 } from "../../components/DataFields";
+import { Dialog } from "../../components/Popups";
 import { Table } from "../../components/Tables";
-import { Accordion } from "../../components/Accordion";
-import {
-  Alert,
-  Dialog,
-  Snackbar,
-  Loading,
-  Drawer,
-} from "../../components/Popups";
-import { SectionDivider, VerticalTabs } from "../../components/SectionDivider";
-import { Stepper } from "../../components/Stepper";
-import { AddItem } from "../../components/AddItem";
 import api from "../../axiosClient";
+import { storageUrl } from "../../utils/storageUrl";
+
+const emptyForm = {
+  name: "",
+  code: "",
+  description: "",
+  image_path: "",
+  image_file: null,
+  display_order: "0",
+  is_active: true,
+};
+
+const previewDescription = (description) => {
+  const words = (description || "").trim().split(/\s+/).filter(Boolean);
+  return words.length
+    ? `${words.slice(0, 8).join(" ")}${words.length > 8 ? "..." : ""}`
+    : "-";
+};
 
 export const MenuCategories = () => {
-  const [formData, setFormData] = useState({
-    MenuCategory_name: "",
-    image: null,
-    display_order: "",
-    statusOption: "active",
-    description: "",
-  });
-
-  const [showAddMenuCategories, setShowAddMenuCategories] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [MenuCategories, setMenuCategories] = useState([]);
-  const [editingMenuCategories, setEditingMenuCategories] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [showViewMenuCategories, setShowViewMenuCategories] = useState(false);
-  const [viewMenuCategories, setViewMenuCategories] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [reassignmentCategory, setReassignmentCategory] = useState(null);
+  const [reassignmentTargetId, setReassignmentTargetId] = useState("");
+  const [isReassigningItems, setIsReassigningItems] = useState(false);
+  const [reassignmentError, setReassignmentError] = useState("");
+  const [categoryLookupError, setCategoryLookupError] = useState("");
+  const [viewCategory, setViewCategory] = useState(null);
+  const [isLoadingView, setIsLoadingView] = useState(false);
+  const [viewError, setViewError] = useState("");
 
-  const fetchMenuCategories = async () => {
+  const loadData = async () => {
+    setIsCategoriesLoading(true);
     try {
-      const response = await api.get("/menu-categories");
-      console.log("Fetched menu categories:", response);
-      const menuData = response.data.data.map((menuCategory) => ({
-        id: menuCategory.id,
-        name: menuCategory.name,
-        image: menuCategory.image,
-        display_order: menuCategory.display_order,
-        description: menuCategory.description,
-        statusOption: menuCategory.status
-          ? menuCategory.status.charAt(0).toUpperCase() +
-            menuCategory.status.slice(1)
-          : "N/A",
-      }));
-      setMenuCategories(menuData);
-    } catch (error) {
-      console.error("Error fetching menu categories:", error);
+      const categoryResponse = await api.get("/menu-categories");
+      setCategories(categoryResponse.data.data);
+    } finally {
+      setIsCategoriesLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMenuCategories();
+    loadData().catch((error) =>
+      console.error("Unable to load menu categories", error),
+    );
   }, []);
 
-  const status = [
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
-    { value: "suspended", label: "Suspended" },
-  ];
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setErrors({});
+    setFormError("");
+    setIsOpen(true);
+  };
 
-  const columns = [
-    { key: "name", label: "Name", sortable: true },
-    { key: "image", label: "Image", sortable: false },
-    { key: "description", label: "Description", sortable: true },
-    { key: "display_order", label: "Display Order", sortable: true },
-    { key: "statusOption", label: "Status" },
-  ];
-
-  const handleEditMenuCategories = async (row) => {
+  const openEdit = async (row) => {
     try {
-      console.log("Editing menu category with ID:", row.id);
-      const response = await api.get(`/menu-categories/${row.id}`);
-      const menuCategory = response.data.data;
-
-      setEditingMenuCategories(menuCategory);
-      setIsEditMode(true);
-
-      setFormData({
-        id: menuCategory.id,
-        name: menuCategory.name || "",
-        description: menuCategory.description || "",
-        image: menuCategory.image || null,
-        display_order: menuCategory.display_order || "",
-        statusOption: menuCategory.status || "active",
+      const { data } = await api.get(`/menu-categories/${row.id}`);
+      const category = data.data;
+      setEditingId(category.id);
+      setForm({
+        name: category.name ?? "",
+        code: category.code ?? "",
+        description: category.description ?? "",
+        image_path: category.image_path ?? "",
+        image_file: null,
+        display_order: String(category.display_order ?? 0),
+        is_active: Boolean(category.is_active),
       });
-
-      setShowAddMenuCategories(true);
+      setErrors({});
+      setFormError("");
+      setIsOpen(true);
     } catch (error) {
-      console.error(error);
+      console.error("Unable to load category", error);
     }
   };
 
-  const setFieldError = (field, message) => {
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-
-      if (message) {
-        next[field] = message;
-      } else {
-        delete next[field];
-      }
-
-      return next;
-    });
+  const openViewItems = async (row) => {
+    setViewCategory(row);
+    setIsLoadingView(true);
+    setViewError("");
+    try {
+      const { data } = await api.get(`/menu-categories/${row.id}`);
+      setViewCategory(data.data);
+    } catch (error) {
+      setViewError(
+        error.response?.data?.message || "Unable to load category items.",
+      );
+    } finally {
+      setIsLoadingView(false);
+    }
   };
 
-  const validateSubmit = () => {
-    const errors = {};
-
-    if (!(formData.name || "").trim()) errors.name = "Name is required.";
-    if (!(formData.description || "").trim())
-      errors.description = "Description is required.";
-    if (!(formData.display_order || "").trim())
-      errors.display_order = "Display order is required.";
-    if (!(formData.image || "")) errors.image = "Image is required.";
-
-    setFieldErrors(errors);
-    console.log(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const resetAddMenuCategoriesForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      image: null,
-      display_order: "",
-      statusOption: "active",
-    });
-    setFieldErrors({});
-  };
-
-  const handleCloseAddMenuCategories = () => {
-    resetAddMenuCategoriesForm();
-    setShowAddMenuCategories(false);
-    setIsEditMode(false);
-    setEditingMenuCategories(null);
-  };
-
-  const handleSubmitMenuCategories = () => {
-    console.log(fieldErrors);
-    if (!validateSubmit()) return;
-
-    setIsSubmitting(true);
-
-    const menuCategory = {
-      name: formData.name,
-      description: formData.description,
-      image: formData.image,
-      display_order: formData.display_order,
-      status: formData.statusOption,
+  const save = async () => {
+    const nextErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Name is required.";
+    if (!form.code.trim()) nextErrors.code = "Code is required.";
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+    setFormError("");
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      code: form.code.trim().toUpperCase(),
+      display_order: Number(form.display_order || 0),
     };
-
-    console.log("Submitted menu categories:", menuCategory);
-    if (isEditMode) {
-      console.log("Editing menu categories with ID:", editingMenuCategories.id);
-      api.put(`/menu-categories/${editingMenuCategories.id}`, menuCategory);
-    } else {
-      api.post("/menu-categories", menuCategory);
-    }
-
-    setIsSubmitting(false);
-    setIsEditMode(false);
-    resetAddMenuCategoriesForm();
-    fetchMenuCategories();
-    setShowAddMenuCategories(false);
-  };
-
-  const handleDeleteMenuCategories = async (row) => {
+    setIsSubmitting(true);
     try {
-      await api.delete(`/menu-categories/${row.id}`);
-
-      //      const user = response.data.data;
-
-      // Refresh the table
-      fetchMenuCategories();
-
-      console.log("Menu categories deleted successfully.");
+      const { image_file, ...categoryPayload } = payload;
+      let savedCategory;
+      if (image_file) {
+        const formData = new FormData();
+        Object.entries(categoryPayload).forEach(([key, value]) => {
+          formData.append(
+            key,
+            typeof value === "boolean" ? Number(value) : (value ?? ""),
+          );
+        });
+        formData.append("image_file", image_file);
+        if (editingId) {
+          formData.append("_method", "PUT");
+          const response = await api.post(
+            `/menu-categories/${editingId}`,
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            },
+          );
+          savedCategory = response.data.data;
+        } else {
+          const response = await api.post("/menu-categories", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          savedCategory = response.data.data;
+        }
+      } else if (editingId) {
+        const response = await api.put(
+          `/menu-categories/${editingId}`,
+          categoryPayload,
+        );
+        savedCategory = response.data.data;
+      } else {
+        const response = await api.post("/menu-categories", categoryPayload);
+        savedCategory = response.data.data;
+      }
+      if (!editingId && reassignmentCategory && savedCategory?.id) {
+        setCategories((current) => [
+          ...current.filter(
+            (category) => Number(category.id) !== Number(savedCategory.id),
+          ),
+          savedCategory,
+        ]);
+        setReassignmentTargetId(String(savedCategory.id));
+      }
     } catch (error) {
-      console.error("Failed to delete menu categories:", error);
+      const responseErrors = error.response?.data?.errors ?? {};
+      setErrors(
+        Object.fromEntries(
+          Object.entries(responseErrors).map(([key, messages]) => [
+            key,
+            messages?.[0] ?? "Invalid value.",
+          ]),
+        ),
+      );
+      setFormError(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to save this category. Please check the details and try again.",
+      );
+      return;
+    } finally {
+      setIsSubmitting(false);
     }
+    setIsOpen(false);
+    loadData().catch((error) =>
+      console.error(
+        "Category saved, but the category list could not refresh",
+        error,
+      ),
+    );
   };
 
-  const handleViewMenuCategories = async (row) => {
+  const remove = async (row) => {
+    setDeleteError("");
+    setCategoryLookupError("");
+    setReassignmentError("");
+    setReassignmentTargetId("");
     try {
-      const response = await api.get(`/menu-categories/${row.id}`);
-
-      setViewMenuCategories(response.data.data);
-      setShowViewMenuCategories(true);
+      const { data } = await api.get(`/menu-categories/${row.id}`);
+      const category = data.data;
+      if (category.menu_items?.length) {
+        setReassignmentCategory(category);
+      } else {
+        setCategoryToDelete(category);
+      }
     } catch (error) {
-      console.error(error);
+      setCategoryLookupError(
+        error.response?.data?.message ||
+          "Unable to check this category's items. Try again before deleting.",
+      );
     }
   };
 
-  const DetailItem = ({ label, value, wide = false }) => (
-    <div
-      className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
-        wide ? "sm:col-span-2" : ""
-      }`}
-    >
-      <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-        {label}
-      </p>
-      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-        {value || "Not provided"}
-      </p>
-    </div>
-  );
+  const assignItemsAndContinue = async () => {
+    if (!reassignmentCategory || !reassignmentTargetId) {
+      setReassignmentError("Choose another category for these items.");
+      return;
+    }
+    setIsReassigningItems(true);
+    setReassignmentError("");
+    try {
+      await api.post(
+        `/menu-categories/${reassignmentCategory.id}/reassign-items`,
+        {
+          target_category_id: Number(reassignmentTargetId),
+        },
+      );
+      const categoryToRemove = reassignmentCategory;
+      setReassignmentCategory(null);
+      setCategoryToDelete(categoryToRemove);
+    } catch (error) {
+      setReassignmentError(
+        error.response?.data?.message ||
+          "Unable to assign the items to the selected category.",
+      );
+    } finally {
+      setIsReassigningItems(false);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!categoryToDelete) return;
+    setIsDeletingCategory(true);
+    setDeleteError("");
+    try {
+      await api.delete(`/menu-categories/${categoryToDelete.id}`);
+      await loadData();
+      setCategoryToDelete(null);
+    } catch (error) {
+      setDeleteError(
+        error.response?.data?.message ||
+          "Unable to delete this category. Please try again.",
+      );
+    } finally {
+      setIsDeletingCategory(false);
+    }
+  };
+
+  const rows = [...categories]
+    .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+    .map((category) => ({
+      ...category,
+      active_label: category.is_active ? "Active" : "Inactive",
+      description_preview: previewDescription(category.description),
+      item_count: category.menu_items_count ?? 0,
+    }));
+  const columns = [
+    { key: "code", label: "Code", sortable: true },
+    { key: "name", label: "Name", sortable: true },
+    { key: "description_preview", label: "Description" },
+    { key: "item_count", label: "Items", sortable: true },
+    { key: "active_label", label: "Status" },
+  ];
+
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
+          <h1 className="text-xl font-semibold text-slate-950 dark:text-[#F7F8F8]">
             Menu Categories
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
-            Group related items into clear, reusable categories.
+          <p className="text-sm text-slate-500 dark:text-[#8A8F98]">
+            Manage categories available across all branches and menu items.
           </p>
         </div>
-
-        <Button
-          variant="primary"
-          onClick={() => {
-            resetAddMenuCategoriesForm();
-            setShowAddMenuCategories(true);
-          }}
-          startIcon={
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          }
-        >
-          Add Menu Categories
+        <Button variant="primary" onClick={openCreate}>
+          Add Category
         </Button>
-        <Dialog
-          isOpen={showAddMenuCategories}
-          onClose={handleCloseAddMenuCategories}
-          title={isEditMode ? "Edit Menu Categories" : "Add Menu Categories"}
-          size="medium"
-          primaryButtonText={
-            isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
-          }
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={isSubmitting}
-          secondaryButtonDisabled={isSubmitting}
-          onPrimaryButtonClick={handleSubmitMenuCategories}
-          onSecondaryButtonClick={handleCloseAddMenuCategories}
-        >
-          <div className="space-y-5 mb-4">
-            <ImageUploadField
-              label="Category Image"
-              value={formData.image}
-              onChange={(e) => {
-                setFormData({ ...formData, image: e.target.value });
-              }}
-            />
-            <TextField
-              required
-              label="Name"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData({ ...formData, name: e.target.value });
-                setFieldError("name", "");
-              }}
-              helperText={fieldErrors.name || ""}
-              error={!!fieldErrors.name}
-            />
-          </div>
-          <div className="space-y-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <TextField
-              required
-              label="Display Order"
-              type="number"
-              value={formData.displayOrder}
-              onChange={(e) => {
-                setFormData({ ...formData, displayOrder: e.target.value });
-                setFieldError("displayOrder", "");
-              }}
-              helperText={fieldErrors.displayOrder || ""}
-              error={!!fieldErrors.displayOrder}
-            />
-            <SelectField
-              fullwidth={true}
-              label="Status"
-              value={formData.statusOption}
-              options={status}
-              onChange={(e) => {
-                setFormData({ ...formData, statusOption: e.target.value });
-              }}
-            />
-          </div>
-          <TextAreaField
-            label="Description"
-            value={formData.description}
-            onChange={(e) => {
-              setFormData({ ...formData, description: e.target.value });
-            }}
-            rows={2}
-            resize="vertical"
-            maxLength={100}
-          />
-        </Dialog>
       </div>
-      <Accordion
-        items={[
+      <Table
+        columns={columns}
+        data={rows}
+        selectable={false}
+        expandable={false}
+        searchable
+        filterable={false}
+        pagination
+        loading={isCategoriesLoading}
+        actionsAlign="right"
+        showActionsHeader={false}
+        actions={(row) => [
           {
-            title: "Additional Search",
-            content: (
-              <div className="flex  gap-3.5 w-full">
-                <SelectField
-                  label="Status"
-                  value={formData.statusOption}
-                  options={status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, statusOption: e.target.value })
-                  }
-                  fullWidth={true}
-                />
-                <TextField
-                  required
-                  label="Display Order"
-                  type="number"
-                  value={formData.displayOrder}
-                  onChange={(e) => {
-                    setFormData({ ...formData, displayOrder: e.target.value });
-                    setFieldError("displayOrder", "");
-                  }}
-                  helperText={fieldErrors.displayOrder || ""}
-                  error={!!fieldErrors.displayOrder}
-                />
-              </div>
+            label: "Category actions",
+            render: () => (
+              <ActionMenu
+                label={`Actions for ${row.name}`}
+                items={[
+                  { label: "View Category", onClick: () => openViewItems(row) },
+                  { label: "Edit category", onClick: () => openEdit(row) },
+                  {
+                    label: "Delete category",
+                    variant: "danger",
+                    onClick: () => remove(row),
+                  },
+                ]}
+              />
             ),
           },
         ]}
-        allowMultiple={false}
-        iconPosition="right"
-        defaultExpanded={[]}
-        variant="filled"
       />
-      <div className="mt-4">
-        <Table
-          columns={columns}
-          data={MenuCategories}
-          selectable={false}
-          expandable={false}
-          searchable={true}
-          filterable={false}
-          pagination={true}
-          actions={[
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-              ),
-              label: "Edit",
-              onClick: handleEditMenuCategories,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              ),
-              label: "Delete",
-              onClick: handleDeleteMenuCategories,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              ),
-              label: "View",
-              onClick: handleViewMenuCategories,
-            },
-          ]}
-        />
-      </div>
-
       <Dialog
-        isOpen={showViewMenuCategories}
-        onClose={() => setShowViewMenuCategories(false)}
-        title="Menu Category"
+        isOpen={!!categoryLookupError}
+        onClose={() => setCategoryLookupError("")}
+        title="Unable to check category"
+        size="small"
+        secondaryButtonText="Close"
+        onSecondaryButtonClick={() => setCategoryLookupError("")}
+        showPrimaryButton={false}
+      >
+        <p className="text-sm text-slate-600 dark:text-[#B7BBC3]">
+          {categoryLookupError}
+        </p>
+      </Dialog>
+      <Dialog
+        isOpen={!!reassignmentCategory}
+        onClose={() => !isReassigningItems && setReassignmentCategory(null)}
+        title={`Move items from ${reassignmentCategory?.name || "category"}`}
+        size="large"
+        primaryButtonText={isReassigningItems ? "Assigning..." : "Assign"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={isReassigningItems || !reassignmentTargetId}
+        secondaryButtonDisabled={isReassigningItems}
+        onPrimaryButtonClick={assignItemsAndContinue}
+        onSecondaryButtonClick={() => setReassignmentCategory(null)}
+      >
+        {reassignmentCategory && (
+          <div className="space-y-5">
+            <div className="rounded-xl border border-slate-200 p-4 dark:border-[#1F2226]">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                    Items in {reassignmentCategory.name}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-[#8A8F98]">
+                    Choose a destination category before deleting this category.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#B7BBC3]">
+                  {reassignmentCategory.menu_items?.length || 0} items
+                </span>
+              </div>
+              <div className="max-h-64 space-y-2 overflow-y-auto">
+                {reassignmentCategory.menu_items?.map((item) => {
+                  const image =
+                    item.images?.find((entry) => entry.is_primary)
+                      ?.image_path || item.images?.[0]?.image_path;
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-lg bg-slate-50 p-2.5 dark:bg-[#1A1C20]"
+                    >
+                      {image ? (
+                        <img
+                          src={
+                            /^https?:\/\//i.test(image)
+                              ? image
+                              : storageUrl(image)
+                          }
+                          alt={item.name}
+                          className="h-11 w-11 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-11 w-11 items-center justify-center rounded-md bg-slate-200 text-[10px] text-slate-500 dark:bg-[#252a35]">
+                          No image
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-900 dark:text-[#F7F8F8]">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-[#8A8F98]">
+                          {item.sku}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-end gap-3">
+              <div className="min-w-0 flex-1">
+                <SelectField
+                  label="Move items to category"
+                  required
+                  fullWidth
+                  value={reassignmentTargetId}
+                  options={categories
+                    .filter(
+                      (category) =>
+                        Number(category.id) !== Number(reassignmentCategory.id),
+                    )
+                    .map((category) => ({
+                      value: String(category.id),
+                      label: `${category.name} (${category.code})`,
+                    }))}
+                  onChange={(event) =>
+                    setReassignmentTargetId(event.target.value)
+                  }
+                />
+              </div>
+              <Button variant="secondary" onClick={openCreate}>
+                Create category
+              </Button>
+            </div>
+            {reassignmentError && (
+              <p
+                role="alert"
+                className="text-sm text-red-600 dark:text-red-400"
+              >
+                {reassignmentError}
+              </p>
+            )}
+          </div>
+        )}
+      </Dialog>
+      <Dialog
+        isOpen={!!viewCategory}
+        onClose={() => setViewCategory(null)}
+        title="Category details"
         size="medium"
         showFooter={false}
       >
-        {viewMenuCategories && (
-          <div className="space-y-5">
-            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
-              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
-                    {`${viewMenuCategories.name || ""}`.trim() ||
-                      "Not provided"}
-                  </h3>
+        {isLoadingView ? (
+          <p className="text-sm text-slate-500 dark:text-[#8A8F98]">
+            Loading category items...
+          </p>
+        ) : viewError ? (
+          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+            {viewError}
+          </p>
+        ) : (
+          viewCategory && (
+            <div className="space-y-5">
+              <section className="rounded-xl border border-slate-200 p-4 dark:border-[#1F2226]">
+                <div className="flex items-start gap-4">
+                  {viewCategory.image_path && (
+                    <img
+                      src={
+                        /^https?:\/\//i.test(viewCategory.image_path)
+                          ? viewCategory.image_path
+                          : storageUrl(viewCategory.image_path)
+                      }
+                      alt={viewCategory.name}
+                      className="h-20 w-20 rounded-lg object-cover"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold text-slate-950 dark:text-[#F7F8F8]">
+                        {viewCategory.name}
+                      </h3>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 dark:bg-[#1A1C20] dark:text-[#B7BBC3]">
+                        {viewCategory.code}
+                      </span>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${viewCategory.is_active ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" : "bg-slate-100 text-slate-600 dark:bg-[#1A1C20] dark:text-[#8A8F98]"}`}
+                      >
+                        {viewCategory.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    {viewCategory.description && (
+                      <p className="mt-2 text-sm text-slate-600 dark:text-[#B7BBC3]">
+                        {viewCategory.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                    {viewMenuCategories.status || "Not provided"}
+              </section>
+              <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h4 className="font-semibold text-slate-900 dark:text-[#F7F8F8]">
+                    Menu items
+                  </h4>
+                  <span className="text-sm text-slate-500 dark:text-[#8A8F98]">
+                    {viewCategory.menu_items?.length || 0} items
                   </span>
                 </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Menu Category Details
-              </h4>
-              <div className="flex h-50 w-80 shrink-0 items-center justify-center overflow-hidden  border-4 border-white bg-gray-200 text-xl font-semibold text-gray-600 shadow-sm dark:border-[#1F2226] dark:bg-[#1A1C20] dark:text-[#D0D6E0] ">
-                {viewMenuCategories.image ? (
-                  <img
-                    src={viewMenuCategories.image}
-                    alt={viewMenuCategories.name || "Menu Category Image"}
-                    className="h-full w-full object-cover"
-                  />
+                {viewCategory.menu_items?.length ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {viewCategory.menu_items.map((item) => {
+                      const image =
+                        item.images?.find((entry) => entry.is_primary)
+                          ?.image_path || item.images?.[0]?.image_path;
+                      return (
+                        <article
+                          key={item.id}
+                          className="flex min-w-0 items-center gap-3 rounded-xl border border-slate-200 p-3 dark:border-[#1F2226]"
+                        >
+                          {image ? (
+                            <img
+                              src={
+                                /^https?:\/\//i.test(image)
+                                  ? image
+                                  : storageUrl(image)
+                              }
+                              alt={item.name}
+                              className="h-14 w-14 shrink-0 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 dark:bg-[#1A1C20]">
+                              No image
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-slate-900 dark:text-[#F7F8F8]">
+                              {item.name}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-[#8A8F98]">
+                              {item.sku} ·{" "}
+                              {item.is_active ? "Active" : "Inactive"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-sm font-medium text-slate-700 dark:text-[#D0D6E0]">
+                            {Number(item.base_price || 0).toFixed(2)}
+                          </span>
+                        </article>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <span>
-                    {(viewMenuCategories.name || viewMenuCategories.name || "U")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </span>
+                  <p className="rounded-xl border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500 dark:border-[#1F2226] dark:text-[#8A8F98]">
+                    No menu items have been added to this category yet.
+                  </p>
                 )}
-              </div>
-
-              <div className="grid gap-2.5 sm:grid-cols-2 pt-4">
-                <DetailItem label="Name" value={viewMenuCategories.name} />
-                <DetailItem
-                  label="Display Order"
-                  value={viewMenuCategories.displayOrder}
-                />
-              </div>
-              <div className="mt-4"></div>
-              <DetailItem
+              </section>
+            </div>
+          )
+        )}
+      </Dialog>
+      <Dialog
+        isOpen={!!categoryToDelete}
+        onClose={() => !isDeletingCategory && setCategoryToDelete(null)}
+        title="Delete category?"
+        size="small"
+        primaryButtonText={isDeletingCategory ? "Deleting..." : "Delete"}
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={isDeletingCategory}
+        secondaryButtonDisabled={isDeletingCategory}
+        onPrimaryButtonClick={confirmDelete}
+        onSecondaryButtonClick={() => setCategoryToDelete(null)}
+      >
+        <div className="space-y-3 text-sm text-slate-600 dark:text-[#B7BBC3]">
+          <p>
+            Are you sure you want to delete{" "}
+            <span className="font-medium text-slate-900 dark:text-white">
+              {categoryToDelete?.name}
+            </span>
+            ? This action cannot be undone.
+          </p>
+          {deleteError && (
+            <p role="alert" className="text-red-600 dark:text-red-400">
+              {deleteError}
+            </p>
+          )}
+        </div>
+      </Dialog>
+      <Dialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={editingId ? "Edit Category" : "Add Category"}
+        size="medium"
+        zIndex={reassignmentCategory ? 60 : 50}
+        primaryButtonText={
+          isSubmitting ? "Saving..." : editingId ? "Update" : "Save"
+        }
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={isSubmitting}
+        secondaryButtonDisabled={isSubmitting}
+        onPrimaryButtonClick={save}
+        onSecondaryButtonClick={() => setIsOpen(false)}
+      >
+        {formError && (
+          <p
+            role="alert"
+            className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-300"
+          >
+            {formError}
+          </p>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            label="Name"
+            required
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+            error={!!errors.name}
+            helperText={errors.name}
+          />
+          <TextField
+            label="Code"
+            required
+            value={form.code}
+            onChange={(event) =>
+              setForm({ ...form, code: event.target.value.toUpperCase() })
+            }
+            error={!!errors.code}
+            helperText={errors.code}
+          />
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+            <ImageGridUploadField
+              key={editingId || "new-category"}
+              label="Category image"
+              value={form.image_file || form.image_path}
+              onChange={(image) =>
+                setForm({
+                  ...form,
+                  image_file: image,
+                  image_path: image ? form.image_path : null,
+                })
+              }
+              aspectRatio="1.25/1"
+              imageFit="contain"
+              fullWidth
+              className="sm:row-span-3"
+              error={!!errors.image_file}
+              helperText={
+                errors.image_file || "Upload an image for this category."
+              }
+            />
+            <div className="grid content-start gap-4">
+              <NumberField
+                label="Display order"
+                min={0}
+                value={form.display_order}
+                onChange={(event) =>
+                  setForm({ ...form, display_order: event.target.value })
+                }
+                className="sm:mt-5"
+              />
+              <SelectField
+                label="Status"
+                required
+                fullWidth
+                value={form.is_active ? "active" : "inactive"}
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    is_active: event.target.value === "active",
+                  })
+                }
+              />
+              <TextAreaField
                 label="Description"
-                value={viewMenuCategories.description}
+                fullWidth
+                rows={3}
+                value={form.description}
+                onChange={(event) =>
+                  setForm({ ...form, description: event.target.value })
+                }
               />
             </div>
           </div>
-        )}
+        </div>
       </Dialog>
     </div>
   );

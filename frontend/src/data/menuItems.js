@@ -20,6 +20,7 @@ export const menuItems = [
     icon: 'raw_materials',
     items: [
       { name: 'Materials', path: '/raw-materials/materials' },
+      { name: 'Units', path: '/raw-materials/units' },
       { name: 'Inventory', path: '/raw-materials/inventory' },
       { name: 'GRN', path: '/raw-materials/grn' },
     ]
@@ -58,11 +59,13 @@ export const menuItems = [
   {
     type: 'group',
     name: 'Menu',
-    icon: 'Menu',
+    icon: 'menu',
     items: [
       { name: 'Menus', path: '/menu/menus' },
       { name: 'Menu Items', path: '/menu/menu-items' },
+      { name: 'Variants', path: '/menu/variants' },
       { name: 'Menu Categories', path: '/menu/menu-categories' },
+      { name: 'Recipes', path: '/menu/recipes' },
     ]
   },
   {

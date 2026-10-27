@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Branch;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class MenuFactory extends Factory
@@ -11,7 +10,7 @@ class MenuFactory extends Factory
     {
         return [
 
-            'branch_id' => Branch::inRandomOrder()->first()?->id,
+            'code' => 'MENU-' . strtoupper(fake()->unique()->bothify('###??')),
 
             'name' => fake()->randomElement([
                 'Breakfast Menu',
@@ -25,7 +24,8 @@ class MenuFactory extends Factory
 
             'display_order' => fake()->numberBetween(1, 10),
 
-            'status' => 'active'
+            'is_active' => true,
+            'service_types' => ['dine_in'],
         ];
     }
 }

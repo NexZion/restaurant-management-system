@@ -1,499 +1,627 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ActionMenu } from "../../components/ActionMenu";
 import {
-  SelectField,
-  TextField,
-  NumberField,
-  CheckboxField,
-  RadioField,
   Button,
+  CheckboxField,
+  NumberField,
+  SelectField,
   TextAreaField,
-  ToggleSwitch,
-  ImageUploadField,
-  CategoryTreeField,
-  PhoneField,
+  TextField,
 } from "../../components/DataFields";
+import { Dialog } from "../../components/Popups";
 import { Table } from "../../components/Tables";
-import { Accordion } from "../../components/Accordion";
-import {
-  Alert,
-  Dialog,
-  Snackbar,
-  Loading,
-  Drawer,
-} from "../../components/Popups";
-import { SectionDivider, VerticalTabs } from "../../components/SectionDivider";
-import { Stepper } from "../../components/Stepper";
-import { AddItem } from "../../components/AddItem";
 import api from "../../axiosClient";
-import { MenuItemCardList } from "../../components/MenuItemCardList";
+
+const emptyForm = {
+  name: "",
+  sku: "",
+  menu_category_id: "",
+  description: "",
+  base_price: "0",
+  base_cost: "0",
+  image_path: "",
+  image_file: null,
+  preparation_time: "",
+  display_order: "0",
+  is_active: true,
+  is_available: true,
+  branch_assignments: [],
+  variant_option_assignments: [],
+};
 
 export const MenuItems = () => {
-  const [formData, setFormData] = useState({
-    MenuItem_name: "",
-    MenuCategory: "",
-    slug: "",
-    short_description: "",
-    long_description: "",
-    price: "",
-    sku: "",
-    preperationTime: "",
-    statusOption: "active",
-    display_order: "",
-  });
-
-  const [showAddMenuItem, setShowAddMenuItem] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [items, setItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [variantGroups, setVariantGroups] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [MenuItems, setMenuItems] = useState([]);
-  const [editingMenuItems, setEditingMenuItems] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [showViewMenuItems, setShowViewMenuItems] = useState(false);
-  const [viewMenuItems, setViewMenuItems] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const fetchMenuItems = async () => {
-    try {
-      const response = await api.get("/menuItems");
-      console.log("Fetched menuItems:", response);
-      const menuData = response.data.data.map((menuItems) => ({
-        id: menuItems.id,
-        name: menuItems.name,
-        slug: menuItems.slug,
-        long_description: menuItems.long_description,
-        short_description: menuItems.short_description,
-        price: menuItems.base_price,
-        sku: menuItems.sku,
-        preperationTime: menuItems.preperation_time,
-        display_order: menuItems.display_order,
-        statusOption: menuItems.status
-          ? menuItems.status.charAt(0).toUpperCase() + menuItems.status.slice(1)
-          : "N/A",
-      }));
-      setMenuItems(menuData);
-    } catch (error) {
-      console.error("Error fetching menu items:", error);
-    }
+  const loadData = async () => {
+    const [itemResponse, categoryResponse, branchResponse, variantResponse] =
+      await Promise.all([
+        api.get("/menu-items"),
+        api.get("/menu-categories"),
+        api.get("/branches"),
+        api.get("/variants"),
+      ]);
+    setItems(itemResponse.data.data);
+    setCategories(
+      categoryResponse.data.data.filter((category) => category.is_active),
+    );
+    setBranches(
+      branchResponse.data.data.data.map((branch) => ({
+        value: String(branch.id),
+        label: branch.name,
+      })),
+    );
+    setVariantGroups(
+      variantResponse.data.data.filter((variant) => variant.is_active),
+    );
   };
 
   useEffect(() => {
-    fetchMenuItems();
+    loadData().catch((error) =>
+      console.error("Unable to load menu items", error),
+    );
   }, []);
 
-  const status = [
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
-    { value: "suspended", label: "Suspended" },
-  ];
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setErrors({});
+    setIsOpen(true);
+  };
 
+  const openEdit = async (row) => {
+    try {
+      const { data } = await api.get(`/menu-items/${row.id}`);
+      const item = data.data;
+      setEditingId(item.id);
+      setForm({
+        name: item.name ?? "",
+        sku: item.sku ?? "",
+        menu_category_id: String(item.menu_category_id ?? ""),
+        description: item.description ?? "",
+        base_price: String(item.base_price ?? 0),
+        base_cost: String(item.base_cost ?? 0),
+        image_path:
+          item.images?.find((image) => image.is_primary)?.image_path ??
+          item.images?.[0]?.image_path ??
+          "",
+        image_file: null,
+        preparation_time:
+          item.preparation_time == null ? "" : String(item.preparation_time),
+        display_order: String(item.display_order ?? 0),
+        is_active: Boolean(item.is_active),
+        is_available: Boolean(item.is_available),
+        branch_assignments: (item.branches ?? []).map((branch) => ({
+          branch_id: String(branch.id),
+          selling_price:
+            branch.pivot.selling_price == null
+              ? ""
+              : String(branch.pivot.selling_price),
+          is_active: Boolean(branch.pivot.is_active),
+          is_available: Boolean(branch.pivot.is_available),
+          display_order: String(branch.pivot.display_order ?? 0),
+        })),
+        variant_option_assignments: (item.variant_options ?? []).map(
+          (option) => ({
+            variant_option_id: Number(option.id),
+            additional_price: String(option.pivot?.additional_price ?? 0),
+            is_default: Boolean(option.pivot?.is_default),
+            is_active: Boolean(option.pivot?.is_active),
+            display_order: String(option.pivot?.display_order ?? 0),
+          }),
+        ),
+      });
+      setErrors({});
+      setIsOpen(true);
+    } catch (error) {
+      console.error("Unable to load menu item", error);
+    }
+  };
+
+  const updateForm = (field, value) =>
+    setForm((current) => ({ ...current, [field]: value }));
+
+  const setBranchIds = (branchIds) => {
+    setForm((current) => ({
+      ...current,
+      branch_assignments: branchIds.map(
+        (branchId) =>
+          current.branch_assignments.find(
+            (assignment) => assignment.branch_id === branchId,
+          ) ?? {
+            branch_id: branchId,
+            selling_price: "",
+            is_active: true,
+            is_available: true,
+            display_order: "0",
+          },
+      ),
+    }));
+  };
+
+  const updateBranch = (branchId, field, value) => {
+    setForm((current) => ({
+      ...current,
+      branch_assignments: current.branch_assignments.map((assignment) =>
+        assignment.branch_id === branchId
+          ? { ...assignment, [field]: value }
+          : assignment,
+      ),
+    }));
+  };
+
+  const toggleVariantOption = (option, checked) => {
+    setForm((current) => ({
+      ...current,
+      variant_option_assignments: checked
+        ? [
+            ...current.variant_option_assignments,
+            {
+              variant_option_id: option.id,
+              additional_price: String(option.default_additional_price ?? 0),
+              is_default: false,
+              is_active: true,
+              display_order: String(option.display_order ?? 0),
+            },
+          ]
+        : current.variant_option_assignments.filter(
+            (assignment) => assignment.variant_option_id !== option.id,
+          ),
+    }));
+  };
+
+  const updateVariantAssignment = (id, field, value) =>
+    setForm((current) => ({
+      ...current,
+      variant_option_assignments: current.variant_option_assignments.map(
+        (assignment) =>
+          assignment.variant_option_id === id
+            ? { ...assignment, [field]: value }
+            : assignment,
+      ),
+    }));
+
+  const save = async () => {
+    const nextErrors = {};
+    if (!form.name.trim()) nextErrors.name = "Name is required.";
+    if (!form.sku.trim()) nextErrors.sku = "SKU is required.";
+    if (!form.menu_category_id)
+      nextErrors.menu_category_id = "Choose a category.";
+    if (form.branch_assignments.length === 0)
+      nextErrors.branch_assignments =
+        "Assign this item to at least one branch.";
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      sku: form.sku.trim(),
+      menu_category_id: Number(form.menu_category_id),
+      base_price: Number(form.base_price || 0),
+      base_cost: Number(form.base_cost || 0),
+      image_path: form.image_path.trim(),
+      preparation_time:
+        form.preparation_time === "" ? null : Number(form.preparation_time),
+      display_order: Number(form.display_order || 0),
+      branch_assignments: form.branch_assignments.map((assignment) => ({
+        ...assignment,
+        branch_id: Number(assignment.branch_id),
+        selling_price:
+          assignment.selling_price === ""
+            ? null
+            : Number(assignment.selling_price),
+        display_order: Number(assignment.display_order || 0),
+      })),
+      variant_option_assignments: form.variant_option_assignments.map(
+        (assignment) => ({
+          ...assignment,
+          variant_option_id: Number(assignment.variant_option_id),
+          additional_price: Number(assignment.additional_price || 0),
+          display_order: Number(assignment.display_order || 0),
+        }),
+      ),
+    };
+
+    setIsSubmitting(true);
+    try {
+      delete payload.image_path;
+      let savedItem;
+      if (editingId) {
+        await api.put(`/menu-items/${editingId}`, payload);
+        const { data } = await api.get(`/menu-items/${editingId}`);
+        savedItem = data.data;
+      } else {
+        const { data } = await api.post("/menu-items", payload);
+        savedItem = data.data;
+      }
+      if (form.image_file || form.image_path.trim()) {
+        const existingImages = savedItem.images ?? [];
+        const currentPrimary =
+          existingImages.find((image) => image.is_primary) ?? existingImages[0];
+        if (
+          form.image_file ||
+          currentPrimary?.image_path !== form.image_path.trim()
+        ) {
+          const imagePayload = new FormData();
+          imagePayload.append("menu_item_id", savedItem.id);
+          imagePayload.append("alt_text", form.name.trim());
+          imagePayload.append("is_primary", "1");
+          imagePayload.append("display_order", "0");
+          if (form.image_file) imagePayload.append("image", form.image_file);
+          else imagePayload.append("image_path", form.image_path.trim());
+          await api.post("/menu-item-images", imagePayload, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        }
+      }
+      await loadData();
+      setIsOpen(false);
+    } catch (error) {
+      const responseErrors = error.response?.data?.errors ?? {};
+      setErrors(
+        Object.fromEntries(
+          Object.entries(responseErrors).map(([key, messages]) => [
+            key,
+            messages?.[0] ?? "Invalid value.",
+          ]),
+        ),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const remove = async (row) => {
+    if (!window.confirm(`Delete ${row.name}?`)) return;
+    await api.delete(`/menu-items/${row.id}`);
+    await loadData();
+  };
+
+  const rows = items.map((item) => ({
+    ...item,
+    category_name: item.category ?? "—",
+    branches_label:
+      (item.branches ?? []).map((branch) => branch.name).join(", ") || "—",
+    price_label: Number(item.base_price).toFixed(2),
+    active_label: item.is_active
+      ? item.is_available
+        ? "Active · Available"
+        : "Active · Unavailable"
+      : "Inactive",
+  }));
   const columns = [
     { key: "sku", label: "SKU", sortable: true },
     { key: "name", label: "Name", sortable: true },
-    { key: "short_description", label: "Short Description", sortable: true },
-    { key: "price", label: "Price", sortable: true },
-    { key: "statusOption", label: "Status" },
+    { key: "category_name", label: "Category", sortable: true },
+    { key: "branches_label", label: "Branches" },
+    { key: "price_label", label: "Base price" },
+    { key: "active_label", label: "Status" },
   ];
 
-  const handleEditMenuItems = async (row) => {
-    try {
-      console.log("Editing menu with ID:", row.id);
-      const response = await api.get(`/menuItems/${row.id}`);
-      const menuItem = response.data.data;
-
-      setEditingMenuItems(menuItem);
-      setIsEditMode(true);
-
-      setFormData({
-        id: menuItem.id,
-        name: menuItem.name,
-        slug: menuItem.slug,
-        long_description: menuItem.long_description,
-        short_description: menuItem.short_description,
-        price: menuItem.base_price,
-        sku: menuItem.sku,
-        preperationTime: menuItem.preperation_time,
-        display_order: menuItem.display_order,
-        statusOption: menuItem.status || "active",
-      });
-
-      setShowAddMenuItems(true);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const setFieldError = (field, message) => {
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-
-      if (message) {
-        next[field] = message;
-      } else {
-        delete next[field];
-      }
-
-      return next;
-    });
-  };
-
-  const validateSubmit = () => {
-    const errors = {};
-
-    if (!(formData.name || "").trim()) errors.name = "Name is required.";
-    if (!(formData.description || "").trim())
-      errors.description = "Description is required.";
-
-    setFieldErrors(errors);
-    console.log(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const resetAddMenusForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      id: "",
-      slug: "",
-      long_description: "",
-      short_description: "",
-      price: "",
-      sku: "",
-      preperationTime: "",
-      display_order: "",
-      statusOption: "active",
-    });
-    setFieldErrors({});
-  };
-
-  const handleCloseAddMenuItems = () => {
-    resetAddMenuItemsForm();
-    setShowAddMenuItems(false);
-    setIsEditMode(false);
-    setEditingMenuItems(null);
-  };
-
-  const handleSubmitMenuItems = () => {
-    console.log(fieldErrors);
-    if (!validateSubmit()) return;
-
-    setIsSubmitting(true);
-
-    const menuItem = {
-      id: formData.id,
-      name: formData.name,
-      slug: formData.slug,
-      long_description: formData.long_description,
-      short_description: formData.short_description,
-      price: formData.price,
-      sku: formData.sku,
-      preperationTime: formData.preperationTime,
-      display_order: formData.display_order,
-      status: formData.statusOption,
-    };
-
-    console.log("Submitted menu items:", menuItem);
-    if (isEditMode) {
-      console.log("Editing menu items with ID:", editingMenuItems.id);
-      api.put(`/menuItems/${editingMenuItems.id}`, menuItem);
-    } else {
-      api.post("/menuItems", menuItem);
-    }
-
-    setIsSubmitting(false);
-    setIsEditMode(false);
-    resetAddMenuItemsForm();
-    fetchMenuItems();
-    setShowAddMenuItems(false);
-  };
-
-  const handleDeleteMenuItems = async (row) => {
-    try {
-      await api.delete(`/menuItems/${row.id}`);
-
-      //      const user = response.data.data;
-
-      // Refresh the table
-      fetchMenuItems();
-
-      console.log("Menu items deleted successfully.");
-    } catch (error) {
-      console.error("Failed to delete menu items:", error);
-    }
-  };
-
-  const handleViewMenuItems = async (row) => {
-    try {
-      const response = await api.get(`/menuItems/${row.id}`);
-
-      setViewMenuItems(response.data.data);
-      setShowViewMenuItems(true);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const DetailItem = ({ label, value, wide = false }) => (
-    <div
-      className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${
-        wide ? "sm:col-span-2" : ""
-      }`}
-    >
-      <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-        {label}
-      </p>
-      <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-        {value || "Not provided"}
-      </p>
-    </div>
-  );
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-[#F7F8F8]">
+          <h1 className="text-xl font-semibold text-slate-950 dark:text-[#F7F8F8]">
             Menu Items
           </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-[#8A8F98]">
-            Maintain item details, pricing, and availability.
+          <p className="text-sm text-slate-500 dark:text-[#8A8F98]">
+            Manage shared items and branch-specific prices and availability.
           </p>
         </div>
-
-        <Button
-          variant="primary"
-          onClick={() => {
-            resetAddMenuItemsForm();
-            setShowAddMenuItems(true);
-          }}
-          startIcon={
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          }
-        >
-          Add Menu Items
+        <Button variant="primary" onClick={openCreate}>
+          Add Menu Item
         </Button>
-        <Dialog
-          isOpen={showAddMenuItem}
-          onClose={handleCloseAddMenuItems}
-          title={isEditMode ? "Edit Menu Items" : "Add Menu Items"}
-          size="medium"
-          primaryButtonText={
-            isSubmitting ? "Saving..." : isEditMode ? "Update" : "Save"
-          }
-          secondaryButtonText="Cancel"
-          primaryButtonDisabled={isSubmitting}
-          secondaryButtonDisabled={isSubmitting}
-          onPrimaryButtonClick={handleSubmitMenuItems}
-          onSecondaryButtonClick={handleCloseAddMenuItems}
-        >
-          <div className="space-y-5 mb-4">
-            <TextField
-              required
-              label="Name"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData({ ...formData, name: e.target.value });
-                setFieldError("name", "");
-              }}
-              helperText={fieldErrors.name || ""}
-              error={!!fieldErrors.name}
+      </div>
+
+      <Table
+        columns={columns}
+        data={rows}
+        selectable={false}
+        expandable={false}
+        searchable
+        filterable={false}
+        pagination
+        actions={(row) => [
+          {
+            label: "Item actions",
+            render: () => (
+              <ActionMenu
+                label={`Actions for ${row.name}`}
+                items={[
+                  { label: "Edit item", onClick: () => openEdit(row) },
+                  {
+                    label: "Delete item",
+                    variant: "danger",
+                    onClick: () => remove(row),
+                  },
+                ]}
+              />
+            ),
+          },
+        ]}
+      />
+
+      <Dialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={editingId ? "Edit Menu Item" : "Add Menu Item"}
+        size="medium"
+        primaryButtonText={
+          isSubmitting ? "Saving..." : editingId ? "Update" : "Save"
+        }
+        secondaryButtonText="Cancel"
+        primaryButtonDisabled={isSubmitting}
+        secondaryButtonDisabled={isSubmitting}
+        onPrimaryButtonClick={save}
+        onSecondaryButtonClick={() => setIsOpen(false)}
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <TextField
+            label="Name"
+            required
+            value={form.name}
+            onChange={(event) => updateForm("name", event.target.value)}
+            error={!!errors.name}
+            helperText={errors.name}
+          />
+          <TextField
+            label="SKU"
+            required
+            value={form.sku}
+            onChange={(event) =>
+              updateForm("sku", event.target.value.toUpperCase())
+            }
+            error={!!errors.sku}
+            helperText={errors.sku}
+          />
+          <SelectField
+            label="Category"
+            required
+            fullWidth
+            value={form.menu_category_id}
+            options={categories.map((category) => ({
+              value: String(category.id),
+              label: category.name,
+            }))}
+            onChange={(event) =>
+              updateForm("menu_category_id", event.target.value)
+            }
+            error={!!errors.menu_category_id}
+            helperText={errors.menu_category_id}
+          />
+          <NumberField
+            label="Base price"
+            min={0}
+            step={0.01}
+            value={form.base_price}
+            onChange={(event) => updateForm("base_price", event.target.value)}
+          />
+          <NumberField
+            label="Base cost"
+            min={0}
+            step={0.01}
+            value={form.base_cost}
+            onChange={(event) => updateForm("base_cost", event.target.value)}
+          />
+          <label className="flex flex-col gap-1 text-sm font-medium text-slate-700 dark:text-[#D0D6E0]">
+            Upload item image
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) =>
+                updateForm("image_file", event.target.files?.[0] ?? null)
+              }
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-[#30343A] dark:bg-[#111315]"
             />
-          </div>
-          <div className="space-y-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <SelectField
-              fullwidth={true}
-              label="Status"
-              value={formData.statusOption}
-              options={status}
-              onChange={(e) => {
-                setFormData({ ...formData, statusOption: e.target.value });
-              }}
+            <span className="text-xs font-normal text-slate-500 dark:text-[#8A8F98]">
+              Selecting a new image adds it to this item and makes it primary.
+            </span>
+          </label>
+          <TextField
+            label="Or image path / URL"
+            value={form.image_path}
+            onChange={(event) => updateForm("image_path", event.target.value)}
+          />
+          <NumberField
+            label="Preparation time (minutes)"
+            min={0}
+            value={form.preparation_time}
+            onChange={(event) =>
+              updateForm("preparation_time", event.target.value)
+            }
+          />
+          <NumberField
+            label="Display order"
+            min={0}
+            value={form.display_order}
+            onChange={(event) =>
+              updateForm("display_order", event.target.value)
+            }
+          />
+          <SelectField
+            label="Branches"
+            fullWidth
+            multiple
+            searchable
+            value={form.branch_assignments.map(
+              (assignment) => assignment.branch_id,
+            )}
+            options={branches}
+            onChange={(event) => setBranchIds(event.target.value)}
+            error={!!errors.branch_assignments}
+            helperText={errors.branch_assignments}
+          />
+          <div className="flex flex-wrap gap-5 sm:col-span-2">
+            <CheckboxField
+              label="Catalog active"
+              checked={form.is_active}
+              onChange={(event) =>
+                updateForm("is_active", event.target.checked)
+              }
+            />
+            <CheckboxField
+              label="Available for ordering"
+              checked={form.is_available}
+              onChange={(event) =>
+                updateForm("is_available", event.target.checked)
+              }
             />
           </div>
           <TextAreaField
             label="Description"
-            value={formData.description}
-            onChange={(e) => {
-              setFormData({ ...formData, description: e.target.value });
-            }}
-            rows={2}
-            resize="vertical"
-            maxLength={100}
+            fullWidth
+            rows={3}
+            value={form.description}
+            onChange={(event) => updateForm("description", event.target.value)}
           />
-        </Dialog>
-      </div>
-      <Accordion
-        items={[
-          {
-            title: "Additional Search",
-            content: (
-              <div className="flex  gap-3.5 w-full">
-                <SelectField
-                  label="Status"
-                  value={formData.statusOption}
-                  options={status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, statusOption: e.target.value })
-                  }
-                  fullWidth={true}
-                />
-              </div>
-            ),
-          },
-        ]}
-        allowMultiple={false}
-        iconPosition="right"
-        defaultExpanded={[]}
-        variant="filled"
-      />
-      <div className="mt-4">
-        <Table
-          columns={columns}
-          data={MenuItems}
-          selectable={false}
-          expandable={false}
-          searchable={true}
-          filterable={false}
-          pagination={true}
-          actions={[
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-              ),
-              label: "Edit",
-              onClick: handleEditMenuItems,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              ),
-              label: "Delete",
-              onClick: handleDeleteMenuItems,
-            },
-            {
-              icon: (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
-              ),
-              label: "View",
-              onClick: handleViewMenuItems,
-            },
-          ]}
-        />
-      </div>
-
-      <Dialog
-        isOpen={showViewMenuItems}
-        onClose={() => setShowViewMenuItems(false)}
-        title="Menu Item Profile"
-        size="medium"
-        showFooter={false}
-      >
-        {viewMenuItems && (
-          <div className="space-y-5">
-            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
-              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
-                    {`${viewMenuItems.name || ""}`.trim() || "Not provided"}
-                  </h3>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                    {viewMenuItems.status || "Not provided"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Menu Item Details
-              </h4>
-
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                <DetailItem label="Name" value={viewMenuItems.name} />
-                <DetailItem label="Status" value={viewMenuItems.status} />
-                <DetailItem label="Price" value={viewMenuItems.base_price} />
-                <DetailItem label="SKU" value={viewMenuItems.sku} />
-                <DetailItem
-                  label="Preparation Time"
-                  value={viewMenuItems.preperation_time}
-                />
-                <DetailItem
-                  label="Display Order"
-                  value={viewMenuItems.display_order}
-                />
-              </div>
-              <div className="mt-4"></div>
-              <DetailItem
-                label="Description"
-                value={viewMenuItems.description}
+          {form.branch_assignments.map((assignment) => (
+            <div
+              key={assignment.branch_id}
+              className="grid gap-3 rounded-lg border border-slate-200 p-3 dark:border-[#1F2226] sm:col-span-2 sm:grid-cols-2"
+            >
+              <p className="font-semibold sm:col-span-2">
+                {
+                  branches.find(
+                    (branch) => branch.value === assignment.branch_id,
+                  )?.label
+                }
+              </p>
+              <NumberField
+                label="Branch selling price (blank uses base price)"
+                min={0}
+                step={0.01}
+                value={assignment.selling_price}
+                onChange={(event) =>
+                  updateBranch(
+                    assignment.branch_id,
+                    "selling_price",
+                    event.target.value,
+                  )
+                }
+              />
+              <NumberField
+                label="Branch display order"
+                min={0}
+                value={assignment.display_order}
+                onChange={(event) =>
+                  updateBranch(
+                    assignment.branch_id,
+                    "display_order",
+                    event.target.value,
+                  )
+                }
+              />
+              <CheckboxField
+                label="Active at this branch"
+                checked={assignment.is_active}
+                onChange={(event) =>
+                  updateBranch(
+                    assignment.branch_id,
+                    "is_active",
+                    event.target.checked,
+                  )
+                }
+              />
+              <CheckboxField
+                label="Available at this branch"
+                checked={assignment.is_available}
+                onChange={(event) =>
+                  updateBranch(
+                    assignment.branch_id,
+                    "is_available",
+                    event.target.checked,
+                  )
+                }
               />
             </div>
-          </div>
-        )}
+          ))}
+          <section className="space-y-3 sm:col-span-2">
+            <h3 className="font-semibold text-slate-900 dark:text-[#F7F8F8]">
+              Variant options
+            </h3>
+            {variantGroups.length === 0 && (
+              <p className="text-sm text-slate-500">
+                Create variant groups first.
+              </p>
+            )}
+            {variantGroups.map((group) => (
+              <div
+                key={group.id}
+                className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-[#30343A]"
+              >
+                <p className="font-medium">
+                  {group.name}{" "}
+                  <span className="text-xs text-slate-500">
+                    ({group.selection_type}; choose {group.min_select}–
+                    {group.max_select})
+                  </span>
+                </p>
+                {group.options?.map((option) => {
+                  const assignment = form.variant_option_assignments.find(
+                    (entry) => entry.variant_option_id === option.id,
+                  );
+                  return (
+                    <div
+                      key={option.id}
+                      className="grid items-center gap-2 sm:grid-cols-[1fr_140px_auto]"
+                    >
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(assignment)}
+                          onChange={(event) =>
+                            toggleVariantOption(option, event.target.checked)
+                          }
+                        />
+                        {option.name}
+                      </label>
+                      {assignment && (
+                        <NumberField
+                          label="Item price add-on"
+                          min={0}
+                          step={0.01}
+                          value={assignment.additional_price}
+                          onChange={(event) =>
+                            updateVariantAssignment(
+                              option.id,
+                              "additional_price",
+                              event.target.value,
+                            )
+                          }
+                        />
+                      )}
+                      {assignment && (
+                        <CheckboxField
+                          label="Default"
+                          checked={assignment.is_default}
+                          onChange={(event) =>
+                            updateVariantAssignment(
+                              option.id,
+                              "is_default",
+                              event.target.checked,
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </section>
+        </div>
       </Dialog>
-
-      <MenuItemCardList
-        items={MenuItems}
-        columns={3}
-        currency="USD"
-        onView={(item) => console.log("View", item)}
-        onEdit={(item) => console.log("Edit", item)}
-        onDelete={(item) => console.log("Delete", item)}
-      />
     </div>
   );
 };
