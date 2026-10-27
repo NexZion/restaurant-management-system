@@ -4,9 +4,9 @@ export const menuItems = [
   { type: 'item', name: 'Dashboard', path: '/dashboard', icon: 'dashboard' },
   { type: 'item', name: 'Analytics', path: '/analytics', icon: 'analytics' },
   // { type: 'item', name: 'AI Gen', path: '/ai', icon: 'ai' },
-  
-  { 
-    type: 'group', 
+
+  {
+    type: 'group',
     name: 'Product',
     icon: 'product',
     items: [
@@ -14,8 +14,8 @@ export const menuItems = [
       { name: 'Categories', path: '/product/categories' },
     ]
   },
-  { 
-    type: 'group', 
+  {
+    type: 'group',
     name: 'Raw Materials',
     icon: 'raw_materials',
     items: [
@@ -25,11 +25,12 @@ export const menuItems = [
       { name: 'GRN', path: '/raw-materials/grn' },
     ]
   },
-  { type: 'group', name: 'Sales Orders',
+  {
+    type: 'group', name: 'Sales Orders',
     icon: 'orders',
     items: [
       { name: 'Sales Order', path: '/sales-orders/sales-order' },
-      { name: 'Bulk Orders', path: '/sales-orders/bulk-orders' }, 
+      { name: 'Bulk Orders', path: '/sales-orders/bulk-orders' },
       { name: 'Payments', path: '/sales-orders/payments' },
       { name: 'Returns', path: '/sales-orders/returns' },
     ]
@@ -44,8 +45,8 @@ export const menuItems = [
   //     { name: 'Completed', path: '/orders/completed' },
   //   ]
   // },
-  { 
-    type: 'group', 
+  {
+    type: 'group',
     name: 'Orders',
     icon: 'orders',
     items: [
@@ -55,8 +56,8 @@ export const menuItems = [
   },
   { type: 'item', name: 'Customers', path: '/customers', icon: 'customers' },
 
-   { 
-    type: 'group', 
+  {
+    type: 'group',
     name: 'Menu',
     icon: 'menu',
     items: [
@@ -67,8 +68,8 @@ export const menuItems = [
       { name: 'Recipes', path: '/menu/recipes' },
     ]
   },
-  { 
-    type: 'group', 
+  {
+    type: 'group',
     name: 'Reports',
     icon: 'reports',
     items: [
@@ -78,4 +79,14 @@ export const menuItems = [
     ]
   },
   { type: 'item', name: 'Users', path: '/users', icon: 'users' },
+  {
+    type: 'group',
+    name: 'Settings',
+    icon: 'settings',
+    items: [
+      { name: 'Roles', path: '/roles' },
+      { name: 'Branches', path: '/branches' },
+    ]
+  }
 ];
+
