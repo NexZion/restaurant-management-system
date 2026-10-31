@@ -37,6 +37,7 @@ class StoreOrderRequest extends FormRequest
             'payment_status' => 'nullable|in:unpaid,partial,paid,partially_refunded,refunded',
             'subtotal' => 'nullable|numeric|min:0',
             'discount_total' => 'nullable|numeric|min:0',
+            'include_tax' => 'nullable|boolean',
             'tax_total' => 'nullable|numeric|min:0',
             'service_charge_total' => 'nullable|numeric|min:0',
             'grand_total' => 'nullable|numeric|min:0',

@@ -62,9 +62,9 @@ class OrderController extends Controller
             });
             $discount = $itemDiscount + (float) ($orderPayload['discount_total'] ?? 0);
             $canEditCharges = (int) ($request->user()?->role?->access_level ?? 0) > 70;
-            $taxTotal = $canEditCharges
-                ? (float) ($orderPayload['tax_total'] ?? 0)
-                : 0;
+            $includeTax = $canEditCharges && filter_var($orderPayload['include_tax'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $taxableAmount = max(0, $subTotal - $discount);
+            $taxTotal = $includeTax ? round($taxableAmount * 0.18, 2) : 0;
             $serviceChargeTotal = $canEditCharges
                 ? (float) ($orderPayload['service_charge_total'] ?? 0)
                 : 0;
@@ -147,10 +147,15 @@ class OrderController extends Controller
 
         $validated['assigned_by'] = $request->user()?->id;
         if ($canEditCharges) {
-            $validated['tax_total'] = (float) ($validated['tax_total'] ?? 0);
+            $includeTax = filter_var($validated['include_tax'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $taxableAmount = max(0, (float) $order->subtotal - (float) $order->discount_total);
+            $validated['tax_total'] = $includeTax ? round($taxableAmount * 0.18, 2) : 0;
             $validated['service_charge_total'] = (float) ($validated['service_charge_total'] ?? 0);
+            $validated['grand_total'] = $taxableAmount
+                + $validated['tax_total']
+                + $validated['service_charge_total'];
         } else {
-            unset($validated['tax_total'], $validated['service_charge_total']);
+            unset($validated['include_tax'], $validated['tax_total'], $validated['service_charge_total']);
         }
 
         if ($status === 'confirmed' && $order->status !== 'confirmed') {

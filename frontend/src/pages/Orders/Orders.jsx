@@ -100,7 +100,7 @@ export const Orders = () => {
     discount: "0",
     overallDiscountType: "none",
     overallDiscountAmount: "0",
-    tax: "0",
+    includeTax: false,
     serviceCharge: "0",
     status: "",
     paymentStatus: "unpaid",
@@ -344,12 +344,16 @@ export const Orders = () => {
         0,
         Number(orderItemsTotal || 0) -
         Number(overallDiscountAmount || 0) +
-        Number(formData.tax || 0) +
+        (formData.includeTax
+          ? (Number(orderItemsTotal || 0) -
+            Number(overallDiscountAmount || 0)) *
+          0.18
+          : 0) +
         Number(formData.serviceCharge || 0),
       ),
     [
+      formData.includeTax,
       formData.serviceCharge,
-      formData.tax,
       orderItemsTotal,
       overallDiscountAmount,
     ],
@@ -391,7 +395,7 @@ export const Orders = () => {
         paymentStatus: order.payment_status || "unpaid",
         netTotalAmount: order.grand_total || "",
         totalAmount: order.sub_total ?? order.subtotal ?? "",
-        tax: order.tax_total ?? "0",
+        includeTax: Number(order.tax_total || 0) > 0,
         serviceCharge: order.service_charge_total ?? "0",
         CustomerNotes: order.customer_note || "",
         seatCount: order.seatCount || "",
@@ -445,7 +449,7 @@ export const Orders = () => {
       discount: "0",
       overallDiscountType: "none",
       overallDiscountAmount: "0",
-      tax: "0",
+      includeTax: false,
       serviceCharge: "0",
       status: "",
       paymentStatus: "unpaid",
@@ -681,7 +685,9 @@ export const Orders = () => {
         : formData.overallDiscountType === "fixed"
           ? Number(formData.overallDiscountAmount || 0)
           : 0;
-    const tax = canEditUnitPrice ? Number(formData.tax || 0) : 0;
+    const taxableAmount = Math.max(0, subtotal - orderDiscountAmount);
+    const tax =
+      canEditUnitPrice && formData.includeTax ? taxableAmount * 0.18 : 0;
     const serviceCharge = canEditUnitPrice
       ? Number(formData.serviceCharge || 0)
       : 0;
@@ -725,6 +731,7 @@ export const Orders = () => {
       })),
       subtotal: subtotal,
       discount_total: orderDiscountAmount,
+      include_tax: canEditUnitPrice && formData.includeTax,
       tax_total: tax,
       service_charge_total: serviceCharge,
       grand_total: netTotal,
@@ -810,6 +817,7 @@ export const Orders = () => {
         payment_status: updates.payment_status || order.payment_status || "unpaid",
         tax_total: order.tax_total ?? 0,
         service_charge_total: order.service_charge_total ?? 0,
+        include_tax: Number(order.tax_total || 0) > 0,
         customer_note: order.customer_note,
         internal_note: order.internal_note,
         ...(updates.cancellation_reason
@@ -1542,22 +1550,6 @@ export const Orders = () => {
         </div>
         <div className="mt-4 grid gap-3.5 md:grid-cols-2">
           <TextField
-            label="Tax"
-            type="number"
-            min="0"
-            value={formData.tax}
-            disabled={!canEditUnitPrice}
-            helperText={
-              canEditUnitPrice
-                ? ""
-                : "Only roles with access level above 70 can change tax."
-            }
-            onChange={(e) =>
-              canEditUnitPrice &&
-              setFormData({ ...formData, tax: e.target.value })
-            }
-          />
-          <TextField
             label="Service Charge"
             type="number"
             min="0"
@@ -1571,6 +1563,20 @@ export const Orders = () => {
             onChange={(e) =>
               canEditUnitPrice &&
               setFormData({ ...formData, serviceCharge: e.target.value })
+            }
+          />
+          <CheckboxField
+            label="Include the tax"
+            checked={formData.includeTax}
+            disabled={!canEditUnitPrice}
+            helperText={
+              canEditUnitPrice
+                ? ""
+                : "Only roles with access level above 70 can include the tax."
+            }
+            onChange={(e) =>
+              canEditUnitPrice &&
+              setFormData({ ...formData, includeTax: e.target.checked })
             }
           />
         </div>

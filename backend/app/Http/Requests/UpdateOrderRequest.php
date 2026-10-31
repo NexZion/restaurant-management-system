@@ -29,6 +29,7 @@ class UpdateOrderRequest extends FormRequest
             'internal_note' => 'nullable|string',
             'cancellation_reason' => 'required_if:status,cancelled|nullable|string|max:1000',
             'grand_total' => 'nullable|numeric|min:0',
+            'include_tax' => 'nullable|boolean',
             'tax_total' => 'nullable|numeric|min:0',
             'service_charge_total' => 'nullable|numeric|min:0',
             'paid_total' => 'nullable|numeric|min:0',
