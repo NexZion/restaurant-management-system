@@ -312,6 +312,28 @@ export const Orders = () => {
     [orderItems],
   );
 
+  const itemsSubtotal = useMemo(
+    () =>
+      orderItems.reduce(
+        (sum, item) =>
+          sum + Number(item.unitPrice || 0) * Number(item.quantity || 0),
+        0,
+      ),
+    [orderItems],
+  );
+
+  const itemDiscountTotal = useMemo(
+    () =>
+      orderItems.reduce(
+        (sum, item) =>
+          sum +
+          Number(item.discountAppliedPerUnit || 0) *
+            Number(item.quantity || 0),
+        0,
+      ),
+    [orderItems],
+  );
+
   const overallDiscountAmount = useMemo(() => {
     const subtotal = Number(orderItemsTotal || 0);
     const amount = Number(formData.overallDiscountAmount || 0);
@@ -358,6 +380,14 @@ export const Orders = () => {
       overallDiscountAmount,
     ],
   );
+
+  const orderTaxAmount = formData.includeTax
+    ? Math.max(0, Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0)) *
+      0.18
+    : 0;
+  const serviceChargeAmount = Number(formData.serviceCharge || 0);
+  const totalDiscountAmount =
+    Number(itemDiscountTotal || 0) + Number(overallDiscountAmount || 0);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -1635,7 +1665,94 @@ export const Orders = () => {
             </div>
           </div>
         </div>
-
+        <div className="mt-4 rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+          <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+            Order Summary
+          </h4>
+          {orderItems.length > 0 && (
+            <Table
+              columns={[
+                { key: "item", label: "Item" },
+                { key: "quantity", label: "Quantity" },
+                { key: "unitPrice", label: "Unit Price" },
+                { key: "totalPrice", label: "Total Price" },
+                { key: "itemDiscount", label: "Item Discount" },
+                { key: "netPrice", label: "Net Price" },
+              ]}
+              data={orderItems.map((item) => ({
+                id: item.id,
+                item: (
+                  <div className="flex items-center gap-2.5">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-10 w-10 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
+                        {item.name?.slice(0, 2)?.toUpperCase() || "IT"}
+                      </div>
+                    )}
+                    <span className="font-semibold">{item.name}</span>
+                  </div>
+                ),
+                quantity: item.quantity,
+                unitPrice: formatMoney(item.unitPrice),
+                totalPrice: formatMoney(
+                  Number(item.unitPrice || 0) * Number(item.quantity || 0),
+                ),
+                itemDiscount: formatMoney(
+                  Number(item.discountAppliedPerUnit || 0) *
+                    Number(item.quantity || 0),
+                ),
+                netPrice: formatMoney(item.netPrice),
+              }))}
+              pagination={false}
+              actionsAlign="right"
+            />
+          )}
+          <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-[#1F2226] dark:bg-[#121314]">
+            <div className="divide-y divide-slate-200 dark:divide-[#1F2226]">
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Sub total</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(itemsSubtotal)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Order discount</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(overallDiscountAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Total discount</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(totalDiscountAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">VAT</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(orderTaxAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Service charge</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(serviceChargeAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50 px-3.5 py-3 text-sm dark:bg-[#161719]">
+                <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">Bill total</span>
+                <span className="font-bold text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(orderNetTotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </Dialog>
 
