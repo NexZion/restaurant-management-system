@@ -20,7 +20,7 @@ class OrderController extends Controller
             'customer',
             'creator',
             'assignedBy',
-            'items'
+            'items.menuItem'
         ])->latest()->get();
 
         return response()->json([
@@ -122,7 +122,7 @@ class OrderController extends Controller
             'customer',
             'creator',
             'assignedBy',
-            'items'
+            'items.menuItem'
         ])->find($id);
 
         if (!$order) {

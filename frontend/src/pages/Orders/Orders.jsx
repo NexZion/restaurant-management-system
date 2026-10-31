@@ -328,7 +328,7 @@ export const Orders = () => {
         (sum, item) =>
           sum +
           Number(item.discountAppliedPerUnit || 0) *
-            Number(item.quantity || 0),
+          Number(item.quantity || 0),
         0,
       ),
     [orderItems],
@@ -383,7 +383,7 @@ export const Orders = () => {
 
   const orderTaxAmount = formData.includeTax
     ? Math.max(0, Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0)) *
-      0.18
+    0.18
     : 0;
   const serviceChargeAmount = Number(formData.serviceCharge || 0);
   const totalDiscountAmount =
@@ -985,36 +985,6 @@ export const Orders = () => {
       label: customer.name,
     })),
   ];
-
-  const orderSummary = viewOrder
-    ? [
-      { label: "Order Type", value: formatText(viewOrder.order_type) },
-      { label: "Date", value: formatDate(viewOrder.created_at) },
-      { label: "Branch", value: viewOrder.branch?.name },
-      {
-        label: "Table",
-        value: viewOrder.table?.table_number || viewOrder.table?.name,
-      },
-      { label: "Assigned By", value: viewOrder.assignedBy?.name },
-      { label: "Created By", value: viewOrder.creator?.name },
-      { label: "Customer Notes", value: viewOrder.customer_note || "N/A" },
-      { label: "Internal Notes", value: viewOrder.internal_note || "N/A" },
-      { label: "Seat Count", value: viewOrder.seatCount || "N/A" },
-    ]
-    : [];
-
-  const paymentSummary = viewOrder
-    ? [
-      {
-        label: "Payment Status",
-        value: formatText(viewOrder.payment_status || "unpaid"),
-      },
-      {
-        label: "Grand Total",
-        value: formatMoney(viewOrder.grand_total),
-      },
-    ]
-    : [];
 
   return (
     <div>
@@ -1704,7 +1674,7 @@ export const Orders = () => {
                 ),
                 itemDiscount: formatMoney(
                   Number(item.discountAppliedPerUnit || 0) *
-                    Number(item.quantity || 0),
+                  Number(item.quantity || 0),
                 ),
                 netPrice: formatMoney(item.netPrice),
               }))}
@@ -2051,7 +2021,7 @@ export const Orders = () => {
         isOpen={showViewOrder}
         onClose={() => setShowViewOrder(false)}
         title="Order Details"
-        size="medium"
+        size="large"
         showFooter={viewOrder?.status === "draft"}
         primaryButtonText="Confirm"
         secondaryButtonText="Cancel"
@@ -2078,60 +2048,94 @@ export const Orders = () => {
       >
         {viewOrder && (
           <div className="space-y-5">
-            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
-              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
-                    {viewOrder.order_number || "N/A"}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#8A8F98]">
-                    {customerName(viewOrder.customer)}
-                  </p>
-                </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                  {formatText(viewOrder.status)}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Order Summary
-              </h4>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {orderSummary.map((item) => (
-                  <div
-                    key={item.label}
-                    className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${item.wide ? "sm:col-span-2" : ""
-                      }`}
-                  >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-                      {item.value || "N/A"}
-                    </p>
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  ["Order Number", viewOrder.order_number],
+                  ["Customer Name", customerName(viewOrder.customer)],
+                  ["Branch Name", viewOrder.branch?.name],
+                  ["Status", formatText(viewOrder.status)],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Bill
-              </h4>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {paymentSummary.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719]"
-                  >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-                      {item.value || "N/A"}
-                    </p>
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">Order Summary</h4>
+              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Order Type", formatText(viewOrder.order_type)],
+                  ["Table", viewOrder.table?.table_number || viewOrder.table?.name],
+                  ["Seat Count", viewOrder.seatCount],
+                  ["Order At", formatDate(viewOrder.ordered_at || viewOrder.created_at)],
+                  ["Customer Note", viewOrder.customer_note],
+                  ["Internal Note", viewOrder.internal_note],
+                  ...(viewOrder.status === "confirmed"
+                    ? [["Confirm At", formatDate(viewOrder.confirm_at || viewOrder.confirmed_at)]]
+                    : []),
+                  ...(viewOrder.status === "completed"
+                    ? [["Completed At", formatDate(viewOrder.completed_at)]]
+                    : []),
+                  ...(viewOrder.status === "cancelled"
+                    ? [
+                      ["Cancel At", formatDate(viewOrder.cancellation_at || viewOrder.cancelled_at)],
+                      ["Cancellation Reason", viewOrder.cancellation_reason],
+                    ]
+                    : []),
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">Bill Summary</h4>
+              <Table
+                columns={[
+                  { key: "item", label: "Item" },
+                  { key: "quantity", label: "Quantity" },
+                  { key: "unitPrice", label: "Unit Price" },
+                  { key: "itemDiscount", label: "Item Discount" },
+                  { key: "netPrice", label: "Net Price" },
+                ]}
+                data={(viewOrder.items || []).map((item) => {
+                  const unitPrice = Number(item.unit_price || 0);
+                  const quantity = Number(item.quantity || 0);
+                  const discount = Number(item.discount || 0) * quantity;
+
+                  return {
+                    id: item.id,
+                    item: item.menuItem?.name || item.menu_item?.name || item.name || `Item #${item.menu_item_id}`,
+                    quantity,
+                    unitPrice: formatMoney(unitPrice),
+                    itemDiscount: formatMoney(discount),
+                    netPrice: formatMoney(Number(item.total_price || 0) - discount),
+                  };
+                })}
+                pagination={false}
+                actionsAlign="right"
+              />
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Payment Status", formatText(viewOrder.payment_status || "unpaid")],
+                  ["Subtotal", formatMoney(viewOrder.sub_total ?? viewOrder.subtotal)],
+                  ["Discount Total", formatMoney(viewOrder.discount_total)],
+                  ["Tax Total", formatMoney(viewOrder.tax_total)],
+                  ["Service Charge Total", formatMoney(viewOrder.service_charge_total)],
+                  ["Grand Total", formatMoney(viewOrder.grand_total)],
+                  ["Paid Total", formatMoney(viewOrder.paid_total)],
+                  ["Balance Due", formatMoney(viewOrder.balance_due)],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
                   </div>
                 ))}
               </div>
