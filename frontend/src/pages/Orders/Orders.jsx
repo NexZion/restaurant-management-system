@@ -100,6 +100,8 @@ export const Orders = () => {
     discount: "0",
     overallDiscountType: "none",
     overallDiscountAmount: "0",
+    tax: "0",
+    serviceCharge: "0",
     status: "",
     paymentStatus: "unpaid",
     netTotalAmount: "",
@@ -340,9 +342,17 @@ export const Orders = () => {
     () =>
       Math.max(
         0,
-        Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0),
+        Number(orderItemsTotal || 0) -
+        Number(overallDiscountAmount || 0) +
+        Number(formData.tax || 0) +
+        Number(formData.serviceCharge || 0),
       ),
-    [orderItemsTotal, overallDiscountAmount],
+    [
+      formData.serviceCharge,
+      formData.tax,
+      orderItemsTotal,
+      overallDiscountAmount,
+    ],
   );
 
   useEffect(() => {
@@ -380,7 +390,9 @@ export const Orders = () => {
         status: order.status || "",
         paymentStatus: order.payment_status || "unpaid",
         netTotalAmount: order.grand_total || "",
-        totalAmount: order.subtotal ?? order.sub_total ?? "",
+        totalAmount: order.sub_total ?? order.subtotal ?? "",
+        tax: order.tax_total ?? "0",
+        serviceCharge: order.service_charge_total ?? "0",
         CustomerNotes: order.customer_note || "",
         seatCount: order.seatCount || "",
       });
@@ -433,6 +445,8 @@ export const Orders = () => {
       discount: "0",
       overallDiscountType: "none",
       overallDiscountAmount: "0",
+      tax: "0",
+      serviceCharge: "0",
       status: "",
       paymentStatus: "unpaid",
       netTotalAmount: "",
@@ -667,7 +681,14 @@ export const Orders = () => {
         : formData.overallDiscountType === "fixed"
           ? Number(formData.overallDiscountAmount || 0)
           : 0;
-    const netTotal = Math.max(0, subtotal - orderDiscountAmount);
+    const tax = canEditUnitPrice ? Number(formData.tax || 0) : 0;
+    const serviceCharge = canEditUnitPrice
+      ? Number(formData.serviceCharge || 0)
+      : 0;
+    const netTotal = Math.max(
+      0,
+      subtotal - orderDiscountAmount + tax + serviceCharge,
+    );
     console.log("Subtotal:", subtotal);
     console.log("Order Discount:", orderDiscountAmount);
     console.log("Net Total:", netTotal);
@@ -704,8 +725,8 @@ export const Orders = () => {
       })),
       subtotal: subtotal,
       discount_total: orderDiscountAmount,
-      tax_total: 0,
-      service_charge_total: 0,
+      tax_total: tax,
+      service_charge_total: serviceCharge,
       grand_total: netTotal,
       payment_status: formData.paymentStatus || "unpaid",
       paid_total: formData.paymentStatus === "paid" ? netTotal : 0,
@@ -787,8 +808,13 @@ export const Orders = () => {
         order_type: order.order_type,
         status: updates.status || order.status,
         payment_status: updates.payment_status || order.payment_status || "unpaid",
+        tax_total: order.tax_total ?? 0,
+        service_charge_total: order.service_charge_total ?? 0,
         customer_note: order.customer_note,
         internal_note: order.internal_note,
+        ...(updates.cancellation_reason
+          ? { cancellation_reason: updates.cancellation_reason }
+          : {}),
         grand_total: order.grand_total,
         paid_total: updates.paid_total ?? order.paid_total ?? 0,
         balance_due: updates.balance_due ?? order.balance_due ?? 0,
@@ -802,7 +828,20 @@ export const Orders = () => {
 
   const handleCancelOrder = async (row) => {
     if (!window.confirm(`Cancel order ${row.orderNo || ""}?`)) return;
-    await updateOrder(row, { status: "cancelled" });
+
+    const reason = window.prompt("Please enter a reason for cancelling this order:");
+    if (reason === null) return;
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      window.alert("A cancellation reason is required.");
+      return;
+    }
+
+    await updateOrder(row, {
+      status: "cancelled",
+      cancellation_reason: trimmedReason,
+    });
   };
 
   const handlePayOrder = async (row) => {
@@ -1500,6 +1539,40 @@ export const Orders = () => {
               />
             )}
           </div>
+        </div>
+        <div className="mt-4 grid gap-3.5 md:grid-cols-2">
+          <TextField
+            label="Tax"
+            type="number"
+            min="0"
+            value={formData.tax}
+            disabled={!canEditUnitPrice}
+            helperText={
+              canEditUnitPrice
+                ? ""
+                : "Only roles with access level above 70 can change tax."
+            }
+            onChange={(e) =>
+              canEditUnitPrice &&
+              setFormData({ ...formData, tax: e.target.value })
+            }
+          />
+          <TextField
+            label="Service Charge"
+            type="number"
+            min="0"
+            value={formData.serviceCharge}
+            disabled={!canEditUnitPrice}
+            helperText={
+              canEditUnitPrice
+                ? ""
+                : "Only roles with access level above 70 can change service charge."
+            }
+            onChange={(e) =>
+              canEditUnitPrice &&
+              setFormData({ ...formData, serviceCharge: e.target.value })
+            }
+          />
         </div>
         <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
           <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">

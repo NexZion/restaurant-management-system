@@ -206,6 +206,7 @@ export const Dialog = ({
   primaryButtonDisabled = false,
   secondaryButtonDisabled = false,
   thirdButtonDisabled = false,
+  zIndex = 50,
   className = '',
 }) => {
   const [visible, setVisible] = useState(false)

@@ -54,25 +54,41 @@ class OrderController extends Controller
             $orderNumber = $orderPayload['order_number'] ?? $this->generateOrderNumber();
             $orderPayload['branch_id'] =
                 $request->user()?->branch_id ?? $orderPayload['branch_id'] ?? null;
-            $subtotal = $orderItems->sum(function ($itemPayload) {
-                return $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']);
+            $subTotal = $orderItems->sum(function ($itemPayload) {
+                return (float) $itemPayload['unit_price'] * (int) $itemPayload['quantity'];
             });
-            $discount = $orderPayload['discount_total'] ?? 0;
-            $grandTotal = $orderPayload['grand_total'] ?? max(0, $subtotal - $discount);
+            $itemDiscount = $orderItems->sum(function ($itemPayload) {
+                return (float) ($itemPayload['discount'] ?? 0) * (int) $itemPayload['quantity'];
+            });
+            $discount = $itemDiscount + (float) ($orderPayload['discount_total'] ?? 0);
+            $canEditCharges = (int) ($request->user()?->role?->access_level ?? 0) > 70;
+            $taxTotal = $canEditCharges
+                ? (float) ($orderPayload['tax_total'] ?? 0)
+                : 0;
+            $serviceChargeTotal = $canEditCharges
+                ? (float) ($orderPayload['service_charge_total'] ?? 0)
+                : 0;
+            $grandTotal = max(0, $subTotal - $discount + $taxTotal + $serviceChargeTotal);
+            $status = $orderPayload['status'] ?? 'draft';
+            $now = now();
 
             $order = Order::create(array_merge($orderPayload, [
                 'order_number' => $orderNumber,
                 'created_by' => $request->user()?->id,
-                'status' => $orderPayload['status'] ?? 'draft',
+                'assigned_by' => $request->user()?->id,
+                'status' => $status,
                 'payment_status' => $orderPayload['payment_status'] ?? 'unpaid',
-                'subtotal' => $orderPayload['subtotal'] ?? $subtotal,
+                'subtotal' => $subTotal,
                 'discount_total' => $discount,
-                'tax_total' => $orderPayload['tax_total'] ?? 0,
-                'service_charge_total' => $orderPayload['service_charge_total'] ?? 0,
+                'tax_total' => $taxTotal,
+                'service_charge_total' => $serviceChargeTotal,
                 'grand_total' => $grandTotal,
                 'paid_total' => $orderPayload['paid_total'] ?? 0,
                 'balance_due' => $orderPayload['balance_due'] ?? $grandTotal,
                 'ordered_at' => $orderPayload['ordered_at'] ?? now(),
+                'confirmed_at' => $status === 'confirmed' ? $now : null,
+                'completed_at' => $status === 'completed' ? $now : null,
+                'cancelled_at' => $status === 'cancelled' ? $now : null,
             ]));
 
             foreach ($orderItems as $itemPayload) {
@@ -124,8 +140,32 @@ class OrderController extends Controller
     }
     public function update(UpdateOrderRequest $request, Order $order)
     {
+        $validated = $request->validated();
+        $status = $validated['status'];
+        $now = now();
+        $canEditCharges = (int) ($request->user()?->role?->access_level ?? 0) > 70;
 
-        $order->update($request->validated());
+        $validated['assigned_by'] = $request->user()?->id;
+        if ($canEditCharges) {
+            $validated['tax_total'] = (float) ($validated['tax_total'] ?? 0);
+            $validated['service_charge_total'] = (float) ($validated['service_charge_total'] ?? 0);
+        } else {
+            unset($validated['tax_total'], $validated['service_charge_total']);
+        }
+
+        if ($status === 'confirmed' && $order->status !== 'confirmed') {
+            $validated['confirmed_at'] = $now;
+        }
+
+        if ($status === 'completed' && $order->status !== 'completed') {
+            $validated['completed_at'] = $now;
+        }
+
+        if ($status === 'cancelled' && $order->status !== 'cancelled') {
+            $validated['cancelled_at'] = $now;
+        }
+
+        $order->update($validated);
 
         return response()->json([
             'success' => true,

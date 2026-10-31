@@ -36,6 +36,13 @@ class Order extends Model
         'cancellation_reason',
     ];
 
+    protected $casts = [
+        'ordered_at' => 'datetime',
+        'confirmed_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);

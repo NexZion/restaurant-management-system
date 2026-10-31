@@ -21,15 +21,16 @@ class UpdateOrderRequest extends FormRequest
 
             'customer_id' => 'nullable|exists:customers,id',
 
-            'assigned_by' => 'nullable|exists:users,id',
-
             'order_type' => 'required|in:dine_in,takeaway,delivery',
 
             'status' => 'required|in:draft,confirmed,preparing,ready,served,completed,cancelled',
             'payment_status' => 'required|in:unpaid,partial,paid,partially_refunded,refunded',
             'customer_note' => 'nullable|string',
             'internal_note' => 'nullable|string',
+            'cancellation_reason' => 'required_if:status,cancelled|nullable|string|max:1000',
             'grand_total' => 'nullable|numeric|min:0',
+            'tax_total' => 'nullable|numeric|min:0',
+            'service_charge_total' => 'nullable|numeric|min:0',
             'paid_total' => 'nullable|numeric|min:0',
             'balance_due' => 'nullable|numeric|min:0'
         ];
