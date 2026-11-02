@@ -414,22 +414,56 @@ export const Orders = () => {
     try {
       const response = await api.get(`/orders/${row.id}`);
       const order = response.data.data;
+      const loadedItems = (order.items || []).map((item) => {
+        const unitPrice = Number(item.unit_price || 0);
+        const quantity = Number(item.quantity || 0);
+        const discountAppliedPerUnit = Number(item.discount || 0);
+
+        return {
+          id: item.id,
+          itemId: item.menu_item_id,
+          image: item.menuItem?.image,
+          name: item.menuItem?.name || item.name || `Item #${item.menu_item_id}`,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity,
+          discountAppliedPerUnit,
+          netPrice: Math.max(0, unitPrice - discountAppliedPerUnit) * quantity,
+          customerNotes: item.notes || "",
+        };
+      });
+      const itemDiscountTotal = loadedItems.reduce(
+        (sum, item) =>
+          sum + item.discountAppliedPerUnit * item.quantity,
+        0,
+      );
 
       setEditingOrder(order);
       setIsEditMode(true);
       setFormData({
         id: order.id || "",
+        date: String(order.ordered_at || order.created_at || "").slice(0, 10),
+        customerId: order.customer_id || "",
         customerName: customerName(order.customer) || "",
         orderNumber: order.order_number || "",
+        orderType: order.order_type || "dine_in",
+        tableNumber: order.table_id || "",
         status: order.status || "",
         paymentStatus: order.payment_status || "unpaid",
         netTotalAmount: order.grand_total || "",
         totalAmount: order.sub_total ?? order.subtotal ?? "",
+        overallDiscountType: Number(order.discount_total || 0) > 0 ? "fixed" : "none",
+        overallDiscountAmount: Math.max(
+          0,
+          Number(order.discount_total || 0) - itemDiscountTotal,
+        ),
         includeTax: Number(order.tax_total || 0) > 0,
         serviceCharge: order.service_charge_total ?? "0",
         CustomerNotes: order.customer_note || "",
+        InternalNotes: order.internal_note || "",
         seatCount: order.seatCount || "",
       });
+      setOrderItems(loadedItems);
       setFieldErrors({});
       setShowAddOrder(true);
     } catch (error) {
@@ -1224,7 +1258,7 @@ export const Orders = () => {
         }
         secondaryButtonText="Cancel"
         thirdButtonText="Draft"
-        showThirdButton={true}
+        showThirdButton={!isEditMode}
         primaryButtonDisabled={isSubmitting}
         secondaryButtonDisabled={isSubmitting}
         thirdButtonDisabled={isSubmitting}

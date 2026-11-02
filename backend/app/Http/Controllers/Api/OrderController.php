@@ -141,14 +141,32 @@ class OrderController extends Controller
     public function update(UpdateOrderRequest $request, Order $order)
     {
         $validated = $request->validated();
+        $items = $validated['items'] ?? null;
+        unset($validated['items']);
         $status = $validated['status'];
         $now = now();
         $canEditCharges = (int) ($request->user()?->role?->access_level ?? 0) > 70;
 
         $validated['assigned_by'] = $request->user()?->id;
+        if ($items !== null) {
+            $subTotal = collect($items)->sum(
+                fn ($item) => (float) $item['unit_price'] * (int) $item['quantity']
+            );
+            $itemDiscount = collect($items)->sum(
+                fn ($item) => (float) ($item['discount'] ?? 0) * (int) $item['quantity']
+            );
+            $validated['sub_total'] = $subTotal;
+            $validated['subtotal'] = $subTotal;
+            $validated['discount_total'] =
+                $itemDiscount + (float) ($validated['discount_total'] ?? 0);
+        }
         if ($canEditCharges) {
             $includeTax = filter_var($validated['include_tax'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $taxableAmount = max(0, (float) $order->subtotal - (float) $order->discount_total);
+            $taxableAmount = max(
+                0,
+                (float) ($validated['subtotal'] ?? $order->subtotal) -
+                (float) ($validated['discount_total'] ?? $order->discount_total)
+            );
             $validated['tax_total'] = $includeTax ? round($taxableAmount * 0.18, 2) : 0;
             $validated['service_charge_total'] = (float) ($validated['service_charge_total'] ?? 0);
             $validated['grand_total'] = $taxableAmount
@@ -170,7 +188,27 @@ class OrderController extends Controller
             $validated['cancelled_at'] = $now;
         }
 
-        $order->update($validated);
+        DB::transaction(function () use ($order, $validated, $items) {
+            if ($items !== null) {
+                $order->items()->delete();
+                foreach ($items as $item) {
+                    $quantity = (int) $item['quantity'];
+                    $unitPrice = (float) $item['unit_price'];
+                    $discount = (float) ($item['discount'] ?? 0);
+
+                    $order->items()->create([
+                        'menu_item_id' => $item['menu_item_id'],
+                        'quantity' => $quantity,
+                        'unit_price' => $unitPrice,
+                        'discount' => $discount,
+                        'total_price' => $unitPrice * $quantity,
+                        'notes' => $item['notes'] ?? null,
+                    ]);
+                }
+            }
+
+            $order->update($validated);
+        });
 
         return response()->json([
             'success' => true,

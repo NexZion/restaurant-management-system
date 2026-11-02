@@ -33,7 +33,12 @@ class UpdateOrderRequest extends FormRequest
             'tax_total' => 'nullable|numeric|min:0',
             'service_charge_total' => 'nullable|numeric|min:0',
             'paid_total' => 'nullable|numeric|min:0',
-            'balance_due' => 'nullable|numeric|min:0'
+            'balance_due' => 'nullable|numeric|min:0',
+            'items' => 'sometimes|array',
+            'items.*.menu_item_id' => 'required_with:items|exists:menu_items,id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+            'items.*.unit_price' => 'required_with:items|numeric|min:0',
+            'items.*.discount' => 'nullable|numeric|min:0'
         ];
     }
 }
