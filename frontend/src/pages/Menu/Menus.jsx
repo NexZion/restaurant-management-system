@@ -143,7 +143,11 @@ export const Menus = () => {
         start_date: menus.start_date || "",
         end_date: menus.end_date || "",
         service_types: menus.service_types || [],
-        active_label: menus.is_active ? "Active" : "Inactive",
+        active_label: (
+          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${menus.is_active ? "bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300"}`}>
+            {menus.is_active ? "Active" : "Inactive"}
+          </span>
+        ),
         menu_type_label: formatChoice(menuTypeOptions, menus.menu_type),
         availability_type_label: formatChoice(
           availabilityTypeOptions,

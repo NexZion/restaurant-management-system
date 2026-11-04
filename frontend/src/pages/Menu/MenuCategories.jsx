@@ -274,7 +274,11 @@ export const MenuCategories = () => {
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
     .map((category) => ({
       ...category,
-      active_label: category.is_active ? "Active" : "Inactive",
+      active_label: (
+        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${category.is_active ? "bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-950/50 dark:text-red-300"}`}>
+          {category.is_active ? "Active" : "Inactive"}
+        </span>
+      ),
       description_preview: previewDescription(category.description),
       item_count: category.menu_items_count ?? 0,
     }));

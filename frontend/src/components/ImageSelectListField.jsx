@@ -20,6 +20,8 @@ export const ImageSelectListField = ({
   className = "",
 }) => {
   const [selectedValue, setSelectedValue] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dropIndex, setDropIndex] = useState(null);
   const selectedOptions = value
     .map((selected) =>
       options.find((option) => String(option.value) === String(selected)),
@@ -54,6 +56,14 @@ export const ImageSelectListField = ({
     onChange?.(
       value.filter((selected) => String(selected) !== String(optionValue)),
     );
+  };
+
+  const moveSelected = (fromIndex, toIndex) => {
+    if (fromIndex === null || fromIndex === toIndex) return;
+    const next = [...value];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    onChange?.(next);
   };
 
   return (
@@ -99,7 +109,18 @@ export const ImageSelectListField = ({
       {selectedOptions.length ? (
         <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-[#1F2226] dark:border-[#1F2226]">
           {selectedOptions.map((option) => (
-            <li key={option.value} className="flex items-center gap-3 p-3">
+            <li
+              key={option.value}
+              draggable={!disabled}
+              onDragStart={(event) => { setDraggedIndex(value.findIndex((selected) => String(selected) === String(option.value))); setDropIndex(value.findIndex((selected) => String(selected) === String(option.value))); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(value.findIndex((selected) => String(selected) === String(option.value)))); }}
+              onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setDropIndex(value.findIndex((selected) => String(selected) === String(option.value))); }}
+              onDrop={(event) => { event.preventDefault(); moveSelected(draggedIndex, value.findIndex((selected) => String(selected) === String(option.value))); setDraggedIndex(null); setDropIndex(null); }}
+              onDragEnd={() => { setDraggedIndex(null); setDropIndex(null); }}
+              className={`flex items-center gap-3 border-t-2 p-3 transition-colors ${draggedIndex === value.findIndex((selected) => String(selected) === String(option.value)) ? "bg-blue-50 opacity-60 dark:bg-[#171A2A]" : ""} ${dropIndex === value.findIndex((selected) => String(selected) === String(option.value)) && draggedIndex !== dropIndex ? "border-t-blue-500 dark:border-t-[#828FFF]" : "border-t-transparent"}`}
+            >
+              <span aria-label={`Display order ${value.findIndex((selected) => String(selected) === String(option.value)) + 1}`} className={`flex shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-[#8A8F98] ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}>
+                <span aria-hidden="true">⠿</span>{value.findIndex((selected) => String(selected) === String(option.value)) + 1}
+              </span>
               {(option.image || option.imageSrc) && (
                 <img
                   src={option.image || option.imageSrc}

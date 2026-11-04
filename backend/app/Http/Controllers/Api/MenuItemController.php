@@ -19,6 +19,8 @@ class MenuItemController extends Controller
             'menuCategory',
             'images',
             'branches',
+            'menus',
+            'branchVariantAvailabilities',
             'variantOptions.variant',
         ])->get();
 
@@ -31,18 +33,24 @@ class MenuItemController extends Controller
     public function store(StoreMenuItemRequest $request)
     {
         $data = $request->validated();
-        $assignments = collect($data['branch_assignments'])->mapWithKeys(function ($assignment) {
+        $assignments = collect($data['branch_assignments'] ?? [])->mapWithKeys(function ($assignment) {
             $branchId = $assignment['branch_id'];
             unset($assignment['branch_id']);
             return [$branchId => $assignment];
         })->all();
         $variantAssignments = $this->variantAssignments($data['variant_option_assignments'] ?? []);
+        $hasBranchAssignments = array_key_exists('branch_assignments', $data);
         $this->ensureCategoryActive($data['menu_category_id']);
         unset($data['branch_assignments'], $data['variant_option_assignments']);
         $item = MenuItem::create($data);
-        $item->branches()->sync($assignments);
+        if ($hasBranchAssignments) {
+            $item->branches()->sync($assignments);
+        }
         $item->variantOptions()->sync($variantAssignments);
-        $item->load(['menuCategory', 'branches', 'images', 'variantOptions.variant']);
+        $item->branchVariantAvailabilities()
+            ->whereNotIn('variant_option_id', array_keys($variantAssignments))
+            ->delete();
+        $item->load(['menuCategory', 'branches', 'menus', 'branchVariantAvailabilities', 'images', 'variantOptions.variant']);
 
         return response()->json([
             'success' => true,
@@ -57,6 +65,8 @@ class MenuItemController extends Controller
             'menuCategory',
             'images',
             'branches',
+            'menus',
+            'branchVariantAvailabilities',
             'variantOptions.variant',
 
         ])->find($id);
@@ -88,18 +98,24 @@ class MenuItemController extends Controller
         }
 
         $data = $request->validated();
-        $assignments = collect($data['branch_assignments'])->mapWithKeys(function ($assignment) {
+        $assignments = collect($data['branch_assignments'] ?? [])->mapWithKeys(function ($assignment) {
             $branchId = $assignment['branch_id'];
             unset($assignment['branch_id']);
             return [$branchId => $assignment];
         })->all();
         $variantAssignments = $this->variantAssignments($data['variant_option_assignments'] ?? []);
+        $hasBranchAssignments = array_key_exists('branch_assignments', $data);
         $this->ensureCategoryActive($data['menu_category_id']);
         unset($data['branch_assignments'], $data['variant_option_assignments']);
         $item->update($data);
-        $item->branches()->sync($assignments);
+        if ($hasBranchAssignments) {
+            $item->branches()->sync($assignments);
+        }
         $item->variantOptions()->sync($variantAssignments);
-        $item->load(['menuCategory', 'branches', 'images', 'variantOptions.variant']);
+        $item->branchVariantAvailabilities()
+            ->whereNotIn('variant_option_id', array_keys($variantAssignments))
+            ->delete();
+        $item->load(['menuCategory', 'branches', 'menus', 'branchVariantAvailabilities', 'images', 'variantOptions.variant']);
 
         return response()->json([
             'success' => true,
