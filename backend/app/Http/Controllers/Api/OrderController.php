@@ -6,11 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
+use App\Models\MenuItem;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
-use App\Models\MenuItem;
-use App\Models\OrderItem;
-use Illuminate\Validation\ValidationException;
 
 class OrderController extends Controller
 {
@@ -21,8 +19,8 @@ class OrderController extends Controller
             'table',
             'customer',
             'creator',
-            'waiter',
-            'bill'
+            'assignedBy',
+            'items'
         ])->latest()->get();
 
         return response()->json([
@@ -33,73 +31,52 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         $validated = $request->validated();
-        $branchId = (int) $validated['branch_id'];
-        $orderItems = collect($validated['items'] ?? [])->values()->map(function ($itemPayload, $index) use ($branchId) {
-            $menuItem = MenuItem::with(['branches', 'menuCategory.branches', 'menus.branches'])
-                ->find($itemPayload['menu_item_id']);
-            $branchAssignment = $menuItem?->branches->firstWhere('id', $branchId);
-            $categoryBranch = $menuItem?->menuCategory?->branches->firstWhere('id', $branchId);
-            $hasActiveMenu = $menuItem?->menus->contains(function ($menu) use ($branchId) {
-                $menuBranch = $menu->branches->firstWhere('id', $branchId);
-                return $menu->is_active && $menuBranch && $menuBranch->pivot->is_active;
-            });
+        $orderItems = collect($validated['items'] ?? []);
+        $accessLevel = (int) ($request->user()?->role?->access_level ?? 0);
 
-            if (
-                !$menuItem || !$menuItem->is_active || !$menuItem->is_available || !$branchAssignment
-                || !$branchAssignment->pivot->is_active || !$branchAssignment->pivot->is_available
-                || !$menuItem->menuCategory?->is_active || !$categoryBranch || !$categoryBranch->pivot->is_active
-                || !$hasActiveMenu
-            ) {
-                throw ValidationException::withMessages([
-                    "items.{$index}.menu_item_id" => 'This item is not orderable at the selected branch.',
-                ]);
+        if ($accessLevel <= 70) {
+            foreach ($orderItems as $itemPayload) {
+                $menuItem = MenuItem::findOrFail($itemPayload['menu_item_id']);
+
+                if (round((float) $itemPayload['unit_price'], 2) !== round((float) $menuItem->base_price, 2)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Your role cannot change menu item unit prices.',
+                    ], 403);
+                }
             }
+        }
 
-            $unitPrice = $branchAssignment->pivot->selling_price ?? $menuItem->base_price;
-            $quantity = (int) $itemPayload['quantity'];
-            return [
-                'menu_item_id' => $menuItem->id,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'discount' => 0,
-                'total_price' => $unitPrice * $quantity,
-                'notes' => $itemPayload['notes'] ?? null,
-                'status' => 'pending',
-            ];
-        });
-        $billPayload = $validated['bill'] ?? [];
-
-        $order = DB::transaction(function () use ($validated, $orderItems, $billPayload, $request) {
+        $order = DB::transaction(function () use ($validated, $orderItems, $request) {
             $orderPayload = $validated;
-            unset($orderPayload['items'], $orderPayload['bill']);
+            unset($orderPayload['items']);
 
-            $orderNumber = $orderPayload['order_number'] ?? ('ORD-' . now()->format('Y') . str_pad(Order::count() + 1, 5, '0', STR_PAD_LEFT));
+            $orderNumber = $orderPayload['order_number'] ?? $this->generateOrderNumber();
+            $orderPayload['branch_id'] =
+                $request->user()?->branch_id ?? $orderPayload['branch_id'] ?? null;
+            $subtotal = $orderItems->sum(function ($itemPayload) {
+                return $itemPayload['total_price'] ?? ($itemPayload['unit_price'] * $itemPayload['quantity']);
+            });
+            $discount = $orderPayload['discount_total'] ?? 0;
+            $grandTotal = $orderPayload['grand_total'] ?? max(0, $subtotal - $discount);
 
             $order = Order::create(array_merge($orderPayload, [
                 'order_number' => $orderNumber,
                 'created_by' => $request->user()?->id,
-                'waiter_id' => $orderPayload['waiter_id'] ?? null,
-                'status' => $orderPayload['status'] ?? 'pending',
-                'notes' => $orderPayload['notes'] ?? null,
-                'order_type' => $orderPayload['order_type'] ?? 'dining',
-                'is_online' => $orderPayload['is_online'] ?? false,
+                'status' => $orderPayload['status'] ?? 'draft',
+                'payment_status' => $orderPayload['payment_status'] ?? 'unpaid',
+                'subtotal' => $orderPayload['subtotal'] ?? $subtotal,
+                'discount_total' => $discount,
+                'tax_total' => $orderPayload['tax_total'] ?? 0,
+                'service_charge_total' => $orderPayload['service_charge_total'] ?? 0,
+                'grand_total' => $grandTotal,
+                'paid_total' => $orderPayload['paid_total'] ?? 0,
+                'balance_due' => $orderPayload['balance_due'] ?? $grandTotal,
+                'ordered_at' => $orderPayload['ordered_at'] ?? now(),
             ]));
 
             foreach ($orderItems as $itemPayload) {
                 $order->items()->create($itemPayload);
-            }
-
-            if ($orderItems->isNotEmpty() || !empty($billPayload)) {
-                $subtotal = $orderItems->sum('total_price');
-
-                $order->bill()->create([
-                    'subtotal' => $billPayload['subtotal'] ?? $subtotal,
-                    'discount' => $billPayload['discount'] ?? 0,
-                    'tax' => $billPayload['tax'] ?? 0,
-                    'service_charge' => $billPayload['service_charge'] ?? 0,
-                    'grand_total' => $billPayload['grand_total'] ?? max(0, ($billPayload['subtotal'] ?? $subtotal) - ($billPayload['discount'] ?? 0) + ($billPayload['tax'] ?? 0) + ($billPayload['service_charge'] ?? 0)),
-                    'bill_status' => $billPayload['bill_status'] ?? 'unpaid',
-                ]);
             }
 
             return $order;
@@ -108,9 +85,19 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Order created successfully',
-            'data' => $order->load(['items', 'bill'])
+            'data' => $order->load('items')
         ], 201);
     }
+
+    private function generateOrderNumber(): string
+    {
+        do {
+            $orderNumber = sprintf('ORD - %06d', random_int(0, 999999));
+        } while (Order::where('order_number', $orderNumber)->exists());
+
+        return $orderNumber;
+    }
+
     public function show($id)
     {
         $order = Order::with([
@@ -118,8 +105,8 @@ class OrderController extends Controller
             'table',
             'customer',
             'creator',
-            'waiter',
-            'bill'
+            'assignedBy',
+            'items'
         ])->find($id);
 
         if (!$order) {

@@ -29,7 +29,7 @@ class OrderSeeder extends Seeder
                 return [
                     'branch_id' => $branchIds->random(),
                     'created_by' => $userIds->random(),
-                    'waiter_id' => fake()->boolean(50) ? $userIds->random() : null,
+                    'assigned_by' => fake()->boolean(50) ? $userIds->random() : null,
                     'table_id' => $tableIds->isNotEmpty() && fake()->boolean(70) ? $tableIds->random() : null,
                     'customer_id' => $customerIds->isNotEmpty() && fake()->boolean(60) ? $customerIds->random() : null,
                 ];

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBranchRequest extends FormRequest
 {
@@ -22,9 +23,19 @@ class StoreBranchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'max:50', 'unique:branches,code'],
+            'code' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('branches', 'code')->whereNull('deleted_at'),
+            ],
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:branches,slug'],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('branches', 'slug')->whereNull('deleted_at'),
+            ],
             'address_line1' => ['required', 'string', 'max:255'],
             'address_line2' => ['nullable', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
@@ -36,10 +47,15 @@ class StoreBranchRequest extends FormRequest
             'phone' => ['required', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
             'whatsapp' => ['nullable', 'string', 'max:20'],
+            'manager_name' => ['nullable', 'string', 'max:255'],
+            'contact_person_phone' => ['nullable', 'string', 'max:20'],
+            'opening_time' => ['nullable'],
+            'closing_time' => ['nullable'],
             'branch_type' => ['nullable', 'in:restaurant,hotel,cafe,resort'],
             'has_dining' => ['nullable', 'boolean'],
             'has_rooms' => ['nullable', 'boolean'],
-            'has_delivery' => ['nullable', 'boolean']
+            'has_delivery' => ['nullable', 'boolean'],
+            'status' => ['nullable', 'in:active,inactive'],
         ];
     }
 
@@ -59,8 +75,9 @@ class StoreBranchRequest extends FormRequest
             'address_line1.required' => 'Address line 1 is required',
             'city.required' => 'City is required',
             'phone.required' => 'Phone number is required',
+            'email.email' => 'Please provide a valid email address',
             'latitude.between' => 'Latitude must be between -90 and 90',
-            'longitude.between' => 'Longitude must be between -180 and 180'
+            'longitude.between' => 'Longitude must be between -180 and 180',
         ];
     }
 }

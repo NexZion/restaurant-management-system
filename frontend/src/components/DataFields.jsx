@@ -40,8 +40,8 @@ export const TextField = ({
         {/* Label */}
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none
-              ${floatLabel || isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+              ${floatLabel || isFocused || value || Boolean(placeholder) ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1 z-10" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
           >
@@ -693,7 +693,7 @@ export const NumberField = ({
         {/* Label */}
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
               ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
@@ -897,7 +897,9 @@ export const SelectField = ({
   const allOptionsSelected = options.length > 0 && options.every((option) => valueArray.includes(option.value));
 
   // Check if label should float
-  const hasValue = multiple ? valueArray.length > 0 : Boolean(value);
+  const hasValue = multiple
+    ? valueArray.length > 0
+    : Boolean(value) || Boolean(selectedOption);
 
   const handleSelect = (optionValue) => {
     if (multiple) {
@@ -990,7 +992,7 @@ export const SelectField = ({
         {/* Label */}
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 z-10
               ${hasValue || isOpen ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : isOpen ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
@@ -1822,7 +1824,7 @@ export const TextAreaField = ({
         {/* Label */}
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 z-10
               ${isFocused || value ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-3"}
               ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}
@@ -2242,7 +2244,7 @@ export const CategoryTreeField = ({
       <div className="relative">
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 z-10
               ${value.length || open ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : open ? "text-blue-600 dark:text-[#F7F8F8]" : "text-gray-600 dark:text-[#F7F8F8]"}
             `}
@@ -2638,7 +2640,7 @@ export const CategoryTreeField = ({
 //       <div className="relative">
 //         {label && (
 //           <label
-//             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+//             className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 z-10
 //               ${value.length || open ? 'text-xs -top-2.5 bg-white dark:bg-[#121314] px-1' : 'text-sm top-1/2 -translate-y-1/2'}
 //               ${error ? 'text-red-500' : open ? 'text-blue-600 dark:text-[#F7F8F8]' : 'text-gray-600 dark:text-[#F7F8F8]'}
 //             `}
@@ -3105,7 +3107,7 @@ export const PhoneField = ({
         {/* Floating label */}
         {label && (
           <label
-            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10
+            className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 z-10
               ${isFocused || hasValue ? "text-xs -top-2.5 bg-white dark:bg-[#121314] px-1" : "text-sm top-1/2 -translate-y-1/2"}
               ${error ? "text-red-500" : isFocused ? "text-blue-600 dark:text-[#F7F8F8]" : "text-slate-500 dark:text-[#D0D6E0]"}
             `}

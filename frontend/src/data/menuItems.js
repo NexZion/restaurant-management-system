@@ -39,4 +39,14 @@ export const menuItems = [
     ]
   },
   { type: 'item', name: 'Users', path: '/users', icon: 'users' },
+  {
+    type: 'group',
+    name: 'Settings',
+    icon: 'settings',
+    items: [
+      { name: 'Roles', path: '/roles' },
+      { name: 'Branches', path: '/branches' },
+    ]
+  }
 ];
+
