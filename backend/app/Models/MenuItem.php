@@ -50,6 +50,10 @@ class MenuItem extends Model
         return $this->belongsToMany(VariantOption::class, 'menu_item_variant_options')
             ->withPivot(['id', 'additional_price', 'is_default', 'is_active', 'display_order']);
     }
+    public function branchVariantAvailabilities()
+    {
+        return $this->hasMany(BranchMenuItemVariantOption::class);
+    }
     public function menus()
     {
         return $this->belongsToMany(

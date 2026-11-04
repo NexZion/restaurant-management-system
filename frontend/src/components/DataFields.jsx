@@ -298,6 +298,8 @@ export const ImageListField = ({
 }) => {
   const inputRef = useRef(null);
   const [previewUrls, setPreviewUrls] = useState({});
+  const [draggedIndex, setDraggedIndex] = useState(null);
+  const [dropIndex, setDropIndex] = useState(null);
 
   useEffect(() => {
     const createdUrls = [];
@@ -324,6 +326,18 @@ export const ImageListField = ({
 
   const removeImage = (removeIndex) => {
     onChange?.(value.filter((_, index) => index !== removeIndex));
+  };
+
+  const moveImage = (fromIndex, toIndex) => {
+    if (fromIndex === null || fromIndex === toIndex) return;
+    const next = [...value];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    onChange?.(next.map((entry, index) => (
+      entry && typeof entry === "object" && !Array.isArray(entry) && "display_order" in entry
+        ? { ...entry, display_order: index }
+        : entry
+    )));
   };
 
   return (
@@ -355,7 +369,18 @@ export const ImageListField = ({
             const image = entry?.image ?? entry;
             const name = image instanceof File ? image.name : (entry?.name || String(image).split("/").pop());
             return (
-              <li key={`${name}-${index}`} className="flex items-center gap-3 p-2.5">
+              <li
+                key={`${name}-${index}`}
+                draggable={!disabled}
+                onDragStart={(event) => { setDraggedIndex(index); setDropIndex(index); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(index)); }}
+                onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; setDropIndex(index); }}
+                onDrop={(event) => { event.preventDefault(); moveImage(draggedIndex, index); setDraggedIndex(null); setDropIndex(null); }}
+                onDragEnd={() => { setDraggedIndex(null); setDropIndex(null); }}
+                className={`flex items-center gap-3 border-t-2 p-2.5 transition-colors ${draggedIndex === index ? "bg-blue-50 opacity-60 dark:bg-[#171A2A]" : ""} ${dropIndex === index && draggedIndex !== index ? "border-t-blue-500 dark:border-t-[#828FFF]" : "border-t-transparent"}`}
+              >
+                <span aria-label={`Display order ${index + 1}`} className={`flex shrink-0 items-center gap-1 text-xs text-slate-500 dark:text-[#8A8F98] ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}>
+                  <span aria-hidden="true">⠿</span>{index + 1}
+                </span>
                 {previewUrls[index] ? (
                   <img src={previewUrls[index]} alt={entry?.alt_text || name || `Image ${index + 1}`} className="h-12 w-12 rounded-md border border-slate-200 object-cover dark:border-[#30343A]" />
                 ) : (
@@ -367,9 +392,12 @@ export const ImageListField = ({
                   onClick={() => removeImage(index)}
                   disabled={disabled}
                   aria-label={`Remove ${name || `image ${index + 1}`}`}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                  title={`Remove ${name || `image ${index + 1}`}`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30"
                 >
-                  Remove
+                  <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M8.5 2a1 1 0 00-.894.553L7.382 3H4a1 1 0 100 2h.5v10A2 2 0 006.5 17h7a2 2 0 002-2V5h.5a1 1 0 100-2h-3.382l-.224-.447A1 1 0 0011.5 2h-3zM8 7a1 1 0 012 0v7a1 1 0 11-2 0V7zm4-1a1 1 0 00-1 1v7a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
                 </button>
               </li>
             );
@@ -788,6 +816,8 @@ export const SelectField = ({
     left: 0,
     top: 0,
     width: 0,
+    maxHeight: 240,
+    openAbove: false,
   });
   const selectButtonRef = useRef(null);
   const selectSearchRef = useRef(null);
@@ -907,10 +937,20 @@ export const SelectField = ({
   const updateDropdownPosition = () => {
     if (selectButtonRef.current) {
       const rect = selectButtonRef.current.getBoundingClientRect();
+      const viewportPadding = 8;
+      const availableBelow = Math.max(0, window.innerHeight - rect.bottom - viewportPadding);
+      const availableAbove = Math.max(0, rect.top - viewportPadding);
+      const openAbove = availableBelow < 240 && availableAbove > availableBelow;
+      const maxHeight = Math.max(
+        80,
+        Math.min(240, openAbove ? availableAbove : availableBelow),
+      );
       setDropdownPosition({
         left: rect.left,
-        top: rect.bottom,
+        top: openAbove ? rect.top : rect.bottom,
         width: rect.width,
+        maxHeight,
+        openAbove,
       });
     }
   };
@@ -1061,7 +1101,8 @@ export const SelectField = ({
                   left: `${dropdownPosition.left}px`,
                   top: `${dropdownPosition.top}px`,
                   width: `${dropdownPosition.width}px`,
-                  maxHeight: "240px",
+                  maxHeight: `${dropdownPosition.maxHeight}px`,
+                  transform: dropdownPosition.openAbove ? "translateY(-100%)" : undefined,
                   overflowY: "auto",
                 }}
               >

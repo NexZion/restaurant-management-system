@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             MenuCategorySeeder::class,
             MenuItemSeeder::class,
+            VariantSeeder::class,
             CustomerSeeder::class,
             MenuItemImageSeeder::class,
             MenuSeeder::class,

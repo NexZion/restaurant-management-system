@@ -10,6 +10,7 @@ import { MenuItemCardList } from "../components/MenuItemCardList"
 import { ImageSelectListField } from "../components/ImageSelectListField"
 import { ProfileView } from "../components/ProfileView"
 import { Chip } from "../components/Chip"
+import { OrderedRowBuilder } from "../components/OrderedRowBuilder"
 
 const demoMenuItems = [
   {
@@ -98,6 +99,7 @@ export const Components = () => {
   // AddItem demo states
   const [demoAttributes, setDemoAttributes] = useState([])
   const [demoPrices, setDemoPrices] = useState([])
+  const [orderedDemoRows, setOrderedDemoRows] = useState([])
 
   // CategoryTreeField demo state
   const [demoSelectedCategories, setDemoSelectedCategories] = useState([])
@@ -178,6 +180,18 @@ export const Components = () => {
 
   return (
     <>
+      <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Ordered Row Builder</h1>
+      <OrderedRowBuilder
+        title="Menu display order"
+        fields={[
+          { key: "name", label: "Item name", required: true, placeholder: "e.g. House burger" },
+          { key: "category", label: "Category", required: true, options: ["Burgers", "Pizza", "Desserts"] },
+          { key: "price", label: "Price", required: true, type: "number", min: "0", step: "0.01", placeholder: "0.00" },
+        ]}
+        value={orderedDemoRows}
+        onChange={setOrderedDemoRows}
+      />
+
       <h1 className="my-5 text-xl font-bold text-gray-900 dark:text-[#F7F8F8]">Menu Item Card List</h1>
       <MenuItemCardList
         items={demoMenuItems}
