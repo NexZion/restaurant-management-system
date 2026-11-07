@@ -30,6 +30,17 @@ const emptyForm = {
   variant_option_assignments: [],
 };
 
+const groupOptionsByVariant = (options = []) => {
+  const groups = new Map();
+  options.forEach((option) => {
+    const id = option.variant_id ?? option.variant?.id ?? option.variant_name ?? "other";
+    const name = option.variant?.name ?? option.variant_name ?? "Other options";
+    if (!groups.has(id)) groups.set(id, { id, name, options: [] });
+    groups.get(id).options.push(option);
+  });
+  return [...groups.values()];
+};
+
 export const MenuItems = () => {
   const [items, setItems] = useState([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
@@ -727,25 +738,19 @@ export const MenuItems = () => {
             {viewingItem.variant_options?.length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold">Assigned variants</h3>
-                <div className="divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-[#25282D] dark:border-[#30343A]">
-                  {viewingItem.variant_options.map((option) => (
-                    <div
-                      key={option.id}
-                      className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
-                    >
-                      <span>
-                        {option.variant?.name ?? option.variant_name} ·{" "}
-                        {option.name}
-                      </span>
-                      <span className="text-slate-500">
-                        +
-                        {Number(
-                          option.pivot?.additional_price ??
-                            option.additional_price ??
-                            0,
-                        ).toFixed(2)}
-                      </span>
-                    </div>
+                <div className="space-y-3">
+                  {groupOptionsByVariant(viewingItem.variant_options).map((group) => (
+                    <section key={group.id} className="overflow-hidden rounded-lg border border-slate-200 dark:border-[#30343A]">
+                      <h4 className="bg-slate-50 px-3 py-2 text-sm font-semibold dark:bg-[#202226]">{group.name}</h4>
+                      <div className="divide-y divide-slate-100 dark:divide-[#25282D]">
+                        {group.options.map((option) => (
+                          <div key={option.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm">
+                            <span>{option.name}</span>
+                            <span className="text-slate-500">+{Number(option.pivot?.additional_price ?? option.additional_price ?? 0).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
                   ))}
                 </div>
               </div>
@@ -818,38 +823,21 @@ export const MenuItems = () => {
                     This item has no variant options assigned.
                   </p>
                 ) : (
-                  availabilityForm.variant_options.map((option) => (
-                    <div
-                      key={option.id}
-                      className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3 dark:border-[#30343A]"
-                    >
-                      <span className="text-sm">
-                        <span className="font-medium">
-                          {option.variant_name}
-                        </span>{" "}
-                        · {option.name}
-                      </span>
-                      <CheckboxField
-                        label="Available"
-                        checked={Boolean(option.is_available)}
-                        disabled={isSavingAvailability}
-                        onChange={(event) =>
-                          setAvailabilityForm((current) => ({
-                            ...current,
-                            variant_options: current.variant_options.map(
-                              (entry) =>
-                                entry.id === option.id
-                                  ? {
-                                      ...entry,
-                                      is_available: event.target.checked,
-                                    }
-                                  : entry,
-                            ),
-                          }))
-                        }
-                      />
-                    </div>
-                  ))
+                  <div className="space-y-3">
+                    {groupOptionsByVariant(availabilityForm.variant_options).map((group) => (
+                      <section key={group.id} className="overflow-hidden rounded-lg border border-slate-200 dark:border-[#30343A]">
+                        <h4 className="bg-slate-50 px-3 py-2 text-sm font-semibold dark:bg-[#202226]">{group.name}</h4>
+                        <div className="divide-y divide-slate-100 dark:divide-[#25282D]">
+                          {group.options.map((option) => (
+                            <div key={option.id} className="flex items-center justify-between gap-4 px-3 py-2.5">
+                              <span className="text-sm">{option.name}</span>
+                              <CheckboxField label="Available" checked={Boolean(option.is_available)} disabled={isSavingAvailability} onChange={(event) => setAvailabilityForm((current) => ({ ...current, variant_options: current.variant_options.map((entry) => entry.id === option.id ? { ...entry, is_available: event.target.checked } : entry) }))} />
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
                 )}
               </div>
             </>

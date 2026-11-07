@@ -585,8 +585,8 @@ export const NumberField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-none dark:shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-none dark:shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
@@ -823,8 +823,8 @@ export const SelectField = ({
   const selectSearchRef = useRef(null);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-200 dark:border-[#1F2226]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-300 dark:border-[#1F2226]"} rounded-lg shadow-none dark:shadow-sm`,
+    filled: `border ${error ? "border-red-500" : isOpen ? "border-blue-500 dark:border-[#5E6AD2]" : "border-slate-200 dark:border-[#1F2226]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-none dark:shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : isOpen ? "border-b-blue-500" : "border-b-slate-300 dark:border-b-slate-700"}`,
   };
 
@@ -1575,8 +1575,8 @@ export const TextAreaField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const variantStyles = {
-    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-sm`,
-    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-sm`,
+    outlined: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-300 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} rounded-lg shadow-none dark:shadow-sm`,
+    filled: `border ${error ? "border-red-500 focus:border-red-500" : "border-slate-200 dark:border-[#1F2226] focus:border-blue-500 dark:focus:border-[#5E6AD2]"} bg-slate-50 dark:bg-[#121314]/60 rounded-lg shadow-none dark:shadow-sm`,
     standard: `border-b ${error ? "border-b-red-500" : "border-b-slate-300 dark:border-b-slate-700 focus:border-b-blue-500"}`,
   };
 
