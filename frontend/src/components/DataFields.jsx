@@ -3119,7 +3119,7 @@ export const PhoneField = ({
 
         {/* Combined input row */}
         <div
-          className={`flex items-center rounded-lg border bg-white shadow-sm transition-all duration-200 dark:bg-[#121314]
+          className={`flex items-center rounded-lg border bg-white transition-all duration-200 dark:bg-[#121314]
             ${
               error
                 ? "border-red-500"
