@@ -88,9 +88,9 @@ export const Users = () => {
     api.get("/roles").then((response) => {
       const rolesData = response.data.data;
       const formattedRoles = rolesData.map((role) => ({
-          value: role.id,
-          label: role.name,
-        }));
+        value: role.id,
+        label: role.name,
+      }));
       setRoles(formattedRoles);
     });
   }, []);
@@ -552,6 +552,7 @@ export const Users = () => {
                 onChange={(e) => handleUsernameChange(e.target.value)}
                 helperText={fieldErrors.username || ""}
                 error={!!fieldErrors.username}
+                className="sm:col-span-2"
               />
               <TextField
                 required

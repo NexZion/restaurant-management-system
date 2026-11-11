@@ -38,7 +38,7 @@ class UpdateMenuItemRequest extends FormRequest
 
             'display_order' => 'nullable|integer|min:0',
 
-            'branch_assignments' => 'required|array|min:1',
+            'branch_assignments' => 'sometimes|array',
             'branch_assignments.*.branch_id' => 'required|integer|distinct|exists:branches,id',
             'branch_assignments.*.selling_price' => 'nullable|numeric|min:0',
             'branch_assignments.*.is_active' => 'required|boolean',

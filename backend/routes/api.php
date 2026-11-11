@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
+use App\Http\Controllers\Api\MenuItemAvailabilityController;
 use App\Http\Controllers\Api\MenuItemImageController;
 use App\Http\Controllers\Api\MenuController;
 use App\Http\Controllers\Api\MenuMenuItemController;
@@ -61,6 +62,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/menu-categories/{id}/reassign-items', [MenuCategoryController::class, 'reassignItems']);
     Route::apiResource('menu-categories', MenuCategoryController::class);
     Route::apiResource('menu-items', MenuItemController::class);
+    Route::get('/menu-items/{menuItem}/availability', [MenuItemAvailabilityController::class, 'show']);
+    Route::put('/menu-items/{menuItem}/availability', [MenuItemAvailabilityController::class, 'update']);
     Route::apiResource('raw-materials', RawMaterialController::class);
     Route::apiResource('units', UnitController::class);
     Route::apiResource('recipes', RecipeController::class);
