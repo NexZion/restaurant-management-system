@@ -29,6 +29,7 @@ class MenuItemAvailabilityController extends Controller
 
             return [
                 'id' => $option->id,
+                'variant_id' => $option->variant_id,
                 'name' => $option->name,
                 'variant_name' => $option->variant?->name,
                 'is_available' => (bool) ($override?->is_available ?? ($option->pivot->is_active && $option->is_active && $option->variant?->is_active)),
