@@ -100,6 +100,8 @@ export const Orders = () => {
     discount: "0",
     overallDiscountType: "none",
     overallDiscountAmount: "0",
+    includeTax: false,
+    serviceCharge: "0",
     status: "",
     paymentStatus: "unpaid",
     netTotalAmount: "",
@@ -310,6 +312,28 @@ export const Orders = () => {
     [orderItems],
   );
 
+  const itemsSubtotal = useMemo(
+    () =>
+      orderItems.reduce(
+        (sum, item) =>
+          sum + Number(item.unitPrice || 0) * Number(item.quantity || 0),
+        0,
+      ),
+    [orderItems],
+  );
+
+  const itemDiscountTotal = useMemo(
+    () =>
+      orderItems.reduce(
+        (sum, item) =>
+          sum +
+          Number(item.discountAppliedPerUnit || 0) *
+          Number(item.quantity || 0),
+        0,
+      ),
+    [orderItems],
+  );
+
   const overallDiscountAmount = useMemo(() => {
     const subtotal = Number(orderItemsTotal || 0);
     const amount = Number(formData.overallDiscountAmount || 0);
@@ -340,10 +364,30 @@ export const Orders = () => {
     () =>
       Math.max(
         0,
-        Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0),
+        Number(orderItemsTotal || 0) -
+        Number(overallDiscountAmount || 0) +
+        (formData.includeTax
+          ? (Number(orderItemsTotal || 0) -
+            Number(overallDiscountAmount || 0)) *
+          0.18
+          : 0) +
+        Number(formData.serviceCharge || 0),
       ),
-    [orderItemsTotal, overallDiscountAmount],
+    [
+      formData.includeTax,
+      formData.serviceCharge,
+      orderItemsTotal,
+      overallDiscountAmount,
+    ],
   );
+
+  const orderTaxAmount = formData.includeTax
+    ? Math.max(0, Number(orderItemsTotal || 0) - Number(overallDiscountAmount || 0)) *
+    0.18
+    : 0;
+  const serviceChargeAmount = Number(formData.serviceCharge || 0);
+  const totalDiscountAmount =
+    Number(itemDiscountTotal || 0) + Number(overallDiscountAmount || 0);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -370,20 +414,56 @@ export const Orders = () => {
     try {
       const response = await api.get(`/orders/${row.id}`);
       const order = response.data.data;
+      const loadedItems = (order.items || []).map((item) => {
+        const unitPrice = Number(item.unit_price || 0);
+        const quantity = Number(item.quantity || 0);
+        const discountAppliedPerUnit = Number(item.discount || 0);
+
+        return {
+          id: item.id,
+          itemId: item.menu_item_id,
+          image: item.menuItem?.image,
+          name: item.menuItem?.name || item.name || `Item #${item.menu_item_id}`,
+          quantity,
+          unitPrice,
+          totalPrice: unitPrice * quantity,
+          discountAppliedPerUnit,
+          netPrice: Math.max(0, unitPrice - discountAppliedPerUnit) * quantity,
+          customerNotes: item.notes || "",
+        };
+      });
+      const itemDiscountTotal = loadedItems.reduce(
+        (sum, item) =>
+          sum + item.discountAppliedPerUnit * item.quantity,
+        0,
+      );
 
       setEditingOrder(order);
       setIsEditMode(true);
       setFormData({
         id: order.id || "",
+        date: String(order.ordered_at || order.created_at || "").slice(0, 10),
+        customerId: order.customer_id || "",
         customerName: customerName(order.customer) || "",
         orderNumber: order.order_number || "",
+        orderType: order.order_type || "dine_in",
+        tableNumber: order.table_id || "",
         status: order.status || "",
         paymentStatus: order.payment_status || "unpaid",
         netTotalAmount: order.grand_total || "",
-        totalAmount: order.subtotal ?? order.sub_total ?? "",
+        totalAmount: order.sub_total ?? order.subtotal ?? "",
+        overallDiscountType: Number(order.discount_total || 0) > 0 ? "fixed" : "none",
+        overallDiscountAmount: Math.max(
+          0,
+          Number(order.discount_total || 0) - itemDiscountTotal,
+        ),
+        includeTax: Number(order.tax_total || 0) > 0,
+        serviceCharge: order.service_charge_total ?? "0",
         CustomerNotes: order.customer_note || "",
+        InternalNotes: order.internal_note || "",
         seatCount: order.seatCount || "",
       });
+      setOrderItems(loadedItems);
       setFieldErrors({});
       setShowAddOrder(true);
     } catch (error) {
@@ -433,6 +513,8 @@ export const Orders = () => {
       discount: "0",
       overallDiscountType: "none",
       overallDiscountAmount: "0",
+      includeTax: false,
+      serviceCharge: "0",
       status: "",
       paymentStatus: "unpaid",
       netTotalAmount: "",
@@ -667,7 +749,16 @@ export const Orders = () => {
         : formData.overallDiscountType === "fixed"
           ? Number(formData.overallDiscountAmount || 0)
           : 0;
-    const netTotal = Math.max(0, subtotal - orderDiscountAmount);
+    const taxableAmount = Math.max(0, subtotal - orderDiscountAmount);
+    const tax =
+      canEditUnitPrice && formData.includeTax ? taxableAmount * 0.18 : 0;
+    const serviceCharge = canEditUnitPrice
+      ? Number(formData.serviceCharge || 0)
+      : 0;
+    const netTotal = Math.max(
+      0,
+      subtotal - orderDiscountAmount + tax + serviceCharge,
+    );
     console.log("Subtotal:", subtotal);
     console.log("Order Discount:", orderDiscountAmount);
     console.log("Net Total:", netTotal);
@@ -704,8 +795,9 @@ export const Orders = () => {
       })),
       subtotal: subtotal,
       discount_total: orderDiscountAmount,
-      tax_total: 0,
-      service_charge_total: 0,
+      include_tax: canEditUnitPrice && formData.includeTax,
+      tax_total: tax,
+      service_charge_total: serviceCharge,
       grand_total: netTotal,
       payment_status: formData.paymentStatus || "unpaid",
       paid_total: formData.paymentStatus === "paid" ? netTotal : 0,
@@ -787,8 +879,14 @@ export const Orders = () => {
         order_type: order.order_type,
         status: updates.status || order.status,
         payment_status: updates.payment_status || order.payment_status || "unpaid",
+        tax_total: order.tax_total ?? 0,
+        service_charge_total: order.service_charge_total ?? 0,
+        include_tax: Number(order.tax_total || 0) > 0,
         customer_note: order.customer_note,
         internal_note: order.internal_note,
+        ...(updates.cancellation_reason
+          ? { cancellation_reason: updates.cancellation_reason }
+          : {}),
         grand_total: order.grand_total,
         paid_total: updates.paid_total ?? order.paid_total ?? 0,
         balance_due: updates.balance_due ?? order.balance_due ?? 0,
@@ -802,7 +900,20 @@ export const Orders = () => {
 
   const handleCancelOrder = async (row) => {
     if (!window.confirm(`Cancel order ${row.orderNo || ""}?`)) return;
-    await updateOrder(row, { status: "cancelled" });
+
+    const reason = window.prompt("Please enter a reason for cancelling this order:");
+    if (reason === null) return;
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      window.alert("A cancellation reason is required.");
+      return;
+    }
+
+    await updateOrder(row, {
+      status: "cancelled",
+      cancellation_reason: trimmedReason,
+    });
   };
 
   const handlePayOrder = async (row) => {
@@ -908,36 +1019,6 @@ export const Orders = () => {
       label: customer.name,
     })),
   ];
-
-  const orderSummary = viewOrder
-    ? [
-      { label: "Order Type", value: formatText(viewOrder.order_type) },
-      { label: "Date", value: formatDate(viewOrder.created_at) },
-      { label: "Branch", value: viewOrder.branch?.name },
-      {
-        label: "Table",
-        value: viewOrder.table?.table_number || viewOrder.table?.name,
-      },
-      { label: "Assigned By", value: viewOrder.assignedBy?.name },
-      { label: "Created By", value: viewOrder.creator?.name },
-      { label: "Customer Notes", value: viewOrder.customer_note || "N/A" },
-      { label: "Internal Notes", value: viewOrder.internal_note || "N/A" },
-      { label: "Seat Count", value: viewOrder.seatCount || "N/A" },
-    ]
-    : [];
-
-  const paymentSummary = viewOrder
-    ? [
-      {
-        label: "Payment Status",
-        value: formatText(viewOrder.payment_status || "unpaid"),
-      },
-      {
-        label: "Grand Total",
-        value: formatMoney(viewOrder.grand_total),
-      },
-    ]
-    : [];
 
   return (
     <div>
@@ -1177,7 +1258,7 @@ export const Orders = () => {
         }
         secondaryButtonText="Cancel"
         thirdButtonText="Draft"
-        showThirdButton={true}
+        showThirdButton={!isEditMode}
         primaryButtonDisabled={isSubmitting}
         secondaryButtonDisabled={isSubmitting}
         thirdButtonDisabled={isSubmitting}
@@ -1501,6 +1582,38 @@ export const Orders = () => {
             )}
           </div>
         </div>
+        <div className="mt-4 grid gap-3.5 md:grid-cols-2">
+          <TextField
+            label="Service Charge"
+            type="number"
+            min="0"
+            value={formData.serviceCharge}
+            disabled={!canEditUnitPrice}
+            helperText={
+              canEditUnitPrice
+                ? ""
+                : "Only roles with access level above 70 can change service charge."
+            }
+            onChange={(e) =>
+              canEditUnitPrice &&
+              setFormData({ ...formData, serviceCharge: e.target.value })
+            }
+          />
+          <CheckboxField
+            label="Include the tax"
+            checked={formData.includeTax}
+            disabled={!canEditUnitPrice}
+            helperText={
+              canEditUnitPrice
+                ? ""
+                : "Only roles with access level above 70 can include the tax."
+            }
+            onChange={(e) =>
+              canEditUnitPrice &&
+              setFormData({ ...formData, includeTax: e.target.checked })
+            }
+          />
+        </div>
         <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
           <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719] mt-4">
 
@@ -1556,7 +1669,94 @@ export const Orders = () => {
             </div>
           </div>
         </div>
-
+        <div className="mt-4 rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+          <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
+            Order Summary
+          </h4>
+          {orderItems.length > 0 && (
+            <Table
+              columns={[
+                { key: "item", label: "Item" },
+                { key: "quantity", label: "Quantity" },
+                { key: "unitPrice", label: "Unit Price" },
+                { key: "totalPrice", label: "Total Price" },
+                { key: "itemDiscount", label: "Item Discount" },
+                { key: "netPrice", label: "Net Price" },
+              ]}
+              data={orderItems.map((item) => ({
+                id: item.id,
+                item: (
+                  <div className="flex items-center gap-2.5">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-10 w-10 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 to-orange-500 text-xs font-bold text-white">
+                        {item.name?.slice(0, 2)?.toUpperCase() || "IT"}
+                      </div>
+                    )}
+                    <span className="font-semibold">{item.name}</span>
+                  </div>
+                ),
+                quantity: item.quantity,
+                unitPrice: formatMoney(item.unitPrice),
+                totalPrice: formatMoney(
+                  Number(item.unitPrice || 0) * Number(item.quantity || 0),
+                ),
+                itemDiscount: formatMoney(
+                  Number(item.discountAppliedPerUnit || 0) *
+                  Number(item.quantity || 0),
+                ),
+                netPrice: formatMoney(item.netPrice),
+              }))}
+              pagination={false}
+              actionsAlign="right"
+            />
+          )}
+          <div className="mt-3 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-[#1F2226] dark:bg-[#121314]">
+            <div className="divide-y divide-slate-200 dark:divide-[#1F2226]">
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Sub total</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(itemsSubtotal)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Order discount</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(overallDiscountAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Total discount</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(totalDiscountAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">VAT</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(orderTaxAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between px-3.5 py-2.5 text-sm">
+                <span className="text-gray-700 dark:text-[#D0D6E0]">Service charge</span>
+                <span className="font-medium text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(serviceChargeAmount)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between bg-slate-50 px-3.5 py-3 text-sm dark:bg-[#161719]">
+                <span className="font-semibold text-gray-900 dark:text-[#F7F8F8]">Bill total</span>
+                <span className="font-bold text-gray-900 dark:text-[#F7F8F8]">
+                  {formatMoney(orderNetTotal)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </Dialog>
 
@@ -1855,7 +2055,7 @@ export const Orders = () => {
         isOpen={showViewOrder}
         onClose={() => setShowViewOrder(false)}
         title="Order Details"
-        size="medium"
+        size="large"
         showFooter={viewOrder?.status === "draft"}
         primaryButtonText="Confirm"
         secondaryButtonText="Cancel"
@@ -1882,60 +2082,94 @@ export const Orders = () => {
       >
         {viewOrder && (
           <div className="space-y-5">
-            <div className="rounded border border-slate-200 bg-gray-50 p-4.5 dark:border-[#1F2226] dark:bg-[#161719]">
-              <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-950 dark:text-[#F7F8F8]">
-                    {viewOrder.order_number || "N/A"}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-[#8A8F98]">
-                    {customerName(viewOrder.customer)}
-                  </p>
-                </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold capitalize text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
-                  {formatText(viewOrder.status)}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Order Summary
-              </h4>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {orderSummary.map((item) => (
-                  <div
-                    key={item.label}
-                    className={`rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719] ${item.wide ? "sm:col-span-2" : ""
-                      }`}
-                  >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-                      {item.value || "N/A"}
-                    </p>
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  ["Order Number", viewOrder.order_number],
+                  ["Customer Name", customerName(viewOrder.customer)],
+                  ["Branch Name", viewOrder.branch?.name],
+                  ["Status", formatText(viewOrder.status)],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">
-                Bill
-              </h4>
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {paymentSummary.map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded border border-slate-200 bg-white px-3.5 py-2.5 dark:border-[#1F2226] dark:bg-[#161719]"
-                  >
-                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">
-                      {item.value || "N/A"}
-                    </p>
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">Order Summary</h4>
+              <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Order Type", formatText(viewOrder.order_type)],
+                  ["Table", viewOrder.table?.table_number || viewOrder.table?.name],
+                  ["Seat Count", viewOrder.seatCount],
+                  ["Order At", formatDate(viewOrder.ordered_at || viewOrder.created_at)],
+                  ["Customer Note", viewOrder.customer_note],
+                  ["Internal Note", viewOrder.internal_note],
+                  ...(viewOrder.status === "confirmed"
+                    ? [["Confirm At", formatDate(viewOrder.confirm_at || viewOrder.confirmed_at)]]
+                    : []),
+                  ...(viewOrder.status === "completed"
+                    ? [["Completed At", formatDate(viewOrder.completed_at)]]
+                    : []),
+                  ...(viewOrder.status === "cancelled"
+                    ? [
+                      ["Cancel At", formatDate(viewOrder.cancellation_at || viewOrder.cancelled_at)],
+                      ["Cancellation Reason", viewOrder.cancellation_reason],
+                    ]
+                    : []),
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 break-words text-sm font-medium text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-gray-50 p-3.5 dark:border-[#1F2226] dark:bg-[#161719]">
+              <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">Bill Summary</h4>
+              <Table
+                columns={[
+                  { key: "item", label: "Item" },
+                  { key: "quantity", label: "Quantity" },
+                  { key: "unitPrice", label: "Unit Price" },
+                  { key: "itemDiscount", label: "Item Discount" },
+                  { key: "netPrice", label: "Net Price" },
+                ]}
+                data={(viewOrder.items || []).map((item) => {
+                  const unitPrice = Number(item.unit_price || 0);
+                  const quantity = Number(item.quantity || 0);
+                  const discount = Number(item.discount || 0) * quantity;
+
+                  return {
+                    id: item.id,
+                    item: item.menuItem?.name || item.menu_item?.name || item.name || `Item #${item.menu_item_id}`,
+                    quantity,
+                    unitPrice: formatMoney(unitPrice),
+                    itemDiscount: formatMoney(discount),
+                    netPrice: formatMoney(Number(item.total_price || 0) - discount),
+                  };
+                })}
+                pagination={false}
+                actionsAlign="right"
+              />
+              <div className="mt-4 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ["Payment Status", formatText(viewOrder.payment_status || "unpaid")],
+                  ["Subtotal", formatMoney(viewOrder.sub_total ?? viewOrder.subtotal)],
+                  ["Discount Total", formatMoney(viewOrder.discount_total)],
+                  ["Tax Total", formatMoney(viewOrder.tax_total)],
+                  ["Service Charge Total", formatMoney(viewOrder.service_charge_total)],
+                  ["Grand Total", formatMoney(viewOrder.grand_total)],
+                  ["Paid Total", formatMoney(viewOrder.paid_total)],
+                  ["Balance Due", formatMoney(viewOrder.balance_due)],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white px-3.5 py-3 dark:border-[#1F2226] dark:bg-[#121314]">
+                    <p className="text-xs font-medium uppercase text-gray-500 dark:text-[#8A8F98]">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-[#F7F8F8]">{value || "N/A"}</p>
                   </div>
                 ))}
               </div>
